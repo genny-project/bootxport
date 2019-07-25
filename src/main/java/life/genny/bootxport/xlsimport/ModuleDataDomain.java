@@ -1,4 +1,4 @@
-package life.genny.bootxport.importation;
+package life.genny.bootxport.xlsimport;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,7 +15,7 @@ import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.validation.Validation;
 
-public class TheWorkBook {
+public class ModuleDataDomain {
 
   private static Set<String> codeKey = new HashSet<>();
   private static Set<String> baseEntityCodeattributeCodeKey =
@@ -81,7 +81,7 @@ public class TheWorkBook {
   Map<String, Map<String, String>> entityAttribute;
   Map<String, Map<String, String>> entityEntity;
 
-  public TheWorkBook(String sheetId, String moduleName) {
+  public ModuleDataDomain(String sheetId, String moduleName) {
     this.sheetId = sheetId;
     this.moduleName = moduleName;
     setBaseEntity();

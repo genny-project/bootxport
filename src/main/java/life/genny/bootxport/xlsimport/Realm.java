@@ -1,4 +1,4 @@
-package life.genny.bootxport.importation;
+package life.genny.bootxport.xlsimport;
 
 import java.util.Map;
 import io.vavr.Function1;
