@@ -13,6 +13,9 @@ import life.genny.qwanda.validation.Validation;
 
 public interface QwandaRepository {
 
+
+  public void setRealm(String realm);
+
   public Validation upsert(Validation validation);
 
   public Attribute upsert(Attribute attribute);

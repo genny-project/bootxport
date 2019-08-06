@@ -359,11 +359,13 @@ public class Export {
        dataTypeHeader.add("code");
     
        List<String> validationHeader = new ArrayList<String>();
-       validationHeader.add("code");
        validationHeader.add("name");
-       validationHeader.add("regex");
+       validationHeader.add("realm");
+       validationHeader.add("code");
        validationHeader.add("multiAllowed");
        validationHeader.add("recursiveGroup");
+       validationHeader.add("regex");
+       validationHeader.add("selectionBaseEntityGroupList");
     
        List<String> questionQuestionHeader = new ArrayList<String>();
        questionQuestionHeader.add("pk.sourceCode");
@@ -382,10 +384,6 @@ public class Export {
        messagesHeader.add("description");
        messagesHeader.add("subject");
        // messagesHeader.add("email");
-    
-       
-       
-
        
       
        ObjectMapper oMapper = new ObjectMapper();
@@ -479,10 +477,10 @@ public class Export {
          messagesHeader, tm);
          tm.write();
 //         moduleDomain.delete();
-     } catch (InvalidFormatException | IOException e) {
-     // TODO Auto-generated catch block
-       System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-     }
+       } catch (InvalidFormatException | IOException e) {
+       // TODO Auto-generated catch block
+         System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+       }
 
     
      });

@@ -10,6 +10,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -22,6 +26,9 @@ import com.google.api.services.sheets.v4.SheetsScopes;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import io.vavr.Function2;
 import io.vavr.Function3;
+import life.genny.bootxport.data.QwandaRepository;
+import life.genny.bootxport.data.QwandaRepositoryImpl;
+import life.genny.bootxport.utils.HibernateUtil;
 
 public class XlsImportOnline {
 
@@ -122,9 +129,10 @@ public class XlsImportOnline {
         mapper.put(keys.get(counter), row.get(counter).toString());
       }
       String join = mapper.keySet().stream()
-          .filter(keyColumns::contains).collect(Collectors.joining());
+          .filter(keyColumns::contains).map(mapper::get).collect(Collectors.joining());
 
-      k.put(mapper.get(join), mapper);
+
+      k.put(join, mapper);
     }
     return k;
   }
@@ -195,7 +203,7 @@ public class XlsImportOnline {
     List<Realm> realms = xlsOnline.getInTableFormat
         .apply("1zzz6bYXuryASR09Tsyok4_qiJI9n81DBsxD4oFBk5mw",
             "Projects")
-        .stream().limit(1).map(d -> {
+        .stream().limit(10).map(d -> {
 
           Realm mx = new Realm(d.get("name"), d);
           return mx;
@@ -204,6 +212,25 @@ public class XlsImportOnline {
     realms.forEach(d -> System.out.println(d.getName()));
     timeAfter = System.currentTimeMillis();
     System.out.println(timeAfter - timeBefore);
+
+    BootstrapState state = BootstrapState.getInstance();
+    
+    state.setRealms(realms);
+    SessionFactory sessionFactory = HibernateUtil.getSessionFactory();   
+    
+    
+    
+    Session openSession = sessionFactory.openSession();
+
+
+    EntityManager createEntityManager = openSession.getEntityManagerFactory().createEntityManager();
+    QwandaRepository repo = new QwandaRepositoryImpl(createEntityManager);
+    BatchLoading bl = new BatchLoading(repo);
+    
+    
+    List<Realm> realms2 = state.getRealms();
+    bl.persistProject(realms2.get(0));
+    sessionFactory.close();
 
 
   }

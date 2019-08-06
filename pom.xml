@@ -11,7 +11,7 @@
 		<qwanda-utils.version>2.3.0</qwanda-utils.version>
 		<mysql-connector.version>8.0.12</mysql-connector.version>
 		<vavr.version>0.9.1</vavr.version>
-
+		<version.hibernate-validator>5.3.6.Final</version.hibernate-validator>
 	</properties>
 
 	<dependencies>
@@ -25,6 +25,16 @@
 					<artifactId>vertx-core</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>${version.hibernate-validator}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator-annotation-processor</artifactId>
+			<version>${version.hibernate-validator}</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.validation</groupId>

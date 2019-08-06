@@ -18,14 +18,17 @@ import life.genny.qwanda.validation.Validation;
 public class ModuleDataDomain {
 
   private static Set<String> codeKey = new HashSet<>();
+
   private static Set<String> baseEntityCodeattributeCodeKey =
       new HashSet<>();
+
   private static Set<String> targetCodeParentCodeLinkCodeKey =
       new HashSet<>();
+
   private static Set<String> targetCodeParentCodeKey = new HashSet<>();
+
   private static Set<String> questionCodeSourceCodeTargetCode =
       new HashSet<>();
-
 
   static {
     codeKey.add("code");

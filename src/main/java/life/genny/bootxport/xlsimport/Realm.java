@@ -3,9 +3,8 @@ package life.genny.bootxport.xlsimport;
 import java.util.Map;
 import io.vavr.Function1;
 
-class Realm {
+public class Realm {
 
-  XlsImportOnline xlsOnline = XlsImportOnline.getInstance();
 
   private String name;
 
@@ -36,7 +35,9 @@ class Realm {
   };
 
   public Realm(String name, Map<String, String> d) {
+
     setName(name);
+
     Module m = ap.apply(d);
    
     baseEntity = m.geta.stream().map(mm -> mm.baseEntitys)
@@ -44,6 +45,7 @@ class Realm {
           ac.putAll(acc);
           return ac;
         }).get();
+
     attribute = m.geta.stream().map(mm -> {
       return mm.attribute;
     }).reduce((ac, acc) -> {

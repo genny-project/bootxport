@@ -5,8 +5,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
+import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -40,7 +40,11 @@ public class BatchLoading {
       org.apache.logging.log4j.LogManager.getLogger(
           MethodHandles.lookup().lookupClass().getCanonicalName());
 
-  public void validations(Map<String, Map<String, String>> project) {
+  public BatchLoading(QwandaRepository repo) {
+    this.service = repo;
+  }
+
+  public void validations(Map<String, Map<String, String>> project, String realmName) {
 
     ValidatorFactory factory =
         javax.validation.Validation.buildDefaultValidatorFactory();
@@ -49,12 +53,18 @@ public class BatchLoading {
       Map<String, String> validations = data.getValue();
       String regex = null;
 
+      log.info("This is the map: " + validations);
       regex = (String) validations.get("regex");
+
+      log.info("This is the regex: " + regex);
+
       if (regex != null) {
         regex = regex.replaceAll("^\"|\"$", "");
       }
       String code = ((String) validations.get("code"))
           .replaceAll("^\"|\"$", "");
+
+      log.info("This is the code: " + code);
 
       if ("VLD_AU_DRIVER_LICENCE_NO".equalsIgnoreCase(code)) {
         log.info("detected VLD_AU_DRIVER_LICENCE_NO");
@@ -81,8 +91,9 @@ public class BatchLoading {
       }
 
 
-      // val.setRealm(this.mainRealm);
-      val.setRealm((String) validations.get("realm"));
+      val.setRealm(realmName);
+
+//      val.setRealm((String) validations.get("realm"));
       log.info(validations.get("realm") + "code " + code + ",name:"
           + name + ",val:" + val + ", grp="
 
@@ -118,7 +129,7 @@ public class BatchLoading {
   }
 
   public void attributes(Map<String, Map<String, String>> project,
-      Map<String, DataType> dataTypeMap) {
+      Map<String, DataType> dataTypeMap,String realmName) {
     ValidatorFactory factory =
         javax.validation.Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
@@ -130,8 +141,9 @@ public class BatchLoading {
             .replaceAll("^\"|\"$", "");;
         String dataType = null;
         try {
-          dataType = ((String) attributes.get("dataType"))
+          dataType = ((String) attributes.get("datatype"))
               .replaceAll("^\"|\"$", "");;
+          log.info("This is the datatype object code: " + dataType);
         } catch (NullPointerException npe) {
           log.error("DataType for " + code + " cannot be null");
           throw new Exception("Bad DataType given for code " + code);
@@ -139,6 +151,7 @@ public class BatchLoading {
         String name = ((String) attributes.get("name"))
             .replaceAll("^\"|\"$", "");;
         DataType dataTypeRecord = dataTypeMap.get(dataType);
+        log.info("This is the datatype map: " + dataTypeRecord);
         String privacyStr = (String) attributes.get("privacy");
         if (privacyStr != null) {
           privacyStr = privacyStr.toUpperCase();
@@ -161,7 +174,7 @@ public class BatchLoading {
         attr.setHelp(helpStr);
         attr.setPlaceholder(placeholderStr);
         attr.setDefaultValue(defaultValueStr);
-        attr.setRealm((String) attributes.get("realm"));
+        attr.setRealm(realmName);
         // attr.setRealm(mainRealm);
         Set<ConstraintViolation<Attribute>> constraints =
             validator.validate(attr);
@@ -212,36 +225,28 @@ public class BatchLoading {
     return dataTypeMap;
   }
 
-  public void baseEntitys(Map<String, Map<String, String>> project) {
-    ValidatorFactory factory =
-        javax.validation.Validation.buildDefaultValidatorFactory();
-    Validator validator = factory.getValidator();
+  public void baseEntitys(Map<String, Map<String, String>> project,String realmName) {
+		ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
+		Validator validator = factory.getValidator();
 
-    project.entrySet().stream().forEach(data -> {
-      Map<String, String> baseEntitys = data.getValue();
-      String code = ((String) baseEntitys.get("code"))
-          .replaceAll("^\"|\"$", "");;
-      String name = getNameFromMap(baseEntitys, "name", code);
-      BaseEntity be = new BaseEntity(code, name);
+		project.entrySet().stream().forEach(data -> {
+			Map<String, String> baseEntitys = data.getValue();
+			String code = ((String) baseEntitys.get("code")).replaceAll("^\"|\"$", "");
+			;
+			String name = getNameFromMap(baseEntitys, "name", code);
+			BaseEntity be = new BaseEntity(code, name);
 
+			be.setRealm(realmName);
 
-      // be.setRealm(mainRealm);
-      be.setRealm((String) baseEntitys.get("realm"));
+			Set<ConstraintViolation<BaseEntity>> constraints = validator.validate(be);
+			for (ConstraintViolation<BaseEntity> constraint : constraints) {
+				log.info(constraint.getPropertyPath() + " " + constraint.getMessage());
+			}
 
-
-      Set<ConstraintViolation<BaseEntity>> constraints =
-          validator.validate(be);
-      for (ConstraintViolation<BaseEntity> constraint : constraints) {
-        log.info(constraint.getPropertyPath() + " "
-            + constraint.getMessage());
-      }
-      if ("SEL_OCCUPATION_SALES".equals(code)) {
-        log.info("SEL_OCCUPATION_SALES");
-      }
-      if (constraints.isEmpty()) {
-        service.upsert(be);
-      }
-    });
+			if (constraints.isEmpty()) {
+				service.upsert(be);
+			}
+		});
   }
 
   private String getNameFromMap(Map<String, String> baseEntitys,
@@ -257,8 +262,10 @@ public class BatchLoading {
   }
 
   public void baseEntityAttributes(
-      Map<String, Map<String, String>> project) {
+      Map<String, Map<String, String>> project,String realmName) {
+
     project.entrySet().stream().forEach(data -> {
+
       Map<String, String> baseEntityAttr = data.getValue();
       String attributeCode = null;
       try {
@@ -272,7 +279,6 @@ public class BatchLoading {
         valueString = valueString.replaceAll("^\"|\"$", "");
       }
       String baseEntityCode = null;
-
       try {
         baseEntityCode =
             ((String) baseEntityAttr.get("baseEntityCode"))
@@ -284,6 +290,7 @@ public class BatchLoading {
         BaseEntity be = null;
         try {
           attribute = service.findAttributeByCode(attributeCode);
+          log.info("attributeCode: " + attribute.getCode());
           if (attribute == null) {
             log.error("BASE ENTITY CODE: " + baseEntityCode);
             log.error(
@@ -306,7 +313,7 @@ public class BatchLoading {
               e.printStackTrace();
             }
             // be.setRealm(mainRealm);
-            be.setRealm((String) baseEntityAttr.get("realm"));
+            be.setRealm(realmName);
             service.updateWithAttributes(be);
           }
         } catch (final NoResultException e) {
@@ -370,7 +377,7 @@ public class BatchLoading {
   }
 
   public void questionQuestions(
-      Map<String, Map<String, String>> project) {
+      Map<String, Map<String, String>> project,String realmName) {
     project.entrySet().stream().forEach(data -> {
       Map<String, String> queQues = data.getValue();
       String parentCode = (String) queQues.get("parentCode");
@@ -412,7 +419,7 @@ public class BatchLoading {
           qq.setReadonly(readonly);
 
           // qq.setRealm(mainRealm);
-          qq.setRealm((String) queQues.get("realm"));
+          qq.setRealm(realmName);
 
           QuestionQuestion existing = null;
           try {
@@ -451,7 +458,7 @@ public class BatchLoading {
   }
 
   public void attributeLinks(Map<String, Map<String, String>> project,
-      Map<String, DataType> dataTypeMap) {
+      Map<String, DataType> dataTypeMap,String realmName) {
     project.entrySet().stream().forEach(data -> {
       Map<String, String> attributeLink = data.getValue();
 
@@ -473,7 +480,7 @@ public class BatchLoading {
         linkAttribute.setDefaultPrivacyFlag(privacy);
         linkAttribute.setDataType(dataTypeRecord);
         // linkAttribute.setRealm(mainRealm);
-        linkAttribute.setRealm((String) attributeLink.get("realm"));
+        linkAttribute.setRealm(realmName);
         service.upsert(linkAttribute);
       } catch (Exception e) {
         String name = ((String) attributeLink.get("name"))
@@ -493,7 +500,7 @@ public class BatchLoading {
     });
   }
 
-  public void questions(Map<String, Map<String, String>> project) {
+  public void questions(Map<String, Map<String, String>> project,String realmName) {
     project.entrySet().stream().forEach(data -> {
       Map<String, String> questions = data.getValue();
       String code = (String) questions.get("code");
@@ -518,7 +525,7 @@ public class BatchLoading {
 
 
       // q.setRealm(mainRealm);
-      q.setRealm((String) questions.get("realm"));
+      q.setRealm(realmName);
 
 
       Question existing = service.findQuestionByCode(code);
@@ -530,7 +537,7 @@ public class BatchLoading {
 
 
             // val.setRealm(mainRealm);
-            val.setRealm((String) questions.get("realm"));
+            val.setRealm(realmName);
 
 
             service.updateRealm(val);
@@ -549,7 +556,7 @@ public class BatchLoading {
     });
   }
 
-  public void asks(Map<String, Map<String, String>> project) {
+  public void asks(Map<String, Map<String, String>> project, String realmName) {
     project.entrySet().stream().forEach(data -> {
       Map<String, String> asks = data.getValue();
       String attributeCode = (String) asks.get("attributeCode");
@@ -579,7 +586,7 @@ public class BatchLoading {
       ask.setReadonly(readonly);
 
       // ask.setRealm(mainRealm);
-      ask.setRealm((String) asks.get("realm"));
+      ask.setRealm(realmName);
 
 
       service.insert(ask);
@@ -592,7 +599,7 @@ public class BatchLoading {
 
 
   public void messageTemplates(
-      Map<String, Map<String, String>> project) {
+      Map<String, Map<String, String>> project,String realmName) {
 
     project.entrySet().stream().forEach(data -> {
 
@@ -622,6 +629,7 @@ public class BatchLoading {
       } else {
         try {
           QBaseMSGMessageTemplate msg =
+
               service.findTemplateByCode(code);
           try {
             if (msg != null) {
@@ -672,19 +680,19 @@ public class BatchLoading {
     });
   }
 
-  public void persistProject(boolean isSynchronise, String table,
-      boolean isDelete, Realm rx) {
+  public void persistProject(Realm rx) {
 
-    validations(rx.getValidation());
+    service.setRealm(rx.getName());
+    validations(rx.getValidation(),rx.getName());
     Map<String, DataType> dataTypes = dataType(rx.getDataType());
-    attributes(rx.getAttribute(), dataTypes);
-    baseEntitys(rx.getBaseEntity());
-    baseEntityAttributes(rx.getEntityAttribute());
-    attributeLinks(rx.getAttributeLink(), dataTypes);
+    attributes(rx.getAttribute(), dataTypes,rx.getName());
+    baseEntitys(rx.getBaseEntity(),rx.getName());
+    attributeLinks(rx.getAttributeLink(), dataTypes,rx.getName());
+    baseEntityAttributes(rx.getEntityAttribute(),rx.getName());
     entityEntitys(rx.getEntityEntity());
-    questions(rx.getQuestion());
-    questionQuestions(rx.getQuestionQuestion());
-    messageTemplates(rx.getNotifications());
+    questions(rx.getQuestion(),rx.getName());
+    questionQuestions(rx.getQuestionQuestion(),rx.getName());
+    messageTemplates(rx.getNotifications(),rx.getName());
 
   }
 }
