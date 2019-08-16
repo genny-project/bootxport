@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Font;
@@ -121,7 +121,6 @@ public class Export {
     try {
       createWorkSheets(multitenancySheetNames, templateMultitenancy);                                  //7
     } catch (IOException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
     
@@ -132,10 +131,8 @@ public class Export {
       OutputStream os = new FileOutputStream(outputMultitenancy);                                      //10
       transformer = PoiTransformer.createTransformer(is, os);                                          //11
     } catch (IOException e1) {
-      // TODO Auto-generated catch block
       e1.printStackTrace();
     } catch (InvalidFormatException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
 
@@ -154,7 +151,6 @@ public class Export {
       transformer.write();                                                                             //15
       multitenancyTemplateFile.delete();                                                               //16
     } catch (InvalidFormatException | IOException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
 
@@ -192,7 +188,6 @@ public class Export {
       try {
         createWorkSheets(moduleSheetNames, realmWithPath.getValue());                                  //7
       } catch (IOException e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       }
 
@@ -203,10 +198,8 @@ public class Export {
         OutputStream os = new FileOutputStream(modulePaths.get(realmWithPath.getKey()));                                      //10
         transmer = PoiTransformer.createTransformer(is, os);                                          //11
       } catch (IOException e1) {
-        // TODO Auto-generated catch block
         e1.printStackTrace();
       } catch (InvalidFormatException e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       }
       
@@ -238,7 +231,6 @@ public class Export {
         transmer.write();                                                                            //15
         moduleTemplateFile.delete();                                                               //16
       } catch (InvalidFormatException | IOException e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       }
     });
@@ -259,71 +251,14 @@ public class Export {
     
        ObjectMapper oMapper = new ObjectMapper();
 
-//       io.vavr.collection.List<Tuple2<Attribute,Map<String,String>>> dataTypesTuple = 
-//           io.vavr.collection.List.ofAll(attributes).map(at -> {
-//
-//               Map<String,String> obj =  oMapper.convertValue(at.dataType, Map.class);
-//                
-//               Optional<Validation> findFirst = at.getDataType().getValidationList().stream().findFirst();
-//  
-//               if(findFirst.isPresent())
-//                obj.put("validationList", findFirst.get().getCode());
-//  
-//                obj.put("code",UUID.randomUUID().toString());
-//                
-//
-//                ExportedDataType dataType = (ExportedDataType) at.getDataType();
-//                at.setDataType(dataType);
-//               return Tuple.of(at,obj);
-//             })
-//           .toList();
        
-       io.vavr.collection.List<Attribute> dataTypesTuple = 
-           io.vavr.collection.List.ofAll(attributes).map(at -> {
-
-               Map<String,String> obj =  oMapper.convertValue(at.dataType, Map.class);
-                
-               Optional<Validation> findFirst = at.getDataType().getValidationList().stream().findFirst();
-  
-               if(findFirst.isPresent())
-                obj.put("validationList", findFirst.get().getCode());
-  
-                obj.put("code",UUID.randomUUID().toString());
-                
-                ExportedDataType exportedDataType = new ExportedDataType(UUID.randomUUID().toString());
-                DataType dataType = at.getDataType();
-               
-                exportedDataType.setClassName(dataType.getClassName());
-                exportedDataType.setInputmask(dataType.getInputmask());
-                exportedDataType.setTypeName(dataType.getTypeName());
-                exportedDataType.setValidationList(dataType.getValidationList());
-
-                
-                at.setDataType(exportedDataType);
-               return at;
-             })
-           .toList();
-       
-//       dataTypesTuple.toStream().forEach(attributeAndDataType -> System.out.println(attributeAndDataType._2()));
-       dataTypesTuple.toStream().forEach(attributeAndDataType -> System.out.println(attributeAndDataType.getDataType()));
+//       List<Attribute> attributeLinkList = io.vavr.collection.List.ofAll(attributes)
+//           .filter(a -> a.getCode().startsWith("LNK")).toJavaList();
        
 
-       // attributes.map()
-       // List<Attribute> attributeList = attributes.filter(a ->
-       
-       
-       
-       
-       // !a.getCode().startsWith("LNK")).toJavaList();
-       List<Attribute> attributeLinkList = io.vavr.collection.List.ofAll(attributes)
-           .filter(a -> a.getCode().startsWith("LNK")).toJavaList();
-       
-
-       List<Attribute> attributeList = io.vavr.collection.List.ofAll(attributes)
-       .removeAll(a -> a.getCode().startsWith("LNK")).toJavaList();
+//       List<Attribute> attributeList = io.vavr.collection.List.ofAll(attributes)
+//       .removeAll(a -> a.getCode().startsWith("LNK")).toJavaList();
     
-    
-//       System.out.println(d.getEntityAttributes().si.length());
     
        List<String> names = new ArrayList<String>();
        names.add("Ask");
@@ -400,10 +335,6 @@ public class Export {
        attributeHeader.add("code");
        attributeHeader.add("name");
        attributeHeader.add("datatype");
-//       attributeHeader.add("dataType.code");
-//       attributeHeader.add("dataType.className");
-//       attributeHeader.add("dataType.inputmask");
-//       attributeHeader.add("dataType.typeName");
     
        List<String> dataTypeHeader = new ArrayList<String>();
        dataTypeHeader.add("typeName");
@@ -441,20 +372,19 @@ public class Export {
        messagesHeader.add("toast_template");
        messagesHeader.add("sms_template");
        
-//       ObjectMapper oMapper = new ObjectMapper();
 
-       List<Map> list = dataTypes.map(type -> 
-         {
-            Map<String,String> obj =  oMapper.convertValue(type, Map.class);
-             
-            Optional<Validation> findFirst = type.getValidationList().stream().findFirst();
-
-            if(findFirst.isPresent())
-              obj.put("validationList", findFirst.get().getCode());
-
-            return  obj;
-         }
-       ).collect(Collectors.toList());
+//       List<Map> list = dataTypes.map(type -> 
+//         {
+//            Map<String,String> obj =  oMapper.convertValue(type, Map.class);
+//             
+//            Optional<Validation> findFirst = type.getValidationList().stream().findFirst();
+//
+//            if(findFirst.isPresent())
+//              obj.put("validationList", findFirst.get().getCode());
+//
+//            return  obj;
+//         }
+//       ).collect(Collectors.toList());
       
        List<Tuple2<Map<String,String>,Map<String,String>>> list2 = attributes.stream().map(type -> {
             Map<String,String> attributeMap =  oMapper.convertValue(type, Map.class);
@@ -483,29 +413,10 @@ public class Export {
        List<Map<String,String>> attributesLinkMap = attributesMap.stream()
            .filter(a -> a.get("code").startsWith("LNK")).collect(Collectors.toList());
 
-       List<Map> collect = list.stream().distinct().collect(Collectors.toList());
-//       List<Map> collect2 = collect.stream().map(type ->{
-//          type.put("code",UUID.randomUUID());
-//          return type;
-//       }).collect(Collectors.toList());
-       
-//       List<Map> collect = list.stream().distinct().collect(Collectors.toList());
-//       List<Map> collect2 = collect.stream().map(type ->{
-//          type.put("code",UUID.randomUUID());
-//          return type;
-//       }).collect(Collectors.toList());
-//       List<Map> collect = list.stream().map(m -> {
-//         Optional<Validation> findFirst = ((List) m.get("validationList")).stream().findFirst();
-//         if(findFirst.isPresent())
-//           m.replace("validationList", findFirst.get().getCreated());
-//         return m;
-//         }
-//       ).collect(Collectors.toList());
        
        try {
           dataTypeHeader.add("validationList");
        } catch (Exception e2) {
-       // TODO Auto-generated catch block
        }
        String template =
        "/Users/helios/.genny/" + d.getName() + "-template.xlsx";
@@ -514,7 +425,6 @@ public class Export {
        try {
        createWorkSheets(names, template);
        } catch (IOException e) {
-       // TODO Auto-generated catch block
        e.printStackTrace();
        }
     
@@ -525,10 +435,8 @@ public class Export {
          OutputStream os = new FileOutputStream(output);
          tm = PoiTransformer.createTransformer(is, os);
          } catch (IOException e1) {
-         // TODO Auto-generated catch block
          e1.printStackTrace();
          } catch (InvalidFormatException e) {
-         // TODO Auto-generated catch block
          e.printStackTrace();
        }
        try {
@@ -562,7 +470,6 @@ public class Export {
          tm.write();
          moduleDomain.delete();
        } catch (InvalidFormatException | IOException e) {
-       // TODO Auto-generated catch block
          System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
        }
 
@@ -604,10 +511,10 @@ public class Export {
     });
     FileOutputStream fileOut = new FileOutputStream(name);
     workbook.write(fileOut);
+//    workbook.close();
     fileOut.close();
   }
 
-  // private static String output = "target/listener_demo_output.xls";
 
   public <T> void applyToWorksheet(String worksheetName,
       List<T> objects, List<String> header, Transformer transformer)
@@ -621,7 +528,7 @@ public class Export {
 
     List<String> capitalizedHeaders = header.stream()
         .map(Export::lastFromSplit)
-//        .map(StringUtils::capitalize)
+        .map(StringUtils::capitalize)
         .collect(Collectors.toList());
 
     Context context = new Context();
@@ -646,27 +553,3 @@ public class Export {
 
 }
 
-
-class ExportedDataType extends DataType{
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private String code; 
-  
-  
-
-  ExportedDataType(String code){
-    this.code = code;
-    
-  }
-  
-  public String getCode() {
-    return code;
-  }
-
-  @Override
-  public String toString() {
-    return "ExportedDataType [code=" + code + "]";
-  }
-} 
