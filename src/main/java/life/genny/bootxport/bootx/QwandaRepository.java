@@ -1,4 +1,4 @@
-package life.genny.bootxport.data;
+package life.genny.bootxport.bootx;
 
 import javax.persistence.NoResultException;
 import javax.validation.constraints.NotNull;

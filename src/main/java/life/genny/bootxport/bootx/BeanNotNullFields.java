@@ -1,4 +1,4 @@
-package life.genny.bootxport.data;
+package life.genny.bootxport.bootx;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
@@ -14,21 +14,6 @@ public class BeanNotNullFields extends BeanUtilsBean {
   private final Log log = LogFactory.getLog(BeanUtils.class);
 
 
-//  @Override
-//  public void copyProperty(Object dest, String name, Object value) {
-//    if (value == null)
-//      return;
-//    try {
-//      super.copyProperty(dest, name, value);
-//    } catch (IllegalAccessException e) {
-//      // TODO Auto-generated catch block
-//      e.printStackTrace();
-//    } catch (InvocationTargetException e) {
-//      // TODO Auto-generated catch block
-//      e.printStackTrace();
-//    }
-//  }
-
   @Override
   public void copyProperties(final Object dest, final Object orig)
       throws IllegalAccessException, InvocationTargetException {
@@ -41,7 +26,7 @@ public class BeanNotNullFields extends BeanUtilsBean {
       throw new IllegalArgumentException("No origin bean specified");
     }
     if (log.isDebugEnabled()) {
-//      log.debug("BeanUtils.copyProperties(" + dest + ", " + orig + ")");
+      log.debug("BeanUtils.copyProperties(" + dest + ", " + orig + ")");
     }
 
     // Copy the properties, converting as necessary

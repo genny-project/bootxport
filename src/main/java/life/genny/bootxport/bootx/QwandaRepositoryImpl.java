@@ -1,4 +1,4 @@
-package life.genny.bootxport.data;
+package life.genny.bootxport.bootx;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
@@ -56,12 +56,13 @@ public class QwandaRepositoryImpl implements QwandaRepository {
   protected EntityManager getEntityManager() {
     return em;
   }
+  
 
   @Override
   public Validation upsert(Validation validation) {
     String realm = validation.getRealm();
     EntityTransaction transaction = em.getTransaction();
-//    transaction.begin();
+    if(!transaction.isActive()) transaction.begin();
     try {
       String code = validation.getCode();
       Validation val = null;
@@ -70,7 +71,6 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         BeanNotNullFields copyFields = new BeanNotNullFields();
         copyFields.copyProperties(val, validation);
         val.setRealm(realm);
-        System.out.println(val);
         val = getEntityManager().merge(val);
       } else {
         throw new NoResultException();
@@ -229,7 +229,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
   @Override
   public Attribute upsert(Attribute attr) {
     EntityTransaction transaction = em.getTransaction();
-    transaction.begin();
+    if(!transaction.isActive()) transaction.begin();
     try {
       String code = attr.getCode();
       Attribute val = findAttributeByCode(code);
@@ -669,7 +669,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
   @Override
   public QuestionQuestion upsert(QuestionQuestion qq) {
     EntityTransaction transaction = em.getTransaction();
-//    transaction.begin();
+    if(!transaction.isActive()) transaction.begin();
     try {
       QuestionQuestion existing =
           findQuestionQuestionByCode(qq.getPk().getSource().getCode(),
@@ -709,7 +709,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
   public Long updateRealm(Question que) {
     Long result = 0L;
     EntityTransaction transaction = em.getTransaction();
-    transaction.begin();
+    if(!transaction.isActive()) transaction.begin();
 
     try {
       result = (long) getEntityManager().createQuery(
@@ -730,7 +730,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
   public Long insert(final Question question) {
 
     EntityTransaction transaction = em.getTransaction();
-    transaction.begin();
+    if(!transaction.isActive()) transaction.begin();
     try {
       question.setRealm(getRealm());
       getEntityManager().persist(question);
@@ -792,7 +792,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
   @Override
   public Long updateRealm(QBaseMSGMessageTemplate msg) {
     EntityTransaction transaction = em.getTransaction();
-    transaction.begin();
+    if(!transaction.isActive()) transaction.begin();
     Long result = 0L;
     try {
       result = (long) getEntityManager().createQuery(
@@ -810,7 +810,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
   @Override
   public Long insert(final QBaseMSGMessageTemplate template) {
     EntityTransaction transaction = em.getTransaction();
-    transaction.begin();
+    if(!transaction.isActive()) transaction.begin();
     template.setRealm(getRealm());
     try {
       getEntityManager().persist(template);
@@ -824,7 +824,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
   @Override
   public Long update(final QBaseMSGMessageTemplate template) {
     EntityTransaction transaction = em.getTransaction();
-    transaction.begin();
+    if(!transaction.isActive()) transaction.begin();
     template.setRealm(getRealm());
     getEntityManager().merge(template);
     transaction.commit();

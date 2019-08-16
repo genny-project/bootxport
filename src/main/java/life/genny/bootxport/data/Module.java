@@ -11,12 +11,12 @@ import life.genny.qwanda.validation.Validation;
 
 public class Module {
 
-  private List<Attribute> attributes;
-  private List<Validation> validations;
-  private List<QBaseMSGMessageTemplate> messages;
-  private List<QuestionQuestion> questionQuestions;
-  private List<Ask> asks;
-  private List<EntityEntity> entityEntitys;
-  private List<BaseEntity> baseEntitys;
+//  private List<Attribute> attributes;
+//  private List<Validation> validations;
+//  private List<QBaseMSGMessageTemplate> messages;
+//  private List<QuestionQuestion> questionQuestions;
+//  private List<Ask> asks;
+//  private List<EntityEntity> entityEntitys;
+//  private List<BaseEntity> baseEntitys;
 
 }

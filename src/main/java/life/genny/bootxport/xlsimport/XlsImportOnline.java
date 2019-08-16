@@ -1,6 +1,7 @@
 package life.genny.bootxport.xlsimport;
 
 import java.io.FileInputStream;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,7 +12,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import com.google.api.client.auth.oauth2.Credential;
@@ -26,15 +26,15 @@ import com.google.api.services.sheets.v4.SheetsScopes;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import io.vavr.Function2;
 import io.vavr.Function3;
-import life.genny.bootxport.data.QwandaRepository;
-import life.genny.bootxport.data.QwandaRepositoryImpl;
+import life.genny.bootxport.bootx.QwandaRepository;
+import life.genny.bootxport.bootx.QwandaRepositoryImpl;
 import life.genny.bootxport.utils.HibernateUtil;
+
 
 public class XlsImportOnline {
 
   private final String RANGE = "!A1:Z";
 
-  private String sheetId;
 
   private final JsonFactory JSON_FACTORY =
       JacksonFactory.getDefaultInstance();
@@ -96,17 +96,20 @@ public class XlsImportOnline {
   public List<Map<String, String>> toTableFormat(
       final List<List<Object>> values) {
 
-    final List<String> keys = new ArrayList<String>();
+    List<String> header = values.get(0)
+        .stream()
+        .map(d -> d.toString())
+        .collect(Collectors.toList());
     final List<Map<String, String>> k = new ArrayList<>();
     for (final Object key : values.get(0)) {
-      keys.add((String) key);
+      header.add((String) key);
     }
     values.remove(0);
     for (final List row : values) {
       final Map<String, String> mapper =
           new HashMap<String, String>();
       for (int counter = 0; counter < row.size(); counter++) {
-        mapper.put(keys.get(counter), row.get(counter).toString());
+        mapper.put(header.get(counter), row.get(counter).toString());
       }
       k.add(mapper);
     }
@@ -116,17 +119,21 @@ public class XlsImportOnline {
   public Map<String, Map<String, String>> toTableFormatInKey(
       final List<List<Object>> values, Set<String> keyColumns) {
 
-    final List<String> keys = new ArrayList<String>();
+    List<String> header = values.get(0)
+        .stream()
+        .map(d -> d.toString())
+        .collect(Collectors.toList());
+
     final Map<String, Map<String, String>> k = new HashMap<>();
     for (final Object key : values.get(0)) {
-      keys.add((String) key);
+      header.add((String) key);
     }
     values.remove(0);
     for (final List row : values) {
       final Map<String, String> mapper =
           new HashMap<String, String>();
       for (int counter = 0; counter < row.size(); counter++) {
-        mapper.put(keys.get(counter), row.get(counter).toString());
+        mapper.put(header.get(counter), row.get(counter).toString());
       }
       String join = mapper.keySet().stream()
           .filter(keyColumns::contains).map(mapper::get).collect(Collectors.joining());
@@ -193,48 +200,39 @@ public class XlsImportOnline {
 
   public static void main(String... args)
       throws GoogleJsonResponseException {
-
     XlsImportOnline xlsOnline = XlsImportOnline.getInstance();
-
     long timeBefore = 0;
     long timeAfter = 0;
-
     timeBefore = System.currentTimeMillis();
     List<Realm> realms = xlsOnline.getInTableFormat
         .apply("1zzz6bYXuryASR09Tsyok4_qiJI9n81DBsxD4oFBk5mw",
             "Projects")
-        .stream().limit(10).map(d -> {
+        .stream().map(d -> {
 
-          Realm mx = new Realm(d.get("name"), d);
+          Realm mx = new Realm(d.get("code"), d);
           return mx;
         }).collect(Collectors.toList());
-
-    realms.forEach(d -> System.out.println(d.getName()));
-    timeAfter = System.currentTimeMillis();
-    System.out.println(timeAfter - timeBefore);
-
-    BootstrapState state = BootstrapState.getInstance();
-    
-    state.setRealms(realms);
-    SessionFactory sessionFactory = HibernateUtil.getSessionFactory();   
+    realms.forEach(d -> System.out.println(d.getBaseEntity().size()));
     
     
-    
-    Session openSession = sessionFactory.openSession();
-
-
-    EntityManager createEntityManager = openSession.getEntityManagerFactory().createEntityManager();
-    QwandaRepository repo = new QwandaRepositoryImpl(createEntityManager);
-    BatchLoading bl = new BatchLoading(repo);
-    
-    
-    List<Realm> realms2 = state.getRealms();
-    bl.persistProject(realms2.get(0));
-    sessionFactory.close();
-
-
+//    timeAfter = System.currentTimeMillis();
+//    BootstrapState state = BootstrapState.getInstance();
+////    state.setRealms(realms);
+//    SessionFactory sessionFactory = HibernateUtil.getSessionFactory();   
+//    Session openSession = sessionFactory.openSession();
+//    EntityManager createEntityManager = openSession.getEntityManagerFactory().createEntityManager();
+//    QwandaRepository repo = new QwandaRepositoryImpl(createEntityManager);
+//    BatchLoading bl = new BatchLoading(repo);
+////    bl.persistProject(realms2.get(0));
+//    realms.stream().forEach(bl::persistProject);
+//
+//    sessionFactory.close();
+//    System.out.println(timeAfter - timeBefore);
   }
 
 }
-
+//1239
+//317
+//352
+//345
 

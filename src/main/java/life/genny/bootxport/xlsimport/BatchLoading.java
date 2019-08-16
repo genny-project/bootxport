@@ -6,14 +6,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
-import life.genny.bootxport.data.QwandaRepository;
+import life.genny.bootxport.bootx.QwandaRepository;
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
@@ -53,10 +52,8 @@ public class BatchLoading {
       Map<String, String> validations = data.getValue();
       String regex = null;
 
-      log.info("This is the map: " + validations);
       regex = (String) validations.get("regex");
 
-      log.info("This is the regex: " + regex);
 
       if (regex != null) {
         regex = regex.replaceAll("^\"|\"$", "");
@@ -64,7 +61,6 @@ public class BatchLoading {
       String code = ((String) validations.get("code"))
           .replaceAll("^\"|\"$", "");
 
-      log.info("This is the code: " + code);
 
       if ("VLD_AU_DRIVER_LICENCE_NO".equalsIgnoreCase(code)) {
         log.info("detected VLD_AU_DRIVER_LICENCE_NO");
@@ -74,8 +70,8 @@ public class BatchLoading {
           .replaceAll("^\"|\"$", "");;
       String recursiveStr = (String) validations.get("recursive");
       String multiAllowedStr =
-          (String) validations.get("multi_allowed");
-      String groupCodesStr = (String) validations.get("group_codes");
+          (String) validations.get("multi_allowed".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+      String groupCodesStr = (String) validations.get("group_codes".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
       Boolean recursive = getBooleanFromString(recursiveStr);
       Boolean multiAllowed = getBooleanFromString(multiAllowedStr);
 
@@ -90,10 +86,8 @@ public class BatchLoading {
 
       }
 
-
       val.setRealm(realmName);
 
-//      val.setRealm((String) validations.get("realm"));
       log.info(validations.get("realm") + "code " + code + ",name:"
           + name + ",val:" + val + ", grp="
 
@@ -167,7 +161,7 @@ public class BatchLoading {
         String placeholderStr =
             (String) attributes.get("placeholder");
         String defaultValueStr =
-            (String) attributes.get("defaultValue");
+            (String) attributes.get("defaultValue".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
         Attribute attr = new Attribute(code, name, dataTypeRecord);
         attr.setDefaultPrivacyFlag(privacy);
         attr.setDescription(descriptionStr);
@@ -269,19 +263,19 @@ public class BatchLoading {
       Map<String, String> baseEntityAttr = data.getValue();
       String attributeCode = null;
       try {
-        attributeCode = ((String) baseEntityAttr.get("attributeCode"))
+        attributeCode = ((String) baseEntityAttr.get("attributeCode".toLowerCase().replaceAll("^\"|\"$|_|-", "")))
             .replaceAll("^\"|\"$", "");
       } catch (Exception e2) {
         log.error("AttributeCode not found [" + baseEntityAttr + "]");
       }
-      String valueString = (String) baseEntityAttr.get("valueString");
+      String valueString = (String) baseEntityAttr.get("valueString".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
       if (valueString != null) {
         valueString = valueString.replaceAll("^\"|\"$", "");
       }
       String baseEntityCode = null;
       try {
         baseEntityCode =
-            ((String) baseEntityAttr.get("baseEntityCode"))
+            ((String) baseEntityAttr.get("baseEntityCode".toLowerCase().replaceAll("^\"|\"$|_|-", "")))
                 .replaceAll("^\"|\"$", "");
         String weight = (String) baseEntityAttr.get("weight");
         String privacyStr = (String) baseEntityAttr.get("privacy");
@@ -322,7 +316,7 @@ public class BatchLoading {
       } catch (Exception e1) {
         String beCode = "BAD BE CODE";
         if (baseEntityAttr != null) {
-          beCode = (String) baseEntityAttr.get("baseEntityCode");
+          beCode = (String) baseEntityAttr.get("baseEntityCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
         }
         log.error(
             "Error in getting baseEntityAttr  for AttributeCode "
@@ -336,11 +330,19 @@ public class BatchLoading {
       Map<String, Map<String, String>> project) {
     project.entrySet().stream().forEach(data -> {
       Map<String, String> entEnts = data.getValue();
-      String linkCode = (String) entEnts.get("linkCode");
-      String parentCode = (String) entEnts.get("parentCode");
-      String targetCode = (String) entEnts.get("targetCode");
+      String linkCode = (String) entEnts.get("linkCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+
+      if(linkCode == null)
+        linkCode = (String) entEnts.get("code".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+
+      String parentCode = (String) entEnts.get("parentCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+
+      if(parentCode == null)
+        parentCode = (String) entEnts.get("sourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+
+      String targetCode = (String) entEnts.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
       String weightStr = (String) entEnts.get("weight");
-      String valueString = (String) entEnts.get("valueString");
+      String valueString = (String) entEnts.get("valueString".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
       final Double weight = Double.valueOf(weightStr);
       BaseEntity sbe = null;
       BaseEntity tbe = null;
@@ -380,20 +382,32 @@ public class BatchLoading {
       Map<String, Map<String, String>> project,String realmName) {
     project.entrySet().stream().forEach(data -> {
       Map<String, String> queQues = data.getValue();
-      String parentCode = (String) queQues.get("parentCode");
-      String targetCode = (String) queQues.get("targetCode");
+      String parentCode = (String) queQues.get("parentCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+      if(parentCode == null)
+        parentCode = (String) queQues.get("sourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+      
+      String targetCode = (String) queQues.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
       String weightStr = (String) queQues.get("weight");
       String mandatoryStr = (String) queQues.get("mandatory");
       String readonlyStr = (String) queQues.get("readonly");
-      Boolean readonly = readonlyStr == null ? false
-          : "TRUE".equalsIgnoreCase(readonlyStr);
+      Boolean readonly = readonlyStr == null ? false : "TRUE".equalsIgnoreCase(readonlyStr);
 
       Double weight = 0.0;
+
+//      if(weightStr == null) {
+//        System.out.println("This is the weight: " + weightStr);
+//        System.out.println("This is the parentCode: " + parentCode);
+//        System.out.println("This is the targetCode: " + targetCode);
+//        System.out.println("This is the realmName: " + realmName);
+//        weightStr = "0.0";
+//        System.exit(1);
+//      }
+
       try {
         weight = Double.valueOf(weightStr);
       } catch (NumberFormatException e1) {
         weight = 0.0;
-      }
+      }  
       Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
 
       Question sbe = null;
@@ -468,7 +482,7 @@ public class BatchLoading {
       AttributeLink linkAttribute = null;
 
       try {
-        dataType = ((String) attributeLink.get("dataType"))
+        dataType = ((String) attributeLink.get("dataType".toLowerCase().replaceAll("^\"|\"$|_|-", "")))
             .replaceAll("^\"|\"$", "");;
         String name = ((String) attributeLink.get("name"))
             .replaceAll("^\"|\"$", "");;
@@ -505,11 +519,11 @@ public class BatchLoading {
       Map<String, String> questions = data.getValue();
       String code = (String) questions.get("code");
       String name = (String) questions.get("name");
-      String attrCode = (String) questions.get("attribute_code");
+      String attrCode = (String) questions.get("attribute_code".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
       String html = (String) questions.get("html");
       String oneshotStr = (String) questions.get("oneshot");
       String readonlyStr = (String) questions.get("readonly");
-      String hiddenStr = (String) questions.get("hidden");
+//      String hiddenStr = (String) questions.get("hidden");
       String mandatoryStr = (String) questions.get("mandatory");
 
       Boolean oneshot = getBooleanFromString(oneshotStr);
@@ -517,6 +531,9 @@ public class BatchLoading {
       Boolean mandatory = getBooleanFromString(mandatoryStr);
       Attribute attr;
       attr = service.findAttributeByCode(attrCode);
+      if(realmName.equals("pcss"))
+        System.out.println(realmName);;
+
       Question q = new Question(code, name, attr);
       q.setOneshot(oneshot);
       q.setHtml(html);
@@ -559,14 +576,14 @@ public class BatchLoading {
   public void asks(Map<String, Map<String, String>> project, String realmName) {
     project.entrySet().stream().forEach(data -> {
       Map<String, String> asks = data.getValue();
-      String attributeCode = (String) asks.get("attributeCode");
-      String sourceCode = (String) asks.get("sourceCode");
+      String attributeCode = (String) asks.get("attributeCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+      String sourceCode = (String) asks.get("sourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
       String expired = (String) asks.get("expired");
       String refused = (String) asks.get("refused");
-      String targetCode = (String) asks.get("targetCode");
-      String qCode = (String) asks.get("question_code");
+      String targetCode = (String) asks.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+      String qCode = (String) asks.get("question_code".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
       String name = (String) asks.get("name");
-      String expectedId = (String) asks.get("expectedId");
+      String expectedId = (String) asks.get("expectedId".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
       String weightStr = (String) asks.get("weight");
       String mandatoryStr = (String) asks.get("mandatory");
       String readonlyStr = (String) asks.get("readonly");
@@ -610,8 +627,14 @@ public class BatchLoading {
       String description = (String) template.get("description");
       String subject = (String) template.get("subject");
       String emailTemplateDocId = (String) template.get("email");
+      if(emailTemplateDocId ==  null)
+        emailTemplateDocId = (String) template.get("emailtemplateid");
       String smsTemplate = (String) template.get("sms");
+      if(smsTemplate ==  null)
+        smsTemplate = (String) template.get("smstemplate");
       String toastTemplate = (String) template.get("toast");
+      if(toastTemplate ==  null)
+        toastTemplate = (String) template.get("toasttemplate");
 
       final QBaseMSGMessageTemplate templateObj =
           new QBaseMSGMessageTemplate();
@@ -680,19 +703,20 @@ public class BatchLoading {
     });
   }
 
-  public void persistProject(Realm rx) {
+  public void persistProject(life.genny.bootxport.bootx.RealmUnit rx) {
 
-    service.setRealm(rx.getName());
-    validations(rx.getValidation(),rx.getName());
-    Map<String, DataType> dataTypes = dataType(rx.getDataType());
-    attributes(rx.getAttribute(), dataTypes,rx.getName());
-    baseEntitys(rx.getBaseEntity(),rx.getName());
-    attributeLinks(rx.getAttributeLink(), dataTypes,rx.getName());
-    baseEntityAttributes(rx.getEntityAttribute(),rx.getName());
-    entityEntitys(rx.getEntityEntity());
-    questions(rx.getQuestion(),rx.getName());
-    questionQuestions(rx.getQuestionQuestion(),rx.getName());
-    messageTemplates(rx.getNotifications(),rx.getName());
-
+    service.setRealm(rx.getCode());
+    validations(rx.getValidations(),rx.getCode());
+    Map<String, DataType> dataTypes = dataType(rx.getDataTypes());
+    attributes(rx.getAttributes(), dataTypes,rx.getCode());
+    baseEntitys(rx.getBaseEntitys(),rx.getCode());
+    attributeLinks(rx.getAttributeLinks(), dataTypes,rx.getCode());
+    baseEntityAttributes(rx.getEntityAttributes(),rx.getCode());
+    entityEntitys(rx.getEntityEntitys());
+    questions(rx.getQuestions(),rx.getCode());
+    questionQuestions(rx.getQuestionQuestions(),rx.getCode());
+    asks(rx.getAsks(),rx.getCode());
+    messageTemplates(rx.getNotifications(),rx.getCode());
+    messageTemplates(rx.getMessages(),rx.getCode());
   }
 }

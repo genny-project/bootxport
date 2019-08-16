@@ -1,4 +1,4 @@
-package life.genny.bootxport.data;
+package life.genny.bootxport.xport;
 
 import java.util.ArrayList;
 import java.util.List;

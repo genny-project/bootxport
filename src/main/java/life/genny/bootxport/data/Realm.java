@@ -1,6 +1,7 @@
 package life.genny.bootxport.data;
 
-import io.vavr.collection.List;
+import java.util.List;
+//import io.vavr.collection.List;
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;

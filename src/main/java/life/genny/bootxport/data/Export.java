@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
+import java.util.stream.Stream;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Font;
@@ -31,6 +31,7 @@ import org.jxls.transform.Transformer;
 import org.jxls.transform.poi.PoiTransformer;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
+import life.genny.bootxport.xport.Processor;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.validation.Validation;
@@ -48,7 +49,6 @@ public class Export {
 
   };
 
-
   public String getPathTemplateModule(String realm) {
     String templateModule = "/Users/helios/.genny/multitenancy/"
         + realm + "/modules-template.xlsx";
@@ -61,9 +61,8 @@ public class Export {
     return outputTemplateModule;
   }
 
-
   public static void main(String... args) {
-    io.vavr.collection.List<Realm> multitenancy2 =
+    List<Realm> multitenancy2 =
         Processor.getProcessor().multitenancy;
 
     //#######################################################################################
@@ -89,8 +88,10 @@ public class Export {
 
     Export x = new Export();
     x.createDirectory("/Users/helios/.genny/multitenancy/");                                          //1
+
     List<String> realms =
-        multitenancy2.map(r -> r.getName()).toJavaList();                                             //2
+        io.vavr.collection.List.ofAll(multitenancy2).map(r -> r.getName()).toJavaList();                                             //2
+
     Map<String, Map<String, String>> realmWithProps =
         realms.stream().map(r -> {
 
@@ -99,7 +100,7 @@ public class Export {
           Map<String, String> props = new HashMap<>();
 
           props.put("sheetID",
-              "/Users/helios/.genny/" + r + "/" + "module.xlsx");
+              "/Users/helios/.genny/multitenancy/" + r + "/" + "modules.xlsx");
           props.put("code", r);
 
           realmConf.put(r, props);
@@ -148,10 +149,8 @@ public class Export {
 
 
     try {
-
       x.applyToWorksheet("Projects", multitenancySheetProps,
           multitenancySheetHeader, transformer);                                                       //14
-
       transformer.write();                                                                             //15
       multitenancyTemplateFile.delete();                                                               //16
     } catch (InvalidFormatException | IOException e) {
@@ -186,7 +185,6 @@ public class Export {
             realm->x.getPathModule(realm)
             ));
      
-    
     List<String> moduleSheetNames = new ArrayList<String>();
     moduleSheetNames.add("Modules");                                                                        //
     
@@ -217,7 +215,7 @@ public class Export {
 
       x.createDirectory("/Users/helios/.genny/multitenancy/" + realmWithPath.getKey()+"/modules");
       props.put("sheetID",
-          "/Users/helios/.genny/" + realmWithPath.getKey() + "/" + "modules/"+ realmWithPath.getKey() + ".xlsx");
+          "/Users/helios/.genny/multitenancy/" + realmWithPath.getKey() + "/" + "modules/"+ realmWithPath.getKey() + ".xlsx");
 
       props.put("name", realmWithPath.getKey());
 
@@ -254,25 +252,78 @@ public class Export {
        d.getQuestionQuestions();
        d.getValidations();
        d.getMessages();
-       io.vavr.collection.List<Attribute> attributes =
+       List<Attribute> attributes =
        d.getAttributes();
        io.vavr.collection.List<DataType> dataTypes =
-       attributes.map(at -> at.dataType).toList();
+       io.vavr.collection.List.ofAll(attributes).map(at -> at.dataType).toList();
     
-       io.vavr.collection.List<Tuple2<String,DataType>> dataTypesTuple =
-       attributes.map(at -> Tuple.of(at.getCode(),at.dataType)).toList();
+       ObjectMapper oMapper = new ObjectMapper();
+
+//       io.vavr.collection.List<Tuple2<Attribute,Map<String,String>>> dataTypesTuple = 
+//           io.vavr.collection.List.ofAll(attributes).map(at -> {
+//
+//               Map<String,String> obj =  oMapper.convertValue(at.dataType, Map.class);
+//                
+//               Optional<Validation> findFirst = at.getDataType().getValidationList().stream().findFirst();
+//  
+//               if(findFirst.isPresent())
+//                obj.put("validationList", findFirst.get().getCode());
+//  
+//                obj.put("code",UUID.randomUUID().toString());
+//                
+//
+//                ExportedDataType dataType = (ExportedDataType) at.getDataType();
+//                at.setDataType(dataType);
+//               return Tuple.of(at,obj);
+//             })
+//           .toList();
+       
+       io.vavr.collection.List<Attribute> dataTypesTuple = 
+           io.vavr.collection.List.ofAll(attributes).map(at -> {
+
+               Map<String,String> obj =  oMapper.convertValue(at.dataType, Map.class);
+                
+               Optional<Validation> findFirst = at.getDataType().getValidationList().stream().findFirst();
+  
+               if(findFirst.isPresent())
+                obj.put("validationList", findFirst.get().getCode());
+  
+                obj.put("code",UUID.randomUUID().toString());
+                
+                ExportedDataType exportedDataType = new ExportedDataType(UUID.randomUUID().toString());
+                DataType dataType = at.getDataType();
+               
+                exportedDataType.setClassName(dataType.getClassName());
+                exportedDataType.setInputmask(dataType.getInputmask());
+                exportedDataType.setTypeName(dataType.getTypeName());
+                exportedDataType.setValidationList(dataType.getValidationList());
+
+                
+                at.setDataType(exportedDataType);
+               return at;
+             })
+           .toList();
+       
+//       dataTypesTuple.toStream().forEach(attributeAndDataType -> System.out.println(attributeAndDataType._2()));
+       dataTypesTuple.toStream().forEach(attributeAndDataType -> System.out.println(attributeAndDataType.getDataType()));
        
 
        // attributes.map()
        // List<Attribute> attributeList = attributes.filter(a ->
+       
+       
+       
+       
        // !a.getCode().startsWith("LNK")).toJavaList();
-       List<Attribute> attributeLinkList = attributes
-       .filter(a -> a.getCode().startsWith("LNK")).toJavaList();
-       List<Attribute> attributeList = attributes
+       List<Attribute> attributeLinkList = io.vavr.collection.List.ofAll(attributes)
+           .filter(a -> a.getCode().startsWith("LNK")).toJavaList();
+       
+
+       List<Attribute> attributeList = io.vavr.collection.List.ofAll(attributes)
        .removeAll(a -> a.getCode().startsWith("LNK")).toJavaList();
     
     
-       System.out.println(d.getEntityAttributes().length());
+//       System.out.println(d.getEntityAttributes().si.length());
     
        List<String> names = new ArrayList<String>();
        names.add("Ask");
@@ -348,15 +399,18 @@ public class Export {
        List<String> attributeHeader = new ArrayList<String>();
        attributeHeader.add("code");
        attributeHeader.add("name");
-       attributeHeader.add("dataType.className");
-       attributeHeader.add("dataType.inputmask");
-       attributeHeader.add("dataType.typeName");
+       attributeHeader.add("datatype");
+//       attributeHeader.add("dataType.code");
+//       attributeHeader.add("dataType.className");
+//       attributeHeader.add("dataType.inputmask");
+//       attributeHeader.add("dataType.typeName");
     
        List<String> dataTypeHeader = new ArrayList<String>();
        dataTypeHeader.add("typeName");
        dataTypeHeader.add("className");
        dataTypeHeader.add("inputmask");
        dataTypeHeader.add("code");
+       dataTypeHeader.add("name");
     
        List<String> validationHeader = new ArrayList<String>();
        validationHeader.add("name");
@@ -383,10 +437,11 @@ public class Export {
        messagesHeader.add("name");
        messagesHeader.add("description");
        messagesHeader.add("subject");
-       // messagesHeader.add("email");
+       messagesHeader.add("email_templateId");
+       messagesHeader.add("toast_template");
+       messagesHeader.add("sms_template");
        
-      
-       ObjectMapper oMapper = new ObjectMapper();
+//       ObjectMapper oMapper = new ObjectMapper();
 
        List<Map> list = dataTypes.map(type -> 
          {
@@ -399,17 +454,46 @@ public class Export {
 
             return  obj;
          }
-       )
-       .collect(Collectors.toList());
+       ).collect(Collectors.toList());
+      
+       List<Tuple2<Map<String,String>,Map<String,String>>> list2 = attributes.stream().map(type -> {
+            Map<String,String> attributeMap =  oMapper.convertValue(type, Map.class);
+            Map<String,String> dataTypeMap =  oMapper.convertValue(type.dataType, Map.class);
+            String dataTypeCode = UUID.randomUUID().toString(); 
+
+            Optional<Validation> findFirst = type.getDataType().getValidationList().stream().findFirst();
+  
+            attributeMap.put("datatype", dataTypeCode);
+
+            if(findFirst.isPresent())
+              dataTypeMap.put("validationList", findFirst.get().getCode());
+  
+              dataTypeMap.put("code", dataTypeCode);
+              dataTypeMap.put("name", dataTypeCode);
+              
+                 
+            return  Tuple.of(attributeMap,dataTypeMap);
+         }
+       ).collect(Collectors.toList());
+
+       
+       List<Map<String, String>> attributesMap = list2.stream().map(attributeAndDataType -> attributeAndDataType._1).collect(Collectors.toList());
+       List<Map<String, String>> dataTypesMap = list2.stream().map(attributeAndDataType -> attributeAndDataType._2).collect(Collectors.toList());
+
+       List<Map<String,String>> attributesLinkMap = attributesMap.stream()
+           .filter(a -> a.get("code").startsWith("LNK")).collect(Collectors.toList());
 
        List<Map> collect = list.stream().distinct().collect(Collectors.toList());
+//       List<Map> collect2 = collect.stream().map(type ->{
+//          type.put("code",UUID.randomUUID());
+//          return type;
+//       }).collect(Collectors.toList());
        
-       List<Map> collect2 = collect.stream().map(type ->{
-          type.put("code",UUID.randomUUID());
-          return type;
-       })
-     .collect(Collectors.toList());
-       
+//       List<Map> collect = list.stream().distinct().collect(Collectors.toList());
+//       List<Map> collect2 = collect.stream().map(type ->{
+//          type.put("code",UUID.randomUUID());
+//          return type;
+//       }).collect(Collectors.toList());
 //       List<Map> collect = list.stream().map(m -> {
 //         Optional<Validation> findFirst = ((List) m.get("validationList")).stream().findFirst();
 //         if(findFirst.isPresent())
@@ -448,35 +532,35 @@ public class Export {
          e.printStackTrace();
        }
        try {
-         x.applyToWorksheet("Ask", d.getAsks().toJavaList(), askHeader,
+         x.applyToWorksheet("Ask", d.getAsks(), askHeader,
          tm);
          x.applyToWorksheet("BaseEntity",
-         d.getBaseEntitys().toJavaList(), baseEntityHeader,
+         d.getBaseEntitys(), baseEntityHeader,
          tm);
          x.applyToWorksheet("EntityEntity",
-         d.getEntityEntitys().toJavaList(), entityEntityHeader,
+         d.getEntityEntitys(), entityEntityHeader,
          tm);
          x.applyToWorksheet("EntityAttribute",
-         d.getEntityAttributes().toJavaList(),
+         d.getEntityAttributes(),
          entityAttributeHeader, tm);
-         x.applyToWorksheet("Attribute", attributeList,
+         x.applyToWorksheet("Attribute", attributesMap,
          attributeHeader, tm);
-         x.applyToWorksheet("AttributeLink", attributeLinkList,
+         x.applyToWorksheet("AttributeLink", attributesLinkMap,
          attributeHeader, tm);
-         x.applyToWorksheet("DataType", collect2,
+         x.applyToWorksheet("DataType", dataTypesMap,
          dataTypeHeader, tm);
          x.applyToWorksheet("Validation",
-         d.getValidations().toJavaList(), validationHeader,
+         d.getValidations(), validationHeader,
          tm);
          x.applyToWorksheet("QuestionQuestion",
-         d.getQuestionQuestions().toJavaList(),
+         d.getQuestionQuestions(),
          questionQuestionHeader, tm);
-         x.applyToWorksheet("Question", d.getQuestions().toJavaList(),
+         x.applyToWorksheet("Question", d.getQuestions(),
          questionHeader, tm);
-         x.applyToWorksheet("Messages", d.getMessages().toJavaList(),
+         x.applyToWorksheet("Messages", d.getMessages(),
          messagesHeader, tm);
          tm.write();
-//         moduleDomain.delete();
+         moduleDomain.delete();
        } catch (InvalidFormatException | IOException e) {
        // TODO Auto-generated catch block
          System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
@@ -536,7 +620,8 @@ public class Export {
     String props = header.stream().collect(Collectors.joining(","));
 
     List<String> capitalizedHeaders = header.stream()
-        .map(Export::lastFromSplit).map(StringUtils::capitalize)
+        .map(Export::lastFromSplit)
+//        .map(StringUtils::capitalize)
         .collect(Collectors.toList());
 
     Context context = new Context();
@@ -560,3 +645,28 @@ public class Export {
   }
 
 }
+
+
+class ExportedDataType extends DataType{
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+  private String code; 
+  
+  
+
+  ExportedDataType(String code){
+    this.code = code;
+    
+  }
+  
+  public String getCode() {
+    return code;
+  }
+
+  @Override
+  public String toString() {
+    return "ExportedDataType [code=" + code + "]";
+  }
+} 

@@ -1,5 +1,8 @@
 package life.genny.bootxport.data;
 
+import life.genny.bootxport.xport.DataDao;
+import life.genny.bootxport.xport.GennyData;
+
 public class ServiceStore {
 
   

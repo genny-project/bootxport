@@ -3,8 +3,10 @@ package life.genny.bootxport.data;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.google.common.collect.Lists;
 import io.vavr.collection.Tree;
 import io.vavr.collection.Tree.Node;
+import life.genny.bootxport.xport.Processor;
 
 public class DirectoryStructure {
 
@@ -98,7 +100,7 @@ public class DirectoryStructure {
 
   public Node<String> setUpDirectoryTree() {
 
-    io.vavr.collection.List<Realm> multitenancy2 =
+    List<Realm> multitenancy2 =
         Processor.getProcessor().multitenancy;
 
     String pathParent = System.getProperty("user.home")
@@ -106,7 +108,7 @@ public class DirectoryStructure {
 
     // DirectoryStructure ds = new DirectoryStructure();
 
-    List<RealmDirectory> javaList = multitenancy2.map(realm -> {
+    List<RealmDirectory> javaList = io.vavr.collection.List.ofAll(multitenancy2).map(realm -> {
       realm.getName();
       RealmDirectory rd1 = new RealmDirectory();
       rd1.setName(realm.getName());
