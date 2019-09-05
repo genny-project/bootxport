@@ -20,9 +20,7 @@ public class XSSFService {
 
   public List<List<Object>> offlineService(String sheetId,
       String sheetName) {
-
-    if(sheetName.equals("Ask"))
-      System.out.println();
+    
     Workbook workbook = null;
     List<List<Object>> values = null;
     try {

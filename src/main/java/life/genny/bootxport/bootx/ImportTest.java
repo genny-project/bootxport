@@ -32,64 +32,64 @@ public class ImportTest {
 //    realm.getDataUnits().stream().forEach(data-> 
 //      System.out.println(data.getQuestions().size())
 //    );
-    SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-    Session openSession = sessionFactory.openSession();
-    EntityManager createEntityManager =
-        openSession.getEntityManagerFactory().createEntityManager();
-    QwandaRepository repo =
-        new QwandaRepositoryImpl(createEntityManager);
-    BatchLoading bl = new BatchLoading(repo);
-    realm.getDataUnits().stream().forEach(bl::persistProject);
-//    List<Tuple2<RealmUnit, BatchLoading>> collect = realm.getDataUnits().stream().map(d -> {
-//      SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-//      Session openSession = sessionFactory.openSession();
-//      EntityManager createEntityManager =
-//          openSession.getEntityManagerFactory().createEntityManager();
-//      QwandaRepository repo =
-//          new QwandaRepositoryImpl(createEntityManager);
-//      BatchLoading bl = new BatchLoading(repo);
-//      return Tuple.of(d,bl);
-//      }
-//    ).collect(Collectors.toList());
-//    
-//    collect.parallelStream().forEach(d -> d._2.persistProject(d._1));
+//    SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+//    Session openSession = sessionFactory.openSession();
+//    EntityManager createEntityManager =
+//        openSession.getEntityManagerFactory().createEntityManager();
+//    QwandaRepository repo =
+//        new QwandaRepositoryImpl(createEntityManager);
+//    BatchLoading bl = new BatchLoading(repo);
+//    realm.getDataUnits().stream().forEach(bl::persistProject);
+    List<Tuple2<RealmUnit, BatchLoading>> collect = realm.getDataUnits().stream().map(d -> {
+      SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+      Session openSession = sessionFactory.openSession();
+      EntityManager createEntityManager =
+          openSession.getEntityManagerFactory().createEntityManager();
+      QwandaRepository repo =
+          new QwandaRepositoryImpl(createEntityManager);
+      BatchLoading bl = new BatchLoading(repo);
+      return Tuple.of(d,bl);
+      }
+    ).collect(Collectors.toList());
+    
+    collect.parallelStream().forEach(d -> d._2.persistProject(d._1));
   }
 
-//  public static void main(String... args) {
-//
-//    String FILE_NAME =
-//      "/Users/helios/.genny/multitenancy/multitenancy.xlsx";
-//
-//    XSSFService xssService = new XSSFService();
-//    XlsxImport xlsImport = new XlsxImportOffline(xssService);
-//    
-//    Realm realm = new Realm(xlsImport,
-//        FILE_NAME);
-////    realm.getDataUnits().stream()
-////        .forEach(data -> System.out.println(data.questions.size()));
-//
-////    SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-////    Session openSession = sessionFactory.openSession();
-////    EntityManager createEntityManager =
-////        openSession.getEntityManagerFactory().createEntityManager();
-////    QwandaRepository repo =
-////        new QwandaRepositoryImpl(createEntityManager);
-////    BatchLoading bl = new BatchLoading(repo);
-////    realm.getDataUnits().parallelStream().forEach(bl::persistProject);
-//    
-//    List<Tuple2<RealmUnit, BatchLoading>> collect = realm.getDataUnits().stream().map(d -> {
-//      SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-//      Session openSession = sessionFactory.openSession();
-//      EntityManager createEntityManager =
-//          openSession.getEntityManagerFactory().createEntityManager();
-//      QwandaRepository repo =
-//          new QwandaRepositoryImpl(createEntityManager);
-//      BatchLoading bl = new BatchLoading(repo);
-//      return Tuple.of(d,bl);
-//      }
-//    ).collect(Collectors.toList());
-//    
-//    collect.parallelStream().forEach(d -> d._2.persistProject(d._1));
-//  }
+  public static void mains(String... args) {
+
+    String FILE_NAME =
+      "/Users/helios/.genny/multitenancy/multitenancy.xlsx";
+
+    XSSFService xssService = new XSSFService();
+    XlsxImport xlsImport = new XlsxImportOffline(xssService);
+    
+    Realm realm = new Realm(xlsImport,
+        FILE_NAME);
+//    realm.getDataUnits().stream()
+//        .forEach(data -> System.out.println(data.questions.size()));
+
+//    SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+//    Session openSession = sessionFactory.openSession();
+//    EntityManager createEntityManager =
+//        openSession.getEntityManagerFactory().createEntityManager();
+//    QwandaRepository repo =
+//        new QwandaRepositoryImpl(createEntityManager);
+//    BatchLoading bl = new BatchLoading(repo);
+//    realm.getDataUnits().parallelStream().forEach(bl::persistProject);
+    
+    List<Tuple2<RealmUnit, BatchLoading>> collect = realm.getDataUnits().stream().map(d -> {
+      SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+      Session openSession = sessionFactory.openSession();
+      EntityManager createEntityManager =
+          openSession.getEntityManagerFactory().createEntityManager();
+      QwandaRepository repo =
+          new QwandaRepositoryImpl(createEntityManager);
+      BatchLoading bl = new BatchLoading(repo);
+      return Tuple.of(d,bl);
+      }
+    ).collect(Collectors.toList());
+    
+    collect.parallelStream().forEach(d -> d._2.persistProject(d._1));
+  }
 
 }

@@ -1,6 +1,8 @@
 package life.genny.bootxport.xport;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 //import io.vavr.collection.List;
 import io.vavr.collection.Map;
@@ -125,7 +127,7 @@ public class Processor {
   public Set<Realm> getRealms() {
     return realms;
   }
-
+  
   public void setRealms(Set<Realm> realms) {
     this.realms = realms;
   }
@@ -133,7 +135,6 @@ public class Processor {
 
   private List<Realm> init() {
     GennyData data = ServiceStore.getServiceStore().data;
-
 
     Map<String, List<BaseEntity>> baseEntitysGroupByRealm =
         Stream.ofAll(data.getBaseEntitys())
@@ -144,6 +145,9 @@ public class Processor {
         .keySet()
         .map(name -> new Realm(name));
 
+    System.out.println("----------------------------");
+    realms.forEach(System.out::println);
+    System.out.println("----------------------------");
     Map<String, List<Attribute>> attributestGroupByRealm = Stream.ofAll(data.getAttributess())
        .groupBy(attr -> attr.getRealm())
        .bimap(k -> k, v -> v.toJavaList());
@@ -188,19 +192,42 @@ public class Processor {
     setQuestionsGroupByRealm(questionsGroupByRealm);
     
 
+    System.out.println("----------------------------");
+    getRealms().forEach(System.out::println);
+    System.out.println("----------------------------");
     List<Realm> r = getRealms().toStream().map(realm ->{
      realm.setBaseEntitys(getBaseEntitysGroupByRealm().get(realm.getName()).get());
      realm.setAttributes(getAttributestGroupByRealm().get(realm.getName()).get());
      realm.setEntityEntitys(getEntityEntityGroupByRealm().get(realm.getName()).get());
-     realm.setAsks(getAskGroupByRealm().get(realm.getName()).get());
-     realm.setMessages(getMessagesGroupByRealm().get(realm.getName()).get());
-     realm.setQuestionQuestions(getQuestionQuestionGroupByRealm().get(realm.getName()).get());
+     try {
+        realm.setAsks(getAskGroupByRealm().get(realm.getName()).get());
+     }catch(NoSuchElementException e) {
+       System.out.println("no exist");
+     }
+     try {
+        realm.setMessages(getMessagesGroupByRealm().get(realm.getName()).get());
+     }catch(NoSuchElementException e) {
+       System.out.println("no exist");
+     }
+     try {
+        realm.setQuestionQuestions(getQuestionQuestionGroupByRealm().get(realm.getName()).get());
+     }catch(NoSuchElementException e) {
+       System.out.println("no exist");
+     }
      realm.setValidations(getValidationsGroupByRealm().get(realm.getName()).get());
      realm.setEntityAttributes(getEntityAttributesGroupByRealm().get(realm.getName()).get());
      realm.setQuestions(getQuestionsGroupByRealm().get(realm.getName()).get());
-     System.out.println(realm);
+
+//     List<Realm> re = new ArrayList<>();
+//     re.add(realm);
+//     return re;
      return realm;
     }).collect(Collectors.toList());
+//    }).reduce((acc,next)->{
+//      System.out.println(next);
+//      acc.addAll(next);
+//      return acc;
+//    });
       
     r.forEach(System.out::println);
     System.out.println(r);

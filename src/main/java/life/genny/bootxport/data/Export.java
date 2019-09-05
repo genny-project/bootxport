@@ -440,8 +440,10 @@ public class Export {
          e.printStackTrace();
        }
        try {
-         x.applyToWorksheet("Ask", d.getAsks(), askHeader,
-         tm);
+
+         if( d.getAsks() != null && d.getAsks().size() > 0)
+           x.applyToWorksheet("Ask", d.getAsks(), askHeader,tm);
+
          x.applyToWorksheet("BaseEntity",
          d.getBaseEntitys(), baseEntityHeader,
          tm);
@@ -460,13 +462,16 @@ public class Export {
          x.applyToWorksheet("Validation",
          d.getValidations(), validationHeader,
          tm);
-         x.applyToWorksheet("QuestionQuestion",
-         d.getQuestionQuestions(),
-         questionQuestionHeader, tm);
+
+         if( d.getQuestionQuestions() != null && d.getQuestionQuestions().size() > 0)
+           x.applyToWorksheet("QuestionQuestion",d.getQuestionQuestions(),questionQuestionHeader, tm);
+
          x.applyToWorksheet("Question", d.getQuestions(),
          questionHeader, tm);
-         x.applyToWorksheet("Messages", d.getMessages(),
-         messagesHeader, tm);
+
+         if( d.getMessages() != null && d.getMessages().size() > 0)
+           x.applyToWorksheet("Messages", d.getMessages(),messagesHeader, tm);
+
          tm.write();
          moduleDomain.delete();
        } catch (InvalidFormatException | IOException e) {
