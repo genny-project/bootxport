@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 import com.google.common.collect.Lists;
 import io.vavr.collection.Tree;
 import io.vavr.collection.Tree.Node;
-import life.genny.bootxport.xport.Processor;
+import life.genny.bootxport.xport.Multitenancy;
 
 public class DirectoryStructure {
 
@@ -100,8 +100,7 @@ public class DirectoryStructure {
 
   public Node<String> setUpDirectoryTree() {
 
-    List<Realm> multitenancy2 =
-        Processor.getProcessor().multitenancy;
+    List<Realm> multitenancy2 = new Multitenancy().realms;
 
     String pathParent = System.getProperty("user.home")
         .concat("/.genny/configurations");

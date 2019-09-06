@@ -31,7 +31,7 @@ import org.jxls.transform.Transformer;
 import org.jxls.transform.poi.PoiTransformer;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
-import life.genny.bootxport.xport.Processor;
+import life.genny.bootxport.xport.Multitenancy;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.validation.Validation;
@@ -62,8 +62,7 @@ public class Export {
   }
 
   public static void main(String... args) {
-    List<Realm> multitenancy2 =
-        Processor.getProcessor().multitenancy;
+    List<Realm> multitenancy2 = new Multitenancy().realms;
 
     //#######################################################################################
     //# 
