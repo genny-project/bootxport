@@ -12,17 +12,8 @@ import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
 
-public class DataDao implements Store {
+public class RepositoryImpl implements IRepository {
 
-  private final static String queryFetchAllAttributes = "from Attribute";
-  private final static String queryFetchAllBaseEntitys = "from BaseEntity";
-  private final static String queryFetchAllEntityEntitys = "from EntityEntity";
-  private final static String queryFetchAllEntityAttributes = "from EntityAttribute";
-  private final static String queryFetchAllAsks = "from Ask";
-  private final static String queryFetchAllQuesstion = "from Question";
-  private final static String queryFetchAllValidation = "from Validation";
-  private final static String queryFetchAllQuestionQuestion = "from QuestionQuestion";
-  private final static String queryFetchAllTemplates = "from QBaseMSGMessageTemplate";
 
   public List<BaseEntity> findAllBaseEntitys() {
     List<BaseEntity> bes =

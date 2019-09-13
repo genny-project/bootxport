@@ -123,13 +123,15 @@ public class RealmUnit extends DataUnit{
     Optional<String> skipGoogleDocStr = Optional.ofNullable(realm.get("skipGoogleDoc".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
     Boolean skipGoogleDoc = skipGoogleDocStr.map(Boolean::valueOf).orElse(false);
 
-    setCode(realm.get("code"));
-    setName(realm.get("name"));
+    setKeycloakUrl(realm.get("keycloakUrl".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
+    setClientSecret(realm.get("clientSecret".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
+    setCode(realm.get("code".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
+    setName(realm.get("name".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
     setUrlList(realm.get("urlList".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
     setDisable(disable);
     setSkipGoogleDoc(skipGoogleDoc);
     setSecurityKey(realm.get("ENV_SECURITY_KEY".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
-    setSecurityKey(realm.get("ENV_SERVICE_PASSWORD".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
+    setServicePassword(realm.get("ENV_SERVICE_PASSWORD".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
 
     if(skipGoogleDoc) {
       System.out.println("Skipping google doc for realm " + this.name);

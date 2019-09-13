@@ -35,7 +35,7 @@ public class Multitenancy {
 
 
   private List<Realm> init() {
-    DataDao data = new DataDao();
+    RepositoryImpl data = new RepositoryImpl();
 
     Map<String, List<BaseEntity>> baseEntitysGroupByRealm =
         Stream.ofAll(data.findAllBaseEntitys())

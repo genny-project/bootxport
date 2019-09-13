@@ -11,14 +11,8 @@ public interface StorageUtils {
       HibernateUtil.getSessionFactory();
   static Session session = sessionFactory.openSession();
 
-  // static T monthByMonth(final double[] values) {
-  // return (time) -> values[time - 1];
-  // }
-  // public static <T> Iterable<T> fetchAll(String query) {
-  //
-  // return new QueryIterable<T>(session.createQuery(query));
-  // }
 
+  @SuppressWarnings("unchecked")
   public static <T> List<T> fetchAll(String query) {
 
     return session.createQuery(query).getResultList();

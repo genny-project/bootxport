@@ -1,9 +1,9 @@
 package life.genny.bootxport.data;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import com.google.common.collect.Lists;
 import io.vavr.collection.Tree;
 import io.vavr.collection.Tree.Node;
 import life.genny.bootxport.xport.Multitenancy;
@@ -98,43 +98,43 @@ public class DirectoryStructure {
   }
 
 
-  public Node<String> setUpDirectoryTree() {
-
-    List<Realm> multitenancy2 = new Multitenancy().realms;
-
-    String pathParent = System.getProperty("user.home")
-        .concat("/.genny/configurations");
-
-    // DirectoryStructure ds = new DirectoryStructure();
-
-    List<RealmDirectory> javaList = io.vavr.collection.List.ofAll(multitenancy2).map(realm -> {
-      realm.getName();
-      RealmDirectory rd1 = new RealmDirectory();
-      rd1.setName(realm.getName());
-      List<String> moduleNames = new ArrayList<String>();
-      moduleNames.add(realm.getName().concat(".xlsx"));
-      moduleNames.add(realm.getName().concat(".xlsx"));
-      setModuleNames(moduleNames);
-      rd1.setModule(generateModuleRoot());
-      return rd1;
-    }).toJavaList();
-
-    List<RealmDirectory> zs = new ArrayList<RealmDirectory>();
-
-
-    zs.addAll(javaList);
-
-    List<Node<String>> realmDir = zs.stream()
-        .map(realm -> Tree.of(realm.getName(), realm.getModuleSet()))
-        .collect(Collectors.toList());
-    Node<String> mHost = Tree.of("Multitenancy.xlsx");
-    realmDir.add(mHost);
-    Node<String> rootTree =
-        Tree.of(pathParent.concat("/multitenancy"), realmDir);
-
-    return rootTree;
-
-  }
+//  public Node<String> setUpDirectoryTree() {
+//
+//    List<Realm> multitenancy2 = new Multitenancy().realms;
+//
+//    String pathParent = System.getProperty("user.home")
+//        .concat("/.genny/configurations");
+//
+//    // DirectoryStructure ds = new DirectoryStructure();
+//
+//    List<RealmDirectory> javaList = io.vavr.collection.List.ofAll(multitenancy2).map(realm -> {
+//      realm.getName();
+//      RealmDirectory rd1 = new RealmDirectory();
+//      rd1.setName(realm.getName());
+//      List<String> moduleNames = new ArrayList<String>();
+//      moduleNames.add(realm.getName().concat(".xlsx"));
+//      moduleNames.add(realm.getName().concat(".xlsx"));
+//      setModuleNames(moduleNames);
+//      rd1.setModule(generateModuleRoot());
+//      return rd1;
+//    }).toJavaList();
+//
+//    List<RealmDirectory> zs = new ArrayList<RealmDirectory>();
+//
+//
+//    zs.addAll(javaList);
+//
+//    List<Node<String>> realmDir = zs.stream()
+//        .map(realm -> Tree.of(realm.getName(), realm.getModuleSet()))
+//        .collect(Collectors.toList());
+//    Node<String> mHost = Tree.of("Multitenancy.xlsx");
+//    realmDir.add(mHost);
+//    Node<String> rootTree =
+//        Tree.of(pathParent.concat("/multitenancy"), realmDir);
+//
+//    return rootTree;
+//
+//  }
 
 
 
@@ -168,6 +168,11 @@ public class DirectoryStructure {
     return null;
   }
 
+  public static void createDirectory(String path) {
+    File fi = new File(path);
+    fi.mkdir();
+
+  };
 //  public static void main(String... args) {
 //    DirectoryStructure ds = new DirectoryStructure();
 //
