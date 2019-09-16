@@ -1,2 +1,2 @@
 # bootxport
-Boot import/export library
+Import/export lib for genny qwanda service
