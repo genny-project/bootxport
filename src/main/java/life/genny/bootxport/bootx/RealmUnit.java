@@ -19,6 +19,7 @@ public class RealmUnit extends DataUnit{
   private Boolean skipGoogleDoc;
   private String securityKey;
   private String servicePassword;
+  private String uri;
 
 
   public String getName() {
@@ -76,6 +77,13 @@ public class RealmUnit extends DataUnit{
   public void setSecurityKey(String securityKey) {
     this.securityKey = securityKey;
   }
+  public String getUri() {
+    return uri;
+  }
+
+  public void setUri(String uri) {
+    this.uri = uri;
+  }
 
   public String getServicePassword() {
     return servicePassword;
@@ -129,6 +137,7 @@ public class RealmUnit extends DataUnit{
     setName(realm.get("name".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
     setUrlList(realm.get("urlList".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
     setDisable(disable);
+    setUri(realm.get("sheetID".toLowerCase()));
     setSkipGoogleDoc(skipGoogleDoc);
     setSecurityKey(realm.get("ENV_SECURITY_KEY".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
     setServicePassword(realm.get("ENV_SERVICE_PASSWORD".toLowerCase().replaceAll("^\"|\"$|_|-", "")));

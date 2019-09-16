@@ -767,6 +767,7 @@ public class BatchLoading {
   }
 
   public void upsertProjectUrls(String urlList) {
+   
     final String PROJECT_CODE = "PRJ_" + this.mainRealm.toUpperCase();
     BaseEntity be = service.findBaseEntityByCode(PROJECT_CODE);
 
@@ -799,7 +800,8 @@ public class BatchLoading {
   }
 
   public String constructKeycloakJson(final RealmUnit realm) {
-    final String PROJECT_CODE = "PRJ_" + this.mainRealm.toUpperCase();
+//    final String PROJECT_CODE = "PRJ_" + this.mainRealm.toUpperCase();
+    this.mainRealm = realm.getCode();
     String keycloakUrl = null;
     String keycloakSecret = null;
     String keycloakJson = null;
