@@ -17,13 +17,18 @@ public class ImportService {
     return xlsxImport
         .mappingRawToHeaderAndValuesFmt(sheetURI, "Projects")
         .stream()
-        .map(rawData -> new RealmUnit(xlsxImport,rawData.get("name"), rawData))
+        .filter(rawData -> !rawData.isEmpty())
+        .map(rawData -> {
+          RealmUnit realmUnit = new RealmUnit(xlsxImport,rawData.get("name"), rawData);
+          return realmUnit;
+         })
         .collect(Collectors.toList());
   }
 
   public List<ModuleUnit> fetchModuleUnit(String sheetURI) {
     return xlsxImport.mappingRawToHeaderAndValuesFmt(sheetURI, "Modules")
         .stream()
+        .filter(rawData -> !rawData.isEmpty())
         .map(d1 -> {
           ModuleUnit moduleUnit = new ModuleUnit(xlsxImport, d1.get("sheetID".toLowerCase()));
           moduleUnit.setName(d1.get("name"));

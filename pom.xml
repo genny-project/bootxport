@@ -8,10 +8,13 @@
 	<name>bootxport</name>
 
 	<properties>
-		<qwanda-utils.version>2.3.0</qwanda-utils.version>
+		<qwanda-utils.version>3.0.0</qwanda-utils.version>
 		<mysql-connector.version>8.0.12</mysql-connector.version>
 		<vavr.version>0.10.2</vavr.version>
 		<version.hibernate-validator>5.3.6.Final</version.hibernate-validator>
+		<jxls.version>2.6.0</jxls.version>
+		<jxls-poi.version>1.2.0</jxls-poi.version>
+		<jxls-jexcel.version>1.0.9</jxls-jexcel.version>
 	</properties>
 
 	<dependencies>
@@ -25,6 +28,27 @@
 					<artifactId>vertx-core</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+<!--         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+			<version>1.8.1</version> 
+		</dependency> 
+ -->	
+    	<dependency>
+			<groupId>org.jxls</groupId>
+			<artifactId>jxls</artifactId>
+			<version>${jxls.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jxls</groupId>
+			<artifactId>jxls-poi</artifactId>
+			<version>1.2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jxls</groupId>
+			<artifactId>jxls-reader</artifactId>
+			<version>[2.0.5,)</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
@@ -41,17 +65,17 @@
 			<artifactId>validation-api</artifactId>
 			<version>2.0.0.Final</version>
 		</dependency>
-		<dependency>
+ 		<dependency>
 			<groupId>org.glassfish.web</groupId>
 			<artifactId>javax.el</artifactId>
 			<version>2.2.4</version>
 		</dependency>
-		<dependency>
+    	<dependency>
 			<groupId>javax.el</groupId>
 			<artifactId>javax.el-api</artifactId>
 			<version>2.2.4</version>
 		</dependency>
-		<dependency>
+    	<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>${mysql-connector.version}</version>

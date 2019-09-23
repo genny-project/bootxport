@@ -40,8 +40,6 @@ public class XlsxImportOffline extends XlsxImport{
 
   private Function3<String, String, Set<String>, Map<String, Map<String, String>>> mappingAndCacheKeyHeaderToHeaderValues = 
       (sheetId,sheetName,keys) -> {
-        if(sheetName.equals("QuestionQuestion"))
-          System.out.println();
       List<List<Object>> data = service.offlineService(sheetId, sheetName);
       return mappingKeyHeaderToHeaderValues(data,keys);
   };

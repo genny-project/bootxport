@@ -20,7 +20,6 @@ public class XSSFService {
 
   public List<List<Object>> offlineService(String sheetId,
       String sheetName) {
-    
     Workbook workbook = null;
     List<List<Object>> values = null;
     try {
@@ -55,7 +54,6 @@ public class XSSFService {
             default:
               value = currentCell.getStringCellValue();
           }
-
           return value;
         }).collect(Collectors.toList());
 

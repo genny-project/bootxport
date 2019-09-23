@@ -416,15 +416,6 @@ public class BatchLoading {
 
       Double weight = 0.0;
 
-      // if(weightStr == null) {
-      // System.out.println("This is the weight: " + weightStr);
-      // System.out.println("This is the parentCode: " + parentCode);
-      // System.out.println("This is the targetCode: " + targetCode);
-      // System.out.println("This is the realmName: " + realmName);
-      // weightStr = "0.0";
-      // System.exit(1);
-      // }
-
       try {
         weight = Double.valueOf(weightStr);
       } catch (NumberFormatException e1) {
@@ -556,8 +547,6 @@ public class BatchLoading {
       Boolean mandatory = getBooleanFromString(mandatoryStr);
       Attribute attr;
       attr = service.findAttributeByCode(attrCode);
-      if (realmName.equals("pcss"))
-        System.out.println(realmName);;
 
       Question q = new Question(code, name, attr);
       q.setOneshot(oneshot);

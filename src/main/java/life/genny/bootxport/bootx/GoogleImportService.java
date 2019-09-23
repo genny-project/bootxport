@@ -70,9 +70,9 @@ public class GoogleImportService {
         GoogleCredential.fromStream(new FileInputStream(path.get()),
             HTTP_TRANSPORT, JSON_FACTORY).createScoped(SCOPES);
 
-    System.out.println("Spreadsheets being read with user id: "
-        + credential.getServiceAccountId());
-    System.out.println(credential.getTokenServerEncodedUrl());
+    //System.out.println("Spreadsheets being read with user id: "
+    //   + credential.getServiceAccountId());
+    //System.out.println(credential.getTokenServerEncodedUrl());
     return credential;
   }
 
