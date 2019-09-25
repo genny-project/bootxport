@@ -86,17 +86,17 @@ public class Multitenancy {
      try {
         realm.setAsks(askGroupByRealm.get(realm.getName()).get());
      }catch(NoSuchElementException e) {
-       System.out.println("no exist");
+       //System.out.println("no exist");
      }
      try {
         realm.setMessages(messagesGroupByRealm.get(realm.getName()).get());
      }catch(NoSuchElementException e) {
-       System.out.println("no exist");
+       //System.out.println("no exist");
      }
      try {
         realm.setQuestionQuestions(questionQuestionGroupByRealm.get(realm.getName()).get());
      }catch(NoSuchElementException e) {
-       System.out.println("no exist");
+       //System.out.println("no exist");
      }
      realm.setValidations(validationsGroupByRealm.get(realm.getName()).get());
      realm.setEntityAttributes(entityAttributeGroupByRealm.get(realm.getName()).get());
