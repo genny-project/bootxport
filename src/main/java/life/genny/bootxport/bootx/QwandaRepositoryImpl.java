@@ -178,7 +178,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
     Long result = 0L;
 
     EntityTransaction transaction = em.getTransaction();
-    transaction.begin();
+    if(!transaction.isActive()) transaction.begin();
     try {
       result = (long) getEntityManager().createQuery(
           "delete QuestionQuestion qq where qq.pk.sourceCode=:sourceCode and qq.pk.targetCode=:targetCode")
@@ -275,7 +275,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
   @Override
   public BaseEntity upsert(BaseEntity be) {
     EntityTransaction transaction = em.getTransaction();
-    transaction.begin();
+    if(!transaction.isActive()) transaction.begin();
     String realm = getRealm();
     try {
       String code = be.getCode();
@@ -312,6 +312,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
 
   public Long insert(BaseEntity entity) {
     EntityTransaction transaction = em.getTransaction();
+    if(!transaction.isActive()) transaction.begin();
 //    transaction.begin();
     try {
       entity.setRealm(getRealm());

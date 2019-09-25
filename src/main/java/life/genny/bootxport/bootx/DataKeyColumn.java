@@ -28,6 +28,8 @@ public class DataKeyColumn {
     CODE_TARGET_PARENT_LINK.add("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
     CODE_TARGET_PARENT_LINK.add("parentCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
     CODE_TARGET_PARENT_LINK.add("linkCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+    CODE_TARGET_PARENT_LINK.add("Code".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+    CODE_TARGET_PARENT_LINK.add("SourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
 
     CODE_TARGET_PARENT.add("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
     CODE_TARGET_PARENT.add("parentCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));

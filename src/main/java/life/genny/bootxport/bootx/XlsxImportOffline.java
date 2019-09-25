@@ -40,7 +40,7 @@ public class XlsxImportOffline extends XlsxImport{
 
   private Function3<String, String, Set<String>, Map<String, Map<String, String>>> mappingAndCacheKeyHeaderToHeaderValues = 
       (sheetId,sheetName,keys) -> {
-        if(sheetName.equals("QuestionQuestion"))
+        if(sheetName.equals("DataType"))
           System.out.println();
       List<List<Object>> data = service.offlineService(sheetId, sheetName);
       return mappingKeyHeaderToHeaderValues(data,keys);
@@ -94,8 +94,8 @@ public class XlsxImportOffline extends XlsxImport{
     long timeBefore, timeAfter = 0;
     timeBefore = System.currentTimeMillis();
     result = mappingAndCacheKeyHeaderToHeaderValues.apply(sheetURI, sheetName, keys);
-//    if(sheetName.equals("BaseEntity") && sheetURI.equals("1n60kJeBGY4v084JnhZtAxW-V1dnK9yNzjAs5qnDpd2k"))
-//      System.out.println(result);
+    if(sheetName.equals("EntityAttribute") )
+      System.out.println(result);
     System.out.println(result.size());
     timeAfter = System.currentTimeMillis();
     System.out.println("In sheet: " + sheetURI + " " + sheetName + " " + (timeAfter - timeBefore));

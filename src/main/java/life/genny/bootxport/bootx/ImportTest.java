@@ -12,7 +12,7 @@ import life.genny.bootxport.xlsimport.BatchLoading;
 
 public class ImportTest {
 
-  public static void main(String... args) {
+  public static void mains(String... args) {
     GoogleImportService gs = GoogleImportService.getInstance();
     XlsxImport xlsImport = new XlsxImportOnline(gs.getService());
     Realm realm = new Realm(xlsImport,
@@ -55,7 +55,7 @@ public class ImportTest {
     collect.parallelStream().forEach(d -> d._2.persistProject(d._1));
   }
 
-  public static void mains(String... args) {
+  public static void main(String... args) {
 
     String FILE_NAME =
       "/Users/helios/.genny/multitenancy/multitenancy.xlsx";
