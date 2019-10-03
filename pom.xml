@@ -42,6 +42,8 @@
 		<compiler-plugin-version>3.1</compiler-plugin-version>
 		<version.maven-jar-plugin>3.1.2</version.maven-jar-plugin>
 		<version.maven-source-plugin>3.1.0</version.maven-source-plugin>
+		
+		<version.wildfly-maven-plugin>2.0.1.Final</version.wildfly-maven-plugin>
 
 	</properties>
 	<ciManagement>
@@ -453,7 +455,7 @@
 			<plugin>
 				<groupId>org.wildfly.plugins</groupId>
 				<artifactId>wildfly-maven-plugin</artifactId>
-				<version>1.2.1.Final</version>
+				<version>${version.wildfly-maven-plugin}</version>
 			</plugin>
 			<plugin>
 				<groupId>org.sonatype.plugins</groupId>
