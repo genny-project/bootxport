@@ -16,10 +16,10 @@
 	</licenses>
 
 	<properties>
-		<qwanda-utils.version>3.1.0</qwanda-utils.version>
+		<qwanda-utils.version>${project.version}</qwanda-utils.version>
 		<mysql-connector.version>8.0.12</mysql-connector.version>
 		<vavr.version>0.10.2</vavr.version>
-		<version.hibernate-validator>5.3.6.Final</version.hibernate-validator>
+		<version.hibernate-validator>6.0.17.Final</version.hibernate-validator>
 		<jar.finalName>${project.name}</jar.finalName>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -35,8 +35,8 @@
 		<war-plugin-version>2.4</war-plugin-version>
 		<ear-plugin-version>2.9</ear-plugin-version>
 		<compiler-plugin-version>3.1</compiler-plugin-version>
-		<version.maven-jar-plugin>3.0.2</version.maven-jar-plugin>
-		<version.maven-source-plugin>3.0.1</version.maven-source-plugin>
+		<version.maven-jar-plugin>3.1.2</version.maven-jar-plugin>
+		<version.maven-source-plugin>3.1.0</version.maven-source-plugin>
 
 	</properties>
 	<ciManagement>
@@ -102,12 +102,12 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.hibernate</groupId>
+			<groupId>org.hibernate.validator</groupId>
 			<artifactId>hibernate-validator</artifactId>
 			<version>${version.hibernate-validator}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.hibernate</groupId>
+			<groupId>org.hibernate.validator</groupId>
 			<artifactId>hibernate-validator-annotation-processor</artifactId>
 			<version>${version.hibernate-validator}</version>
 		</dependency>
