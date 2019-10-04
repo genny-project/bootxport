@@ -23,6 +23,8 @@ public class XSSFService {
   public List<List<Object>> offlineService(String sheetId,
       String sheetName) {
     Workbook workbook = null;
+    if (sheetName.equals("DataType"))
+      System.out.println();
     List<List<Object>> values = null;
     try {
       FileInputStream excelFile =
@@ -34,10 +36,14 @@ public class XSSFService {
       Stream<Row> targetStream =
           fromIteratorToStream(datatypeSheet.iterator());
 
+      if (sheetName.equals("EntityAttribute")) {
+        System.out.println();
+      }
 
       int count = (int) fromIteratorToStream(datatypeSheet.iterator())
           .limit(1).map(r -> r.getLastCellNum()).findFirst().get();
 
+      System.out.println(count);
       values = targetStream.filter(a -> a.cellIterator().hasNext()).map(currentRow -> {
 
         Stream<Cell> targetStream2 =
@@ -45,6 +51,7 @@ public class XSSFService {
 
 
         List<Object> rowAsList = targetStream2.map(currentCell -> {
+          System.out.println(currentCell);
           List<Object> arrayList1 = new ArrayList<>(
               Collections.nCopies(count , new String("")));
 
@@ -72,14 +79,21 @@ public class XSSFService {
               value = currentCell.getStringCellValue();
           }
           if (sheetName.equals("DataType")) {
+            System.out.println();
+            System.out.println(value + " " + columnIndex);
+            System.out.println("the count is "+count);
+            System.out.println("The array size is "+ arrayList1.size());
+            System.out.println();
           }
 
           
           // List<Object> arrayList = new ArrayList<>();
           arrayList1.set(columnIndex, value);
+          System.out.println(arrayList1);
           return arrayList1;
           // return value;
         }).reduce((acc, first) -> {
+          System.out.println(first);
           List<Object> collect = first.stream()
               .filter(a -> !a.toString().isEmpty()).flatMap(s -> {
                 acc.set(first.indexOf(s), s);
@@ -91,6 +105,7 @@ public class XSSFService {
         }).get();
         // .collect(Collectors.toList());
 
+          System.out.println("haaaee"+rowAsList);
           
         return rowAsList;
 

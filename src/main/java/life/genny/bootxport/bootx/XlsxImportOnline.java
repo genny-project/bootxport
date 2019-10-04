@@ -45,7 +45,7 @@ public class XlsxImportOnline extends XlsxImport {
     timeBefore = System.currentTimeMillis();
     List<Map<String, String>> result = mappingAndCacheHeaderToValues.apply(sheetURI, sheetName);
     timeAfter = System.currentTimeMillis();
-    System.out.println("In sheet: " + sheetURI + " " + sheetName);
+    System.out.println("In sheet: " + sheetURI + " " + sheetName + " " + (timeAfter - timeBefore));
     return result;
   }
 
@@ -57,7 +57,7 @@ public class XlsxImportOnline extends XlsxImport {
     timeBefore = System.currentTimeMillis();
     result = mappingAndCacheKeyHeaderToHeaderValues.apply(sheetURI, sheetName, keys);
     timeAfter = System.currentTimeMillis();
-    System.out.println("In sheet: " + sheetURI + " " + sheetName );
+    System.out.println("In sheet: " + sheetURI + " " + sheetName + " " + (timeAfter - timeBefore));
     return result;
   }
 
