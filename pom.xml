@@ -16,10 +16,15 @@
 	</licenses>
 
 	<properties>
-		<qwanda-utils.version>3.1.0</qwanda-utils.version>
+		<qwanda-utils.version>${project.version}</qwanda-utils.version>
 		<mysql-connector.version>8.0.12</mysql-connector.version>
 		<vavr.version>0.10.2</vavr.version>
-		<version.hibernate-validator>5.3.6.Final</version.hibernate-validator>
+		<version.hibernate>5.3.12.Final</version.hibernate>	
+		<version.hibernate-validator>6.0.17.Final</version.hibernate-validator>
+		<version.hibernate.envers>5.4.6.Final</version.hibernate.envers>
+		<version.hsqldb>2.5.0</version.hsqldb>
+		<version.h2db>1.4.199</version.h2db>
+
 		<jar.finalName>${project.name}</jar.finalName>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -35,8 +40,10 @@
 		<war-plugin-version>2.4</war-plugin-version>
 		<ear-plugin-version>2.9</ear-plugin-version>
 		<compiler-plugin-version>3.1</compiler-plugin-version>
-		<version.maven-jar-plugin>3.0.2</version.maven-jar-plugin>
-		<version.maven-source-plugin>3.0.1</version.maven-source-plugin>
+		<version.maven-jar-plugin>3.1.2</version.maven-jar-plugin>
+		<version.maven-source-plugin>3.1.0</version.maven-source-plugin>
+		
+		<version.wildfly-maven-plugin>2.0.1.Final</version.wildfly-maven-plugin>
 
 	</properties>
 	<ciManagement>
@@ -103,13 +110,57 @@
 
 		<dependency>
 			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
+			<version>${version.hibernate}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate.validator</groupId>
 			<artifactId>hibernate-validator</artifactId>
 			<version>${version.hibernate-validator}</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-validator-annotation-processor</artifactId>
-			<version>${version.hibernate-validator}</version>
+			<artifactId>hibernate-annotations</artifactId>
+			<version>3.5.6-Final</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.hsqldb</groupId>
+			<artifactId>hsqldb</artifactId>
+			<version>${version.hsqldb}</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>${version.h2db}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-spatial</artifactId>
+			<version>${version.hibernate}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-java8</artifactId>
+			<version>${version.hibernate}</version>
+			<scope>provided</scope>
+		</dependency>
+
+
+
+		<!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-envers -->
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-envers</artifactId>
+			<version>${version.hibernate.envers}</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.validation</groupId>
@@ -404,7 +455,7 @@
 			<plugin>
 				<groupId>org.wildfly.plugins</groupId>
 				<artifactId>wildfly-maven-plugin</artifactId>
-				<version>1.2.1.Final</version>
+				<version>${version.wildfly-maven-plugin}</version>
 			</plugin>
 			<plugin>
 				<groupId>org.sonatype.plugins</groupId>
