@@ -148,7 +148,6 @@ public class BatchLoading {
         }
         String name = ((String) attributes.get("name"))
             .replaceAll("^\"|\"$", "");;
-            System.out.println(dataTypeMap);
         DataType dataTypeRecord = dataTypeMap.get(dataType);
         log.info("This is the datatype map: " + dataTypeRecord);
         String privacyStr = (String) attributes.get("privacy");
@@ -270,7 +269,6 @@ public class BatchLoading {
 
     project.entrySet().stream().forEach(data -> {
 
-      System.out.println("This is the data" + data.getValue());
       Map<String, String> baseEntityAttr = data.getValue();
       String attributeCode = null;
       try {
@@ -535,7 +533,6 @@ public class BatchLoading {
     project.entrySet().stream()
         .filter(rawData -> !rawData.getKey().isEmpty())
         .forEach(data -> {
-      System.out.println(data.getValue().isEmpty());
       Map<String, String> questions = data.getValue();
       String code = (String) questions.get("code");
       String name = (String) questions.get("name");
@@ -551,8 +548,6 @@ public class BatchLoading {
       Boolean readonly = getBooleanFromString(readonlyStr);
       Boolean mandatory = getBooleanFromString(mandatoryStr);
       Attribute attr;
-      System.out.println("Code From Question "+code);
-      System.out.println("Code From Attribute Code " + attrCode);
       attr = service.findAttributeByCode(attrCode);
 
       Question q = new Question(code, name, attr);
