@@ -36,7 +36,7 @@ public class DataHeader {
           "recursiveGroup", "regex", "selectionBaseEntityGroupList",};
 
   public static String[] questionQuestionH = new String[] {
-      "pk.sourceCode", "pk.targetCode", "weight", "mandatory",};
+      "pk.sourceCode", "pk.targetCode", "weight",	"mandatory",	"oneshot",	"conditions",	"readonly",	"formTrigger",	"createOnTrigger",};
 
   public static String[] questionH =
       new String[] {"code", "name", "attributeCode",};

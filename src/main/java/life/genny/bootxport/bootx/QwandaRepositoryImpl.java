@@ -680,6 +680,11 @@ public class QwandaRepositoryImpl implements QwandaRepository {
       existing.setMandatory(qq.getMandatory());
       existing.setWeight(qq.getWeight());
       existing.setReadonly(qq.getReadonly());
+      existing.setCreateOnTrigger(qq.getCreateOnTrigger());
+      existing.setFormTrigger(qq.getFormTrigger());
+      existing.setDisabled(qq.getDisabled());
+      existing.setHidden(qq.getHidden());
+      existing.setOneshot(qq.getOneshot());
       existing = getEntityManager().merge(existing);
       return existing;
     } catch (NoResultException e) {

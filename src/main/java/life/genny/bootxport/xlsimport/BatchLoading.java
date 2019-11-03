@@ -400,10 +400,16 @@ public class BatchLoading {
       Map<String, String> queQues = data.getValue();
       String parentCode = (String) queQues.get(
           "parentCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-      if (parentCode == null)
+      if (parentCode == null) {
         parentCode = (String) queQues.get(
             "sourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-
+      }
+      if (queQues.get("parentcode")!=null) {
+      if (((String) queQues.get("parentcode")).startsWith("QUE_NEW_USER_PROFILE")) {
+    	  log.info("Got to here...");
+      }
+      }
+      
       String targetCode = (String) queQues.get(
           "targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
       String weightStr = (String) queQues.get("weight");
@@ -411,7 +417,10 @@ public class BatchLoading {
       String readonlyStr = (String) queQues.get("readonly");
       Boolean readonly = readonlyStr == null ? false
           : "TRUE".equalsIgnoreCase(readonlyStr);
-
+      Boolean formTrigger = ((String) queQues.get("formtrigger")) == null ? false
+              : "TRUE".equalsIgnoreCase(((String) queQues.get("formtrigger")));
+      Boolean createOnTrigger = ((String) queQues.get("createontrigger")) == null ? false
+              : "TRUE".equalsIgnoreCase(((String) queQues.get("createontrigger")));
       Double weight = 0.0;
 
       try {
@@ -442,6 +451,8 @@ public class BatchLoading {
               sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
           qq.setOneshot(oneshot);
           qq.setReadonly(readonly);
+          qq.setCreateOnTrigger(createOnTrigger);
+          qq.setFormTrigger(formTrigger);
 
           // qq.setRealm(mainRealm);
           qq.setRealm(realmName);
@@ -462,7 +473,8 @@ public class BatchLoading {
             existing.setOneshot(qq.getOneshot());
             existing.setWeight(qq.getWeight());
             existing.setReadonly(qq.getReadonly());
-
+            existing.setCreateOnTrigger(qq.getCreateOnTrigger());
+            existing.setFormTrigger(qq.getFormTrigger());
             // existing.setRealm(mainRealm);
             existing.setRealm((String) queQues.get("realm"));
 
