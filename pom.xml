@@ -17,7 +17,7 @@
 
 	<properties>
 		<qwanda-utils.version>${project.version}</qwanda-utils.version>
-		<mysql-connector.version>8.0.12</mysql-connector.version>
+		<mysql-connector.version>8.0.17</mysql-connector.version>
 		<vavr.version>0.10.2</vavr.version>
 		<version.hibernate>5.3.13.Final</version.hibernate>	
 		<version.hibernate-validator>6.0.17.Final</version.hibernate-validator>
