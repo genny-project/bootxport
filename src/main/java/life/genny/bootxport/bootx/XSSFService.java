@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -26,7 +27,7 @@ public class XSSFService {
     List<List<Object>> values = null;
     try {
       FileInputStream excelFile =
-          new FileInputStream(new File(sheetId));
+          new FileInputStream(Paths.get(System.getProperty("user.home"),sheetId).toFile());
 
       workbook = new XSSFWorkbook(excelFile);
       Sheet datatypeSheet = workbook.getSheet(sheetName);
@@ -50,7 +51,7 @@ public class XSSFService {
 
           CellType cellType = currentCell.getCellType();
           int columnIndex = currentCell.getColumnIndex();
-          String value = "";
+          String value = " ";
 
           switch (cellType) {
             case NUMERIC:
@@ -68,8 +69,14 @@ public class XSSFService {
             case BLANK:
               value = " ";
               break;
+            case _NONE:
+              value = " ";
+              break;
+            case ERROR:
+              value = " ";
+              break;
             default:
-              value = currentCell.getStringCellValue();
+              value = currentCell.getStringCellValue().equals("")? " ":currentCell.getStringCellValue();
           }
 
         

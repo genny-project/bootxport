@@ -10,93 +10,93 @@ import life.genny.bootxport.xport.Multitenancy;
 
 public class DirectoryStructure {
 
-  String pathParent = System.getProperty("user.home")
-      .concat("/.genny/configurations");
-
-  final String MULTITENANCY = "multitenancy";
-
-  final String MHOST_FILE = "m-host";
-
-  // final List<String> realms = new ArrayList<String>();
-
-  final String moduleFile = "realm-modules";
-
-  final String MODULE_DIRECTORY = "modules";
-
-  final String MODULE_FILE = "module-gen";
-
-
-  Node<String> mHost = Tree.of(MHOST_FILE);
-
-  List<Node<String>> realmDirectory;
-
-  Node<String> module = Tree.of(MODULE_FILE);
-
-  Node<String> moduleDirectory;
-
-  List<Node<String>> rootDirectory = new ArrayList<Node<String>>();
-  List<Node<String>> realms = new ArrayList<Node<String>>();
-
-  {
-    realmDirectory = new ArrayList<Node<String>>();
-    realmDirectory.add(module);
-    realmDirectory.add(moduleDirectory);
-  }
-
-  public void setRootDirectory(List<Node<String>> elements) {
-
-    rootDirectory.addAll(elements);
-  }
-
-
-  Node<String> root;
-
-
-  public void setRoot(Node<String> root) {
-
-    this.root = root;
-  }
-
-  public void setModules(List<Node<String>> modules) {
-    moduleDirectory = Tree.of(MODULE_DIRECTORY, modules);
-  }
-
-
-  public void setRealms(List<Node<String>> realms) {
-
-    this.realms = realms;
-  }
-
-  public void generateRealm() {
-
-  }
-
-  public void setRealm(Node<String> realm) {
-    realms.add(realm);
-  }
-
-  private List<String> moduleNames;
-  // private List<String> realmDir = new ArrayList<String>();
-
-
-  public void setModuleNames(List<String> moduleNames) {
-    this.moduleNames = moduleNames;
-  }
-
-  public List<String> getModuleNames() {
-    return this.moduleNames;
-  }
-
-  public List<Node<String>> generateModuleNode() {
-    return getModuleNames().stream().map(Tree::of)
-        .collect(Collectors.toList());
-  }
-
-
-  public Node<String> generateModuleRoot() {
-    return Tree.of("Modules", generateModuleNode());
-  }
-
+//  String pathParent = System.getProperty("user.home")
+//      .concat("/.genny/configurations");
+//
+//  final String MULTITENANCY = "multitenancy";
+//
+//  final String MHOST_FILE = "m-host";
+//
+//  // final List<String> realms = new ArrayList<String>();
+//
+//  final String moduleFile = "realm-modules";
+//
+//  final String MODULE_DIRECTORY = "modules";
+//
+//  final String MODULE_FILE = "module-gen";
+//
+//
+//  Node<String> mHost = Tree.of(MHOST_FILE);
+//
+//  List<Node<String>> realmDirectory;
+//
+//  Node<String> module = Tree.of(MODULE_FILE);
+//
+//  Node<String> moduleDirectory;
+//
+//  List<Node<String>> rootDirectory = new ArrayList<Node<String>>();
+//  List<Node<String>> realms = new ArrayList<Node<String>>();
+//
+//  {
+//    realmDirectory = new ArrayList<Node<String>>();
+//    realmDirectory.add(module);
+//    realmDirectory.add(moduleDirectory);
+//  }
+//
+//  public void setRootDirectory(List<Node<String>> elements) {
+//
+//    rootDirectory.addAll(elements);
+//  }
+//
+//
+//  Node<String> root;
+//
+//
+//  public void setRoot(Node<String> root) {
+//
+//    this.root = root;
+//  }
+//
+//  public void setModules(List<Node<String>> modules) {
+//    moduleDirectory = Tree.of(MODULE_DIRECTORY, modules);
+//  }
+//
+//
+//  public void setRealms(List<Node<String>> realms) {
+//
+//    this.realms = realms;
+//  }
+//
+//  public void generateRealm() {
+//
+//  }
+//
+//  public void setRealm(Node<String> realm) {
+//    realms.add(realm);
+//  }
+//
+//  private List<String> moduleNames;
+//  // private List<String> realmDir = new ArrayList<String>();
+//
+//
+//  public void setModuleNames(List<String> moduleNames) {
+//    this.moduleNames = moduleNames;
+//  }
+//
+//  public List<String> getModuleNames() {
+//    return this.moduleNames;
+//  }
+//
+//  public List<Node<String>> generateModuleNode() {
+//    return getModuleNames().stream().map(Tree::of)
+//        .collect(Collectors.toList());
+//  }
+//
+//
+//  public Node<String> generateModuleRoot() {
+//    return Tree.of("Modules", generateModuleNode());
+//  }
+//
 
 //  public Node<String> setUpDirectoryTree() {
 //
@@ -138,41 +138,41 @@ public class DirectoryStructure {
 
 
 
-  public List<String> g(List<Node<String>> t, String path) {
-    System.out.println(path);
-    String r= "";
-    for (Node<String> l : t) {
-      if (l.getChildren().isEmpty()) {
-        System.out.println("Should be file: " + l.get() + " on path "
-            + path.concat("/".concat(l.get())));
-
-        
-            r = path.concat("/".concat(l.get()));
-
-
-      } else {
-//        System.out.println("Should be Dir: " + l.get());
-        g(l.getChildren().toJavaList(),
-            path.concat("/".concat(l.get())));
-      }
-    }
-    ArrayList<String> arrayList = new ArrayList<String>() {};
-
-    arrayList.add(r);
-    return arrayList;
-  }
-  
-  
-  public List<String> getFilePaths(){
-    
-    return null;
-  }
-
-  public static void createDirectory(String path) {
-    File fi = new File(path);
-    fi.mkdir();
-
-  };
+//  public List<String> g(List<Node<String>> t, String path) {
+//    System.out.println(path);
+//    String r= "";
+//    for (Node<String> l : t) {
+//      if (l.getChildren().isEmpty()) {
+//        System.out.println("Should be file: " + l.get() + " on path "
+//            + path.concat("/".concat(l.get())));
+//
+//        
+//            r = path.concat("/".concat(l.get()));
+//
+//
+//      } else {
+////        System.out.println("Should be Dir: " + l.get());
+//        g(l.getChildren().toJavaList(),
+//            path.concat("/".concat(l.get())));
+//      }
+//    }
+//    ArrayList<String> arrayList = new ArrayList<String>() {};
+//
+//    arrayList.add(r);
+//    return arrayList;
+//  }
+//  
+//  
+//  public List<String> getFilePaths(){
+//    
+//    return null;
+//  }
+//
+//  public static void createDirectory(String path) {
+//    File fi = new File(path);
+//    fi.mkdir();
+//
+//  };
 //  public static void main(String... args) {
 //    DirectoryStructure ds = new DirectoryStructure();
 //
