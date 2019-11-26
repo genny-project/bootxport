@@ -1,10 +1,10 @@
-package working;
+package life.genny.bootxport.export;
 
 import java.util.List;
 import io.vavr.collection.Seq;
 import life.genny.qwanda.entity.BaseEntity;
 
-public class BE {
+public class RealmBaseEntity {
   
   public final String be = "BaseEntity";
   
@@ -13,9 +13,9 @@ public class BE {
       "code",
       };
 
-  public Seq<R<BaseEntity>> getBERealm(){
+  public Seq<Realm<BaseEntity>> getBERealm(){
     List<BaseEntity> allBaseEntitys = QwandaTables.findAllBaseEntitys();
-    Seq<R<BaseEntity>> convertToQwandaWrapper = QwandaTables.convertToQwandaWrapper(allBaseEntitys);
+    Seq<Realm<BaseEntity>> convertToQwandaWrapper = QwandaTables.convertToQwandaWrapper(allBaseEntitys);
     return convertToQwandaWrapper;
   }
   

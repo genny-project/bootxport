@@ -1,4 +1,4 @@
-package working;
+package life.genny.bootxport.export;
 
 import java.util.List;
 import java.util.Map;
@@ -13,7 +13,7 @@ import io.vavr.collection.Seq;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.validation.Validation;
 
-public class Attr {
+public class RealmAttribute {
 
   public final String attr = "Attribute";
   public final String dtype = "DataType";
@@ -61,16 +61,16 @@ public class Attr {
   List<Tuple2<Map<String, String>, Map<String, String>>> attributesDatatypeOneToOne =
         convertToContext(QwandaTables.findAllAttributess(), interpolateDataType);
 
-  public Seq<R<Map<String,String>>> getAttrRealm(){
+  public Seq<Realm<Map<String,String>>> getAttrRealm(){
     List<Map<String, String>> attributesMap =
         attributesDatatypeOneToOne.stream()
             .map(attributeAndDataType -> attributeAndDataType._1)
             .collect(Collectors.toList());
-    Seq<R<Map<String, String>>> convertToQwandaWrapper = QwandaTables.convertToQwandaWrapper(attributesMap);
+    Seq<Realm<Map<String, String>>> convertToQwandaWrapper = QwandaTables.convertToQwandaWrapper(attributesMap);
     return convertToQwandaWrapper;
   }
 
-  public Seq<R<Map<String, String>>> getDataTypeRealm(){
+  public Seq<Realm<Map<String, String>>> getDataTypeRealm(){
     List<Map<String, String>> dataTypesMap =
         attributesDatatypeOneToOne.stream()
             .map(attributeAndDataType -> attributeAndDataType._2)

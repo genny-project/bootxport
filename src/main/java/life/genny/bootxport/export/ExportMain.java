@@ -1,4 +1,4 @@
-package working;
+package life.genny.bootxport.export;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -29,11 +29,11 @@ import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
 
-public class S {
+public class ExportMain {
 
   public static Path parentPath = Paths.get(Paths.get(System.getProperty("user.home")).toString(),".genny", "multitenancy");
   
-  static All all = new All();
+  static Multitenancy all = new Multitenancy();
   
   public static void main(String...str) {
 
@@ -55,16 +55,16 @@ public class S {
     
     collect3.forEach(d -> d.mkdirs());
     
-    Seq<R<BaseEntity>> beRealm = all.be.getBERealm();
-    Seq<R<Map<String, String>>> attrRealm = all.attr.getAttrRealm();
-    Seq<R<Map<String, String>>> dataTypeRealm = all.attr.getDataTypeRealm();
-    Seq<R<EntityAttribute>> entAttrRealm = all.entAttr.getEntAttrRealm();
-    Seq<R<Ask>> askRealm = all.ask.getAskRealm();
-    Seq<R<Question>> questionRealm = all.que.getQuestionRealm();
-    Seq<R<QuestionQuestion>> queQueRealm = all.queQue.getQueQueRealm();
-    Seq<R<QBaseMSGMessageTemplate>> messageRealm = all.mess.getMessageRealm();
-    Seq<R<EntityEntity>> entEntRealm = all.entEnt.getEntEntRealm();
-    Seq<R<Validation>> valRealm = all.val.getValRealm();       
+    Seq<Realm<BaseEntity>> beRealm = all.be.getBERealm();
+    Seq<Realm<Map<String, String>>> attrRealm = all.attr.getAttrRealm();
+    Seq<Realm<Map<String, String>>> dataTypeRealm = all.attr.getDataTypeRealm();
+    Seq<Realm<EntityAttribute>> entAttrRealm = all.entAttr.getEntAttrRealm();
+    Seq<Realm<Ask>> askRealm = all.ask.getAskRealm();
+    Seq<Realm<Question>> questionRealm = all.que.getQuestionRealm();
+    Seq<Realm<QuestionQuestion>> queQueRealm = all.queQue.getQueQueRealm();
+    Seq<Realm<QBaseMSGMessageTemplate>> messageRealm = all.mess.getMessageRealm();
+    Seq<Realm<EntityEntity>> entEntRealm = all.entEnt.getEntEntRealm();
+    Seq<Realm<Validation>> valRealm = all.val.getValRealm();       
 
     beRealm.forEach(d -> export(d, all.be.be ,Arrays.asList(all.be.baseEntityH)));
     attrRealm.forEach(d -> export(d, all.attr.attr ,Arrays.asList(all.attr.attributeH)));
@@ -140,7 +140,7 @@ public class S {
 
   static Map<String,List<String>> moduleRealmsWithPaths = new HashMap<>();
 
-  public static <T> void export(R<T> r, String name, List<String> header) {
+  public static <T> void export(Realm<T> r, String name, List<String> header) {
 
     Tuple2<Path, Path> paths = getPathsEntities(r.name,name);
 

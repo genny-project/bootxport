@@ -1,9 +1,9 @@
-package working;
+package life.genny.bootxport.export;
 
 import java.util.List;
 import java.util.Map;
 
-public class R<T>{
+public class Realm<T>{
     String name;
     List<T> entity;
 
@@ -16,7 +16,7 @@ public class R<T>{
     public List<T> getData() {
       return entity;
     }
-    R(String s, List<T> entity){
+    Realm(String s, List<T> entity){
       name = s;
       this.entity = entity;
     }

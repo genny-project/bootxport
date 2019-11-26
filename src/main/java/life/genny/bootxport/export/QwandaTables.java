@@ -1,4 +1,4 @@
-package working;
+package life.genny.bootxport.export;
 
 import java.util.List;
 import java.util.Map;
@@ -81,12 +81,12 @@ public class QwandaTables {
     return asks;
   }
   
-  public static <T> Seq<R<T>> convertToQwandaWrapper(List<T> list) {
-    List<L<T>> collect = list.stream().map(L::new).collect(Collectors.toList());
+  public static <T> Seq<Realm<T>> convertToQwandaWrapper(List<T> list) {
+    List<QwandaWrapper<T>> collect = list.stream().map(QwandaWrapper::new).collect(Collectors.toList());
     io.vavr.collection.Map<String, List<T>> bimap = Stream.ofAll(collect)
            .groupBy(be -> be.getRealm())
            .bimap(k -> k, v -> v.map(d-> d.object).collect(Collectors.toList()));
-    Seq<R<T>> map = bimap.map(d -> d.apply(R::new)); 
+    Seq<Realm<T>> map = bimap.map(d -> d.apply(Realm::new)); 
     return map;
   }
 

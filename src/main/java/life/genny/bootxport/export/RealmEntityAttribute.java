@@ -1,9 +1,9 @@
-package working;
+package life.genny.bootxport.export;
 
 import io.vavr.collection.Seq;
 import life.genny.qwanda.attribute.EntityAttribute;
 
-public class EntAttr {
+public class RealmEntityAttribute {
 
   public static String entAttr = "EntityAttribute";
 
@@ -13,7 +13,7 @@ public class EntAttr {
       "valueDateTime", "valueDouble", "valueInteger", "valueLong",
       "valueMoney", "valueString", "valueTime", "weight",};
 
-  public Seq<R<EntityAttribute>> getEntAttrRealm(){
+  public Seq<Realm<EntityAttribute>> getEntAttrRealm(){
     return QwandaTables.convertToQwandaWrapper(QwandaTables.findAllEntityAttributes());
   }
 

@@ -1,9 +1,9 @@
-package working;
+package life.genny.bootxport.export;
 
 import io.vavr.collection.Seq;
 import life.genny.qwanda.entity.EntityEntity;
 
-public class EntEnt {
+public class RealmEntityEntity {
 
   public static String entEnt = "EntityEntity";
  
@@ -14,7 +14,7 @@ public class EntEnt {
       "valueDateTime", "valueDouble", "valueInteger", "valueLong",
       "valueMoney", "valueString", "valueTime", "version", "weight",};
 
-  public Seq<R<EntityEntity>> getEntEntRealm(){
+  public Seq<Realm<EntityEntity>> getEntEntRealm(){
     return QwandaTables.convertToQwandaWrapper(QwandaTables.findAllEntityEntities());
   }
 

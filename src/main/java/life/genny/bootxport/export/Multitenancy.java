@@ -1,4 +1,4 @@
-package working;
+package life.genny.bootxport.export;
 
 import java.util.Map;
 import java.util.Set;
@@ -13,28 +13,28 @@ import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
 
-public class All {
+public class Multitenancy {
   
-  public BE be = new BE();
+  public RealmBaseEntity be = new RealmBaseEntity();
   public Val val = new Val();
-  public Attr attr = new Attr();
-  public EntEnt entEnt = new EntEnt();
-  public ASK ask = new ASK();
-  public EntAttr entAttr = new EntAttr();
-  public Que que = new Que();
-  public QueQue queQue = new QueQue();
-  public Mess mess = new Mess();
+  public RealmAttribute attr = new RealmAttribute();
+  public RealmEntityEntity entEnt = new RealmEntityEntity();
+  public RealmAsk ask = new RealmAsk();
+  public RealmEntityAttribute entAttr = new RealmEntityAttribute();
+  public RealmQuestion que = new RealmQuestion();
+  public RealmQuestionQuestion queQue = new RealmQuestionQuestion();
+  public RealmMessage mess = new RealmMessage();
 
-  public Seq<R<BaseEntity>> beRealm ;
-  public Seq<R<Validation>> valRealm ;
-  public Seq<R<Map<String, String>>> attrRealm;
-  public Seq<R<Map<String, String>>> dataTypeRealm;
-  public Seq<R<EntityEntity>> entEntRealm ;
-  public Seq<R<Ask>> askRealm;
-  public Seq<R<EntityAttribute>> entAttrRealm ;
-  public Seq<R<Question>> questionRealm;
-  public Seq<R<QuestionQuestion>> queQueRealm;
-  public Seq<R<QBaseMSGMessageTemplate>> messageRealm;
+  public Seq<Realm<BaseEntity>> beRealm ;
+  public Seq<Realm<Validation>> valRealm ;
+  public Seq<Realm<Map<String, String>>> attrRealm;
+  public Seq<Realm<Map<String, String>>> dataTypeRealm;
+  public Seq<Realm<EntityEntity>> entEntRealm ;
+  public Seq<Realm<Ask>> askRealm;
+  public Seq<Realm<EntityAttribute>> entAttrRealm ;
+  public Seq<Realm<Question>> questionRealm;
+  public Seq<Realm<QuestionQuestion>> queQueRealm;
+  public Seq<Realm<QBaseMSGMessageTemplate>> messageRealm;
   public Set<String> collect;
 
   public void all() {
@@ -74,10 +74,4 @@ public class All {
     collect.addAll(collect10);
   }
   
-
-  public static void main(String...str) {
-    All all = new All();
-    all.all();
-  }
-
 }

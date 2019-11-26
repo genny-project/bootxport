@@ -1,4 +1,4 @@
-package working;
+package life.genny.bootxport.export;
 
 import io.vavr.collection.Seq;
 import life.genny.qwanda.validation.Validation;
@@ -11,7 +11,7 @@ public class Val {
       new String[] {"name", "realm", "code", "multiAllowed",
           "recursiveGroup", "regex", "selectionBaseEntityGroupList",};
 
-  public Seq<R<Validation>> getValRealm(){
+  public Seq<Realm<Validation>> getValRealm(){
     return QwandaTables.convertToQwandaWrapper(QwandaTables.findAllValidations());
   }
 

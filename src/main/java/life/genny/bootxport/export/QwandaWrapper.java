@@ -1,4 +1,4 @@
-package working;
+package life.genny.bootxport.export;
 
 import java.util.Map;
 import life.genny.qwanda.CoreEntity;
@@ -8,7 +8,7 @@ import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
 
-public class L<T> {
+public class QwandaWrapper<T> {
     
     T object ;
 
@@ -18,7 +18,7 @@ public class L<T> {
       return realm;
     };
 
-    L(T l){
+    QwandaWrapper(T l){
       if(l instanceof CoreEntity) {
         realm = ((CoreEntity)l).getRealm();
       }
