@@ -1,10 +1,14 @@
 package life.genny.bootxport.xlsimport;
 
 import java.lang.invoke.MethodHandles;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import javax.persistence.NoResultException;
 import javax.validation.ConstraintViolation;
@@ -270,6 +274,8 @@ public class BatchLoading {
     project.entrySet().stream().forEach(data -> {
 
       Map<String, String> baseEntityAttr = data.getValue();
+      if(baseEntityAttr.get("attributecode").equals("PRI_HASHCODE"))
+        System.out.println();
       String attributeCode = null;
       try {
         attributeCode = ((String) baseEntityAttr.get("attributeCode"
@@ -278,10 +284,21 @@ public class BatchLoading {
       } catch (Exception e2) {
         log.error("AttributeCode not found [" + baseEntityAttr + "]");
       }
-      String valueString = (String) baseEntityAttr.get(
-          "valueString".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-      if (valueString != null) {
-        valueString = valueString.replaceAll("^\"|\"$", "");
+      List<String> asList = Arrays.asList("valuestring");
+      Optional<String> valueString = asList.stream().map(baseEntityAttr::get).findFirst();
+      Integer valueInt = null;
+      if(valueString.isPresent() && !baseEntityAttr.get("valueinteger").equals(" ")) {
+         BigDecimal big =  new BigDecimal(baseEntityAttr.get("valueinteger"));
+         System.out.println("$$$$$$$$$$$$"+big.toPlainString());
+         Optional<String[]> nullableVal = Optional.ofNullable(big.toPlainString().split("[.]"));
+
+         valueInt = nullableVal
+             .filter(d -> d.length > 0)
+             .map(d -> Integer.valueOf(d[0])).get();
+      }
+      String valueStr = null;
+      if (valueString.isPresent()) {
+        valueStr = valueString.get().replaceAll("^\"|\"$", "");
       }
       String baseEntityCode = null;
       try {
@@ -307,10 +324,16 @@ public class BatchLoading {
               weightField = 0.0;
             }
             try {
-              EntityAttribute ea = be.addAttribute(attribute,
-                  weightField, valueString);
+              EntityAttribute ea;
+              if(valueInt != null) {
+                 ea = be.addAttribute(attribute,
+                    weightField, valueInt);
+              }else {
+                 ea = be.addAttribute(attribute,
+                    weightField, valueStr);
+              }
               if (privacy || attribute.getDefaultPrivacyFlag()) {
-                ea.setPrivacyFlag(true);
+                 ea.setPrivacyFlag(true);
               }
             } catch (final BadDataException e) {
               e.printStackTrace();
@@ -337,7 +360,7 @@ public class BatchLoading {
   }
 
   public void entityEntitys(
-      Map<String, Map<String, String>> project) {
+          Map<String, Map<String, String>> project) {
     project.entrySet().stream().forEach(data -> {
       Map<String, String> entEnts = data.getValue();
       String linkCode = (String) entEnts.get(
@@ -359,7 +382,10 @@ public class BatchLoading {
       String weightStr = (String) entEnts.get("weight");
       String valueString = (String) entEnts.get(
           "valueString".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-      final Double weight = Double.valueOf(weightStr);
+      Optional<String> weightStrOpt = Optional.ofNullable(weightStr);
+      final Double weight = weightStrOpt.filter(d-> !d.equals(" "))
+                                        .map(Double::valueOf)
+                                        .orElse(0.0);
       BaseEntity sbe = null;
       BaseEntity tbe = null;
       Attribute linkAttribute = service.findAttributeByCode(linkCode);

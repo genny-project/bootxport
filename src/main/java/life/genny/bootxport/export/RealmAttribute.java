@@ -53,7 +53,7 @@ public class RealmAttribute {
         }
 
         dataTypeMap.put("code", dataTypeCode);
-        dataTypeMap.put("name", dataTypeCode);
+        dataTypeMap.put("name", type.dataType.getClassName());
         dataTypeMap.put("realm", attributeMap.get("realm"));
         return Tuple.of(attributeMap, dataTypeMap);
       };

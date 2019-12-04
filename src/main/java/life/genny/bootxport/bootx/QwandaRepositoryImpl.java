@@ -560,6 +560,8 @@ public class QwandaRepositoryImpl implements QwandaRepository {
 
   @Override
   public Long updateWithAttributes(BaseEntity entity) {
+    EntityTransaction transaction = em.getTransaction();
+    if(!transaction.isActive()) transaction.begin();
     entity.setRealm(getRealm());
     try {
       entity = getEntityManager().merge(entity);
@@ -568,6 +570,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
     }
     String json = JsonUtils.toJson(entity);
     writeToDDT(entity.getCode(), json);
+    transaction.commit();
     return entity.getId();
   }
 
