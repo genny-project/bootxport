@@ -287,11 +287,11 @@ public class BatchLoading {
       List<String> asList = Arrays.asList("valuestring");
       Optional<String> valueString = asList.stream().map(baseEntityAttr::get).findFirst();
       Integer valueInt = null;
-      if(valueString.isPresent() && !baseEntityAttr.get("valueinteger").equals(" ")) {
+      Optional<String> ofNullable = Optional.ofNullable(baseEntityAttr.get("valueInteger"));
+      if( ofNullable.isPresent() && !baseEntityAttr.get("valueinteger").matches("\\s*")) {
+         System.out.println(baseEntityAttr.get("valueinteger"));
          BigDecimal big =  new BigDecimal(baseEntityAttr.get("valueinteger"));
-         System.out.println("$$$$$$$$$$$$"+big.toPlainString());
          Optional<String[]> nullableVal = Optional.ofNullable(big.toPlainString().split("[.]"));
-
          valueInt = nullableVal
              .filter(d -> d.length > 0)
              .map(d -> Integer.valueOf(d[0])).get();
@@ -572,6 +572,7 @@ public class BatchLoading {
       Map<String, String> questions = data.getValue();
       String code = (String) questions.get("code");
       String name = (String) questions.get("name");
+      String placeholder = (String) questions.get("placeholder");
       String attrCode = (String) questions.get("attribute_code"
           .toLowerCase().replaceAll("^\"|\"$|_|-", ""));
       String html = (String) questions.get("html");
@@ -591,7 +592,6 @@ public class BatchLoading {
       q.setHtml(html);
       q.setReadonly(readonly);
       q.setMandatory(mandatory);
-
 
       // q.setRealm(mainRealm);
       q.setRealm(realmName);
