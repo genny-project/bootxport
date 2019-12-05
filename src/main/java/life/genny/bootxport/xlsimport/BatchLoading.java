@@ -856,11 +856,11 @@ public class BatchLoading {
       life.genny.bootxport.bootx.RealmUnit rx) {
 
     service.setRealm(rx.getCode());
-//    validations(rx.getValidations(), rx.getCode());
-//    Map<String, DataType> dataTypes = dataType(rx.getDataTypes());
-//    attributes(rx.getAttributes(), dataTypes, rx.getCode());
-//    baseEntitys(rx.getBaseEntitys(), rx.getCode());
-//    attributeLinks(rx.getAttributeLinks(), dataTypes, rx.getCode());
+    validations(rx.getValidations(), rx.getCode());
+    Map<String, DataType> dataTypes = dataType(rx.getDataTypes());
+    attributes(rx.getAttributes(), dataTypes, rx.getCode());
+    baseEntitys(rx.getBaseEntitys(), rx.getCode());
+    attributeLinks(rx.getAttributeLinks(), dataTypes, rx.getCode());
     baseEntityAttributes(rx.getEntityAttributes(), rx.getCode());
     entityEntitys(rx.getEntityEntitys());
     questions(rx.getQuestions(), rx.getCode());
