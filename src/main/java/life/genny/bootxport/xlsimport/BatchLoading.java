@@ -214,7 +214,7 @@ public class BatchLoading {
             Validation validation =
                 service.findValidationByCode(validationCode);
             validationList.getValidationList().add(validation);
-          } catch (NoResultExceptikkon e) {
+          } catch (NoResultException e) {
             log.error("Could not load Validation " + validationCode);
           }
         }
