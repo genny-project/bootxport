@@ -287,7 +287,7 @@ public class BatchLoading {
       List<String> asList = Arrays.asList("valuestring");
       Optional<String> valueString = asList.stream().map(baseEntityAttr::get).findFirst();
       Integer valueInt = null;
-      Optional<String> ofNullable = Optional.ofNullable(baseEntityAttr.get("valueInteger"));
+      Optional<String> ofNullable = Optional.ofNullable(baseEntityAttr.get("valueinteger"));
       if( ofNullable.isPresent() && !baseEntityAttr.get("valueinteger").matches("\\s*")) {
          System.out.println(baseEntityAttr.get("valueinteger"));
          BigDecimal big =  new BigDecimal(baseEntityAttr.get("valueinteger"));
@@ -856,11 +856,11 @@ public class BatchLoading {
       life.genny.bootxport.bootx.RealmUnit rx) {
 
     service.setRealm(rx.getCode());
-    validations(rx.getValidations(), rx.getCode());
-    Map<String, DataType> dataTypes = dataType(rx.getDataTypes());
-    attributes(rx.getAttributes(), dataTypes, rx.getCode());
-    baseEntitys(rx.getBaseEntitys(), rx.getCode());
-    attributeLinks(rx.getAttributeLinks(), dataTypes, rx.getCode());
+//    validations(rx.getValidations(), rx.getCode());
+//    Map<String, DataType> dataTypes = dataType(rx.getDataTypes());
+//    attributes(rx.getAttributes(), dataTypes, rx.getCode());
+//    baseEntitys(rx.getBaseEntitys(), rx.getCode());
+//    attributeLinks(rx.getAttributeLinks(), dataTypes, rx.getCode());
     baseEntityAttributes(rx.getEntityAttributes(), rx.getCode());
     entityEntitys(rx.getEntityEntitys());
     questions(rx.getQuestions(), rx.getCode());
