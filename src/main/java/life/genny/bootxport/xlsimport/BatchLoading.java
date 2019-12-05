@@ -197,7 +197,7 @@ public class BatchLoading {
   public Map<String, DataType> dataType(
       Map<String, Map<String, String>> project) {
     final Map<String, DataType> dataTypeMap = new HashMap<>();
-    project.entrySet().stream().forEach(data -> {
+    project.entrySet().stream().filter(d -> !d.getKey().matches("\\s*")).forEach(data -> {
       Map<String, String> dataType = data.getValue();
       String validations = (String) dataType.get("validations");
       String code =
@@ -214,7 +214,7 @@ public class BatchLoading {
             Validation validation =
                 service.findValidationByCode(validationCode);
             validationList.getValidationList().add(validation);
-          } catch (NoResultException e) {
+          } catch (NoResultExceptikkon e) {
             log.error("Could not load Validation " + validationCode);
           }
         }
