@@ -14,6 +14,8 @@ import javax.persistence.NoResultException;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+
+import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import life.genny.bootxport.bootx.QwandaRepository;
@@ -33,6 +35,11 @@ import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
 import life.genny.qwandautils.GennySettings;
 
+class Options {
+  public String optionCode = null;
+  public String optionLabel  = null;
+}
+
 public class BatchLoading {
   private QwandaRepository service;
 
@@ -50,12 +57,19 @@ public class BatchLoading {
 
   public void validations(Map<String, Map<String, String>> project,
       String realmName) {
-
+    Gson gsonObject = new Gson();
     ValidatorFactory factory =
         javax.validation.Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
     project.entrySet().stream().forEach(data -> {
       Map<String, String> validations = data.getValue();
+
+      String optionString = validations.get("options");
+
+      if (optionString != null) {
+        gsonObject.fromJson(optionString, Options[].class);
+      }
+
       String regex = null;
 
       regex = (String) validations.get("regex");
@@ -435,7 +449,7 @@ public class BatchLoading {
     	  log.info("Got to here...");
       }
       }
-      
+
       String targetCode = (String) queQues.get(
           "targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
       String weightStr = (String) queQues.get("weight");
@@ -794,7 +808,7 @@ public class BatchLoading {
   }
 
   public void upsertProjectUrls(String urlList) {
-   
+
     final String PROJECT_CODE = "PRJ_" + this.mainRealm.toUpperCase();
     BaseEntity be = service.findBaseEntityByCode(PROJECT_CODE);
 
