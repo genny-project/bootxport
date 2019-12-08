@@ -67,6 +67,7 @@ public class BatchLoading {
       String optionString = validations.get("options");
 
       if (optionString != null) {
+        log.info("FOUND OPTIONS String");
         gsonObject.fromJson(optionString, Options[].class);
       }
 
@@ -101,11 +102,22 @@ public class BatchLoading {
 
       if (code.startsWith(
           Validation.getDefaultCodePrefix() + "SELECT_")) {
-        val = new Validation(code, name, groupCodesStr, recursive,
-            multiAllowed);
+        if (optionString != null) {
+          log.info("Case 1, build Validation with OPTIONS String");
+          val = new Validation(code, name, groupCodesStr, recursive,
+                  multiAllowed, optionString);
+        } else {
+          val = new Validation(code, name, groupCodesStr, recursive,
+                  multiAllowed);
+        }
       } else {
-        val = new Validation(code, name, regex);
-
+        if (optionString != null) {
+          log.info("Case 2, build Validation with OPTIONS String");
+          val = new Validation(code, name, regex, optionString);
+        }
+         else {
+          val = new Validation(code, name, regex);
+        }
       }
 
       val.setRealm(realmName);
