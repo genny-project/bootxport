@@ -66,13 +66,20 @@ public class BatchLoading {
       Map<String, String> validations = data.getValue();
 
       String optionString = validations.get("options");
+      boolean needCheckOptions = false;
+      boolean hasValidOptions = false;
 
-      if (optionString != null) {
-        log.info("FOUND OPTIONS String");
+      if (optionString != null && (! optionString.equals(" "))) {
+        needCheckOptions = true;
+      }
+
+      if (needCheckOptions) {
         try {
           gsonObject.fromJson(optionString, Options[].class);
+          log.info("FOUND VALID OPTIONS STRING:" + optionString);
+          hasValidOptions = true;
         } catch  (JsonSyntaxException ex) {
-          log.error("FOUND INVALID OPTIONS:" + optionString);
+          log.error("FOUND INVALID OPTIONS STRING:" + optionString);
           throw new JsonSyntaxException(ex.getMessage());
         }
       }
@@ -108,7 +115,7 @@ public class BatchLoading {
 
       if (code.startsWith(
           Validation.getDefaultCodePrefix() + "SELECT_")) {
-        if (optionString != null) {
+        if (hasValidOptions) {
           log.info("Case 1, build Validation with OPTIONS String");
           val = new Validation(code, name, groupCodesStr, recursive,
                   multiAllowed, optionString);
@@ -117,7 +124,7 @@ public class BatchLoading {
                   multiAllowed);
         }
       } else {
-        if (optionString != null) {
+        if (hasValidOptions) {
           log.info("Case 2, build Validation with OPTIONS String");
           val = new Validation(code, name, regex, optionString);
         }
