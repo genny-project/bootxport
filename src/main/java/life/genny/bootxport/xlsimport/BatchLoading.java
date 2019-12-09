@@ -16,6 +16,7 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import life.genny.bootxport.bootx.QwandaRepository;
@@ -68,7 +69,12 @@ public class BatchLoading {
 
       if (optionString != null) {
         log.info("FOUND OPTIONS String");
-        gsonObject.fromJson(optionString, Options[].class);
+        try {
+          gsonObject.fromJson(optionString, Options[].class);
+        } catch  (JsonSyntaxException ex) {
+          log.error("FOUND INVALID OPTIONS:" + optionString);
+          throw new JsonSyntaxException(ex.getMessage());
+        }
       }
 
       String regex = null;
