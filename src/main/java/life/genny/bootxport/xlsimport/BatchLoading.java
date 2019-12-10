@@ -135,7 +135,7 @@ public class BatchLoading {
 
       val.setRealm(realmName);
 
-      log.info(validations.get("realm") + "code " + code + ",name:"
+      log.info("realm:"+ validations.get("realm") + ",code:" + code + ",name:"
           + name + ",val:" + val + ", grp="
 
 
@@ -626,7 +626,12 @@ public class BatchLoading {
       Attribute attr;
       attr = service.findAttributeByCode(attrCode);
 
-      Question q = new Question(code, name, attr);
+      Question q = null;
+      if (placeholder != null) {
+        q = new Question(code, name, attr, placeholder);
+      } else {
+        q = new Question(code, name, attr);
+      }
       q.setOneshot(oneshot);
       q.setHtml(html);
       q.setReadonly(readonly);
