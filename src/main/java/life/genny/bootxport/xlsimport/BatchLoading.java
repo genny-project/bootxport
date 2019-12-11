@@ -14,6 +14,9 @@ import javax.persistence.NoResultException;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import life.genny.bootxport.bootx.QwandaRepository;
@@ -33,6 +36,11 @@ import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
 import life.genny.qwandautils.GennySettings;
 
+class Options {
+  public String optionCode = null;
+  public String optionLabel  = null;
+}
+
 public class BatchLoading {
   private QwandaRepository service;
 
@@ -50,12 +58,32 @@ public class BatchLoading {
 
   public void validations(Map<String, Map<String, String>> project,
       String realmName) {
-
+    Gson gsonObject = new Gson();
     ValidatorFactory factory =
         javax.validation.Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
     project.entrySet().stream().forEach(data -> {
       Map<String, String> validations = data.getValue();
+
+      String optionString = validations.get("options");
+      boolean needCheckOptions = false;
+      boolean hasValidOptions = false;
+
+      if (optionString != null && (! optionString.equals(" "))) {
+        needCheckOptions = true;
+      }
+
+      if (needCheckOptions) {
+        try {
+          gsonObject.fromJson(optionString, Options[].class);
+          log.info("FOUND VALID OPTIONS STRING:" + optionString);
+          hasValidOptions = true;
+        } catch  (JsonSyntaxException ex) {
+          log.error("FOUND INVALID OPTIONS STRING:" + optionString);
+          throw new JsonSyntaxException(ex.getMessage());
+        }
+      }
+
       String regex = null;
 
       regex = (String) validations.get("regex");
@@ -87,16 +115,27 @@ public class BatchLoading {
 
       if (code.startsWith(
           Validation.getDefaultCodePrefix() + "SELECT_")) {
-        val = new Validation(code, name, groupCodesStr, recursive,
-            multiAllowed);
+        if (hasValidOptions) {
+          log.info("Case 1, build Validation with OPTIONS String");
+          val = new Validation(code, name, groupCodesStr, recursive,
+                  multiAllowed, optionString);
+        } else {
+          val = new Validation(code, name, groupCodesStr, recursive,
+                  multiAllowed);
+        }
       } else {
-        val = new Validation(code, name, regex);
-
+        if (hasValidOptions) {
+          log.info("Case 2, build Validation with OPTIONS String");
+          val = new Validation(code, name, regex, optionString);
+        }
+         else {
+          val = new Validation(code, name, regex);
+        }
       }
 
       val.setRealm(realmName);
 
-      log.info(validations.get("realm") + "code " + code + ",name:"
+      log.info("realm:"+ validations.get("realm") + ",code:" + code + ",name:"
           + name + ",val:" + val + ", grp="
 
 
@@ -435,7 +474,7 @@ public class BatchLoading {
     	  log.info("Got to here...");
       }
       }
-      
+
       String targetCode = (String) queQues.get(
           "targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
       String weightStr = (String) queQues.get("weight");
@@ -587,7 +626,12 @@ public class BatchLoading {
       Attribute attr;
       attr = service.findAttributeByCode(attrCode);
 
-      Question q = new Question(code, name, attr);
+      Question q = null;
+      if (placeholder != null) {
+        q = new Question(code, name, attr, placeholder);
+      } else {
+        q = new Question(code, name, attr);
+      }
       q.setOneshot(oneshot);
       q.setHtml(html);
       q.setReadonly(readonly);
@@ -794,7 +838,7 @@ public class BatchLoading {
   }
 
   public void upsertProjectUrls(String urlList) {
-   
+
     final String PROJECT_CODE = "PRJ_" + this.mainRealm.toUpperCase();
     BaseEntity be = service.findBaseEntityByCode(PROJECT_CODE);
 
