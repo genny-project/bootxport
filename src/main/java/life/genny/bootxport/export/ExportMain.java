@@ -55,27 +55,27 @@ public class ExportMain {
     
     collect3.forEach(d -> d.mkdirs());
     
-    Seq<Realm<BaseEntity>> beRealm = all.be.getBERealm();
-    Seq<Realm<Map<String, String>>> attrRealm = all.attr.getAttrRealm();
-    Seq<Realm<Map<String, String>>> dataTypeRealm = all.attr.getDataTypeRealm();
+//    Seq<Realm<BaseEntity>> beRealm = all.be.getBERealm();
+//    Seq<Realm<Map<String, String>>> attrRealm = all.attr.getAttrRealm();
+//    Seq<Realm<Map<String, String>>> dataTypeRealm = all.attr.getDataTypeRealm();
     Seq<Realm<EntityAttribute>> entAttrRealm = all.entAttr.getEntAttrRealm();
-    Seq<Realm<Ask>> askRealm = all.ask.getAskRealm();
-    Seq<Realm<Question>> questionRealm = all.que.getQuestionRealm();
-    Seq<Realm<QuestionQuestion>> queQueRealm = all.queQue.getQueQueRealm();
-    Seq<Realm<QBaseMSGMessageTemplate>> messageRealm = all.mess.getMessageRealm();
-    Seq<Realm<EntityEntity>> entEntRealm = all.entEnt.getEntEntRealm();
-    Seq<Realm<Validation>> valRealm = all.val.getValRealm();       
+//    Seq<Realm<Ask>> asirrrrrrrrrkRealm = all.ask.getAskRealm();
+//    Seq<Realm<Question>> questionRealm = all.que.getQuestionRealm();
+//    Seq<Realm<QuestionQuestion>> queQueRealm = all.queQue.getQueQueRealm();
+//    Seq<Realm<QBaseMSGMessageTemplate>> messageRealm = all.mess.getMessageRealm();
+//    Seq<Realm<EntityEntity>> entEntRealm = all.entEnt.getEntEntRealm();
+//    Seq<Realm<Validation>> valRealm = all.val.getValRealm();       
 
-    beRealm.forEach(d -> export(d, all.be.be ,Arrays.asList(all.be.baseEntityH)));
-    attrRealm.forEach(d -> export(d, all.attr.attr ,Arrays.asList(all.attr.attributeH)));
-    dataTypeRealm.forEach(d -> export(d, all.attr.dtype ,Arrays.asList(all.attr.dataTypeH)));
+//    beRealm.forEach(d -> export(d, all.be.be ,Arrays.asList(all.be.baseEntityH)));
+//    attrRealm.forEach(d -> export(d, all.attr.attr ,Arrays.asList(all.attr.attributeH)));
+//    dataTypeRealm.forEach(d -> export(d, all.attr.dtype ,Arrays.asList(all.attr.dataTypeH)));
     entAttrRealm.forEach(d -> export(d, all.entAttr.entAttr ,Arrays.asList(all.entAttr.entityAttributeH)));
-    askRealm.forEach(d -> export(d, all.ask.ask ,Arrays.asList(all.ask.askH)));
-    questionRealm.forEach(d -> export(d, all.que.question ,Arrays.asList(all.que.questionH)));
-    queQueRealm.forEach(d -> export(d, all.queQue.questionQuestion ,Arrays.asList(all.queQue.questionQuestionH)));
-    messageRealm.forEach(d -> export(d, all.mess.message ,Arrays.asList(all.mess.messagesH)));
-    entEntRealm.forEach(d -> export(d, all.entEnt.entEnt ,Arrays.asList(all.entEnt.entityEntityH)));
-    valRealm.forEach(d -> export(d, all.val.val, Arrays.asList(all.val.validationH)));
+//    askRealm.forEach(d -> export(d, all.ask.ask ,Arrays.asList(all.ask.askH)));
+//    questionRealm.forEach(d -> export(d, all.que.question ,Arrays.asList(all.que.questionH)));
+//    queQueRealm.forEach(d -> export(d, all.queQue.questionQuestion ,Arrays.asList(all.queQue.questionQuestionH)));
+//    messageRealm.forEach(d -> export(d, all.mess.message ,Arrays.asList(all.mess.messagesH)));
+//    entEntRealm.forEach(d -> export(d, all.entEnt.entEnt ,Arrays.asList(all.entEnt.entityEntityH)));
+//    valRealm.forEach(d -> export(d, all.val.val, Arrays.asList(all.val.validationH)));
    
     
 
@@ -142,6 +142,8 @@ public class ExportMain {
 
   public static <T> void export(Realm<T> r, String name, List<String> header) {
 
+
+    System.out.println("########## " + r.entity.size());
     Tuple2<Path, Path> paths = getPathsEntities(r.name,name);
 
     if(moduleRealmsWithPaths.containsKey(r.name)) {
@@ -169,7 +171,7 @@ public class ExportMain {
         tm = PoiTransformer.createTransformer(is, os);
       } catch (InvalidFormatException | IOException e) {}
       try {
-        ApplicationSheet.applyToWorksheet(name,r.entity , header, tm);
+        ApplicationSheet.applyToWorksheet(name,r.entity.subList(0, r.entity.size()/2) , header, tm);
       } catch (InvalidFormatException | IOException e) {
         e.printStackTrace();
       }

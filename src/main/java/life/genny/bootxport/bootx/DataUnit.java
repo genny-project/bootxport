@@ -5,6 +5,55 @@ import java.util.Map;
 
 public abstract class DataUnit {
 
+  public void setAttributes(Map<String, Map<String, String>> attributes) {
+    this.attributes = attributes;
+  }
+
+  public void setAttributeLinks(Map<String, Map<String, String>> attributeLinks) {
+    this.attributeLinks = attributeLinks;
+  }
+
+  public void setQuestionQuestions(Map<String, Map<String, String>> questionQuestions) {
+    this.questionQuestions = questionQuestions;
+  }
+
+  public void setValidations(Map<String, Map<String, String>> validations) {
+    this.validations = validations;
+  }
+
+  public void setDataTypes(Map<String, Map<String, String>> dataTypes) {
+    this.dataTypes = dataTypes;
+  }
+
+  public void setQuestions(Map<String, Map<String, String>> questions) {
+    this.questions = questions;
+  }
+
+  public void setAsks(Map<String, Map<String, String>> asks) {
+    this.asks = asks;
+  }
+
+  public void setNotifications(Map<String, Map<String, String>> notifications) {
+    this.notifications = notifications;
+  }
+
+  public void setEntityAttributes(Map<String, Map<String, String>> entityAttributes) {
+    this.entityAttributes = entityAttributes;
+  }
+
+  public void setEntityEntitys(Map<String, Map<String, String>> entityEntitys) {
+    this.entityEntitys = entityEntitys;
+  }
+
+  public void setBaseEntitys(Map<String, Map<String, String>> baseEntitys) {
+    this.baseEntitys = baseEntitys;
+  }
+
+  public void setMessages(Map<String, Map<String, String>> messages) {
+    this.messages = messages;
+  }
+
+  public DataUnit(){}
   protected Map<String, Map<String, String>> attributes =  new HashMap<>();
   protected Map<String, Map<String, String>> attributeLinks =  new HashMap<>();
   protected Map<String, Map<String, String>> questionQuestions =  new HashMap<>();

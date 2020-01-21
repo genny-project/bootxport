@@ -114,8 +114,8 @@ public class RealmUnit extends DataUnit{
   = (weakModule, strongModule) -> {
     strongModule.entrySet().forEach(data ->{
       if(weakModule.containsKey(data.getKey())) {
-        System.out.println("For Module Name: " + code);
-        System.out.println(data.getKey() + " This will be overrided ");
+//        System.out.println("For Module Name: " + code);
+//        System.out.println(data.getKey() + " This will be overrided ");
       }
     });
     weakModule.putAll(strongModule);
@@ -125,7 +125,7 @@ public class RealmUnit extends DataUnit{
 
 //  BiFunction<Map<String,String>,String,String> cleanKeys = (map,key) -> map.get(key.toLowerCase().replaceAll("^\"|\"$|_|-", "")); 
 
-  public RealmUnit(XlsxImport xlsxImport,String name, Map<String, String> realm) {
+  public RealmUnit(BatchLoadMode mode,XlsxImport xlsxImport,String name, Map<String, String> realm) {
     Optional<String> disabelStr = Optional.ofNullable(realm.get("disable"));
     Boolean disable = disabelStr.map(Boolean::valueOf).orElse(false);
     Optional<String> skipGoogleDocStr = Optional.ofNullable(realm.get("skipGoogleDoc".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
@@ -141,12 +141,12 @@ public class RealmUnit extends DataUnit{
     setSkipGoogleDoc(skipGoogleDoc);
     setSecurityKey(realm.get("ENV_SECURITY_KEY".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
     setServicePassword(realm.get("ENV_SERVICE_PASSWORD".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
-
+   
     if(skipGoogleDoc) {
       System.out.println("Skipping google doc for realm " + this.name);
     }
     else {
-        module = new Module(xlsxImport,realm.get("sheetID".toLowerCase()));
+        module = new Module(mode,xlsxImport,realm.get("sheetID".toLowerCase()));
       
 
       super.baseEntitys = module.getDataUnits().stream()
@@ -198,6 +198,21 @@ public class RealmUnit extends DataUnit{
           .reduce(overrideByPrecedence)
           .get();
     }
+  }
+  
+  
+  public void clearAll() {
+    asks.clear();
+    baseEntitys.clear();
+    entityAttributes.clear();
+    attributeLinks.clear();
+    attributes.clear();
+    dataTypes.clear();
+    messages.clear();
+    notifications.clear();
+    questionQuestions.clear();
+    questions.clear();;
+    validations.clear();;
   }
   
 }

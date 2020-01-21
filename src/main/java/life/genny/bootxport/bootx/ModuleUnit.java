@@ -13,9 +13,9 @@ public class ModuleUnit extends DataUnit{
     this.name = name;
   }
 
-  public ModuleUnit(XlsxImport xlsxImport, String sheetURI) { 
+  public ModuleUnit(BatchLoadMode mode,XlsxImport xlsxImport, String sheetURI) { 
     
-    this.service = new ImportService(xlsxImport);
+    this.service = new ImportService(mode, SheetState.getState());
     this.baseEntitys = service.fetchBaseEntity(sheetURI);
     this.attributes = service.fetchAttribute(sheetURI);
     this.attributeLinks = service.fetchAttributeLink(sheetURI);
@@ -24,7 +24,7 @@ public class ModuleUnit extends DataUnit{
     this.dataTypes = service.fetchDataType(sheetURI);
     this.questions = service.fetchQuestion(sheetURI);
     this.asks = service.fetchAsk(sheetURI);
-    this.notifications = service.fetchNotifications(sheetURI);
+//    this.notifications = service.fetchNotifications(sheetURI);
     this.messages = service.fetchMessages(sheetURI);
     this.entityAttributes = service.fetchEntityAttribute(sheetURI);
     this.entityEntitys = service.fetchEntityEntity(sheetURI);

@@ -25,7 +25,7 @@ public abstract class XlsxImport {
 	if (!data.isEmpty()) {
 		List<String> header = data.get(0).stream() 
 				.map(d -> d.toString().toLowerCase().replaceAll("^\"|\"$|_|-", ""))
-				.peek(System.out::println)
+//				.peek(System.out::println)
 				.collect(Collectors.toList());
 		data.remove(0);
 		 List<List<Object>> values = data;

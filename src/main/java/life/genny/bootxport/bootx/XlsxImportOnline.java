@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import com.google.common.collect.Lists;
+import io.vavr.Function1;
 import io.vavr.Function2;
 import io.vavr.Function3;
 import io.vavr.Tuple2;
@@ -22,16 +23,41 @@ public class XlsxImportOnline extends XlsxImport {
 
   private Function2<String, String, List<Map<String, String>>> mappingAndCacheHeaderToValues = 
      (sheetName,sheetId) -> {
-      System.out.println(sheetName + " " + sheetId);
-      List<List<Object>> data = Lists.newArrayList(fetchSpreadSheet(sheetName, sheetId));
-      if(data.isEmpty()) 
+      System.out.println("not memoized for "+ sheetName + " " + sheetId);
+      List<List<Object>> data;
+      try {
+        data = Lists.newArrayList(fetchSpreadSheet(sheetName, sheetId));
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        System.out.println("There was a Error " + " in " + sheetId + " and " + sheetName);
+        data = new ArrayList<>();
+      }
+      if(data.isEmpty()) {
         System.out.println("It is empty");
+        return new ArrayList<>();
+      }
+      else
       return mappingHeaderToValues(data);
     };
   private Function3<String, String, Set<String>, Map<String, Map<String, String>>> mappingAndCacheKeyHeaderToHeaderValues = 
       (sheetName,sheetId,keys) -> {
-      List<List<Object>> data = Lists.newArrayList(fetchSpreadSheet(sheetName, sheetId));
-      return mappingKeyHeaderToHeaderValues(data,keys);
+      System.out.println("not memoized for "+ sheetName + " " + sheetId );
+      List<List<Object>> data;
+      try {
+        data = Lists.newArrayList(fetchSpreadSheet(sheetName, sheetId));
+      } catch (IOException e) {
+        System.out.println("There was a Error " + " in " + sheetId + " and " + sheetName);
+        data = new ArrayList<>();
+      }
+    
+      if(data.isEmpty()) {
+        System.out.println("It is empty");
+        return new HashMap<>();
+      }
+      else {
+        Map<String, Map<String, String>> headerAndValues =  mappingKeyHeaderToHeaderValues(data,keys);
+        return  headerAndValues;
+      }
     };
 
   public XlsxImportOnline(Sheets service) {
@@ -45,7 +71,6 @@ public class XlsxImportOnline extends XlsxImport {
     timeBefore = System.currentTimeMillis();
     List<Map<String, String>> result = mappingAndCacheHeaderToValues.apply(sheetURI, sheetName);
     timeAfter = System.currentTimeMillis();
-    System.out.println("In sheet: " + sheetURI + " " + sheetName );
     return result;
   }
 
@@ -57,7 +82,6 @@ public class XlsxImportOnline extends XlsxImport {
     timeBefore = System.currentTimeMillis();
     result = mappingAndCacheKeyHeaderToHeaderValues.apply(sheetURI, sheetName, keys);
     timeAfter = System.currentTimeMillis();
-    System.out.println("In sheet: " + sheetURI + " " + sheetName );
     return result;
   }
 
@@ -91,16 +115,12 @@ public class XlsxImportOnline extends XlsxImport {
     return k;
   }
   
-  public List<List<Object>> fetchSpreadSheet(String sheetId,String sheetName) {
+  public List<List<Object>> fetchSpreadSheet(String sheetId,String sheetName) throws IOException {
     final String absoluteRange = sheetName + RANGE;
     ValueRange response = null;
     List<List<Object>> data = new ArrayList<>();
-    try {
       response = service.spreadsheets().values().get(sheetId, absoluteRange).execute();
       data = response.getValues();
-    } catch (IOException e) {
-      System.out.println("Does not exist");
-    }
     return data;
   }
   
@@ -109,7 +129,24 @@ public class XlsxImportOnline extends XlsxImport {
   Map<String,List<List<Object>>> responseState = new HashMap<>();
 
   public void memoized() {
-    mappingAndCacheHeaderToValues =  mappingAndCacheHeaderToValues.memoized();
+    mappingAndCacheHeaderToValues = mappingAndCacheHeaderToValues.memoized();
     mappingAndCacheKeyHeaderToHeaderValues = mappingAndCacheKeyHeaderToHeaderValues.memoized();
   }
+//  public static void main(String...args) {
+//
+//  Function1<String, String> mappingAndCacheKeyHeaderToHeaderValuess = 
+//      (sheetName) -> {
+//        System.out.println("it has been called");
+//        if(sheetName.equals("hello"))
+//          return null;
+//        else if(sheetName.equals("bye"))
+//          return null;
+//      return sheetName;
+//    };
+//    mappingAndCacheKeyHeaderToHeaderValuess = mappingAndCacheKeyHeaderToHeaderValuess.memoized();
+//    mappingAndCacheKeyHeaderToHeaderValuess.apply("hello");
+//    mappingAndCacheKeyHeaderToHeaderValuess.apply("hello");
+//    mappingAndCacheKeyHeaderToHeaderValuess.apply("bye");
+//    mappingAndCacheKeyHeaderToHeaderValuess.apply("bye");
+//  }
 }

@@ -1,7 +1,9 @@
 package life.genny.bootxport.bootx;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class SheetReferralType<T> {
 
@@ -12,9 +14,9 @@ public abstract class SheetReferralType<T> {
   
   public final String sheetURI;
   
-  public SheetReferralType(XlsxImport xlsImport,String sheetURI) {
+  public SheetReferralType(BatchLoadMode mode,String sheetURI) {
    this.sheetURI = sheetURI;
-   setService(new ImportService(xlsImport));
+   setService(new ImportService(mode,SheetState.getState()));
    init();
   }
 

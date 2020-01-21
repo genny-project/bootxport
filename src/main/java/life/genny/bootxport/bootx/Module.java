@@ -13,8 +13,8 @@ public class Module extends SheetReferralType<ModuleUnit>{
     this.name = name;
   }
 
-  public Module(XlsxImport xlsxImport,String sheetURI) {
-    super(xlsxImport,sheetURI);
+  public Module(BatchLoadMode mode,XlsxImport xlsxImport,String sheetURI) {
+    super(mode,sheetURI);
   }
 
   @Override
