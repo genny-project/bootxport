@@ -35,8 +35,6 @@ public class ImportTest {
       e.printStackTrace();
     }
     StateManagement.initStateManagement(realm);
-    StateModel model = StateManagement.partOneStateManagement();
-    StateManagement.setStateModel(model);
 
 //    realm.getDataUnits().stream().filter(d -> d.getCode().equals("internmatch")).map(d ->d.)
 //        .forEach(data -> System.out.println(data.baseEntitys.size()));
