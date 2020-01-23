@@ -5,6 +5,20 @@ import java.util.Map;
 
 public abstract class DataUnit {
 
+  public DataUnit(){}
+  protected Map<String, Map<String, String>> attributes =  new HashMap<>();
+  protected Map<String, Map<String, String>> attributeLinks =  new HashMap<>();
+  protected Map<String, Map<String, String>> questionQuestions =  new HashMap<>();
+  protected Map<String, Map<String, String>> validations =  new HashMap<>();
+  protected Map<String, Map<String, String>> dataTypes =  new HashMap<>();
+  protected Map<String, Map<String, String>> questions =  new HashMap<>();
+  protected Map<String, Map<String, String>> asks =  new HashMap<>();
+  protected Map<String, Map<String, String>> notifications =  new HashMap<>();
+  protected Map<String, Map<String, String>> entityAttributes =  new HashMap<>();
+  protected Map<String, Map<String, String>> entityEntitys =  new HashMap<>();
+  protected Map<String, Map<String, String>> baseEntitys =  new HashMap<>();
+  protected Map<String, Map<String, String>> messages =  new HashMap<>();
+
   public void setAttributes(Map<String, Map<String, String>> attributes) {
     this.attributes = attributes;
   }
@@ -53,19 +67,6 @@ public abstract class DataUnit {
     this.messages = messages;
   }
 
-  public DataUnit(){}
-  protected Map<String, Map<String, String>> attributes =  new HashMap<>();
-  protected Map<String, Map<String, String>> attributeLinks =  new HashMap<>();
-  protected Map<String, Map<String, String>> questionQuestions =  new HashMap<>();
-  protected Map<String, Map<String, String>> validations =  new HashMap<>();
-  protected Map<String, Map<String, String>> dataTypes =  new HashMap<>();
-  protected Map<String, Map<String, String>> questions =  new HashMap<>();
-  protected Map<String, Map<String, String>> asks =  new HashMap<>();
-  protected Map<String, Map<String, String>> notifications =  new HashMap<>();
-  protected Map<String, Map<String, String>> entityAttributes =  new HashMap<>();
-  protected Map<String, Map<String, String>> entityEntitys =  new HashMap<>();
-  protected Map<String, Map<String, String>> baseEntitys =  new HashMap<>();
-  protected Map<String, Map<String, String>> messages =  new HashMap<>();
 
 
   public Map<String, Map<String, String>> getAttributes() {

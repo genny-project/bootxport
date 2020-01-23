@@ -49,34 +49,4 @@ public class StateManagement {
         .collect(Collectors.toList());
   }
 
-  public static StateModel partOneStateManagement() {
-    List<String> realms = new ArrayList<>();
-    realms.add("internmatch");
-
-    StateModel model = new StateModel();
-
-    model.setRealms(realms);
-    
-    String key1 = "17_13b2xCzhiahg9bl5DbYTaneeZnjQkPLYhFdsjJyS0" +"BaseEntity";
-    String key2 = "1n60kJeBGY4v084JnhZtAxW-V1dnK9yNzjAs5qnDpd2k" +"Attribute";
-    Set<String> upd=new HashSet<>();
-
-    upd.add(key1);
-    upd.add(key2);
-    
-    model.setSheetIDWorksheetConcatenated(upd);
-    
-    Gson gson = new Gson();
-    String json = gson.toJson(model);
-    System.out.println(json);
-    StateModel fromJson = gson.fromJson(json, StateModel.class);
-    System.out.println(fromJson);
-
-    return fromJson;
-  }
-  
-  public static void main(String...str) {
-    
-//    partOneStateManagement();
-  }
 }

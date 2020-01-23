@@ -797,10 +797,11 @@ public class BatchLoading {
 
 		log.info("[" + this.mainRealm + "] Loaded keycloak.json... " + keycloakJson);
 		return keycloakJson;
+
 	}
 
 	public void persistProject(life.genny.bootxport.bootx.RealmUnit rx) {
-	    System.out.println("###############************* " + rx.getCode());
+
 		service.setRealm(rx.getCode());
 		validations(rx.getValidations(), rx.getCode());
 		Map<String, DataType> dataTypes = dataType(rx.getDataTypes());

@@ -38,56 +38,6 @@ public class ImportTest {
     StateModel model = StateManagement.partOneStateManagement();
     StateManagement.setStateModel(model);
 
-
-    List<RealmUnit> collect  = StateManagement.getUpdatedRealmUnits();
-    
-
-    collect.stream().forEach(d -> {
-      System.out.println(d.getCode());
-      System.out.println(d.asks.size());
-      System.out.println(d.baseEntitys.size());
-      System.out.println(d.entityAttributes.size());
-      System.out.println(d.attributeLinks.size());
-      System.out.println(d.attributes.size());
-      System.out.println(d.dataTypes.size());
-      System.out.println(d.messages.size());
-      System.out.println(d.notifications.size());
-      System.out.println(d.questionQuestions.size());
-      System.out.println(d.questions.size());
-      System.out.println(d.validations.size());
-    });
-    StateManagement.savePreviousRealmUnits();
-    
-    collect  = StateManagement.getUpdatedRealmUnits();
-    collect.stream().forEach(d -> {
-      System.out.println(d.getCode());
-      System.out.println(d.asks.size());
-      System.out.println(d.baseEntitys.size());
-      System.out.println(d.entityAttributes.size());
-      System.out.println(d.attributeLinks.size());
-      System.out.println(d.attributes.size());
-      System.out.println(d.dataTypes.size());
-      System.out.println(d.messages.size());
-      System.out.println(d.notifications.size());
-      System.out.println(d.questionQuestions.size());
-      System.out.println(d.questions.size());
-      System.out.println(d.validations.size());
-    });
-
-//    collect  = mgnt.getUpdatedRealmUnits();
-//    collect.stream().forEach(d -> {
-//      System.out.println(d.asks.size());
-//      System.out.println(d.baseEntitys.size());
-//      System.out.println(d.entityAttributes.size());
-//      System.out.println(d.attributeLinks.size());
-//      System.out.println(d.attributes.size());
-//      System.out.println(d.dataTypes.size());
-//      System.out.println(d.messages.size());
-//      System.out.println(d.notifications.size());
-//      System.out.println(d.questionQuestions.size());
-//      System.out.println(d.questions.size());
-//      System.out.println(d.validations.size());
-//    });
 //    realm.getDataUnits().stream().filter(d -> d.getCode().equals("internmatch")).map(d ->d.)
 //        .forEach(data -> System.out.println(data.baseEntitys.size()));
 
@@ -105,27 +55,25 @@ public class ImportTest {
 //      System.out.println(data.getQuestions().size())
 //    );
 //    SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-//    Session openSession = sessionFactory.openSession();
-//    EntityManager createEntityManager =
+//    Session openSession = sessionFactory.openSession(); //    EntityManager createEntityManager =
 //        openSession.getEntityManagerFactory().createEntityManager();
 //    QwandaRepository repo =
 //        new QwandaRepositoryImpl(createEntityManager);
 //    BatchLoading bl = new BatchLoading(repo);
 //    realm.getDataUnits().stream().forEach(bl::persistProject);
-
-//    List<Tuple2<RealmUnit, BatchLoading>> collect = realm.getDataUnits().stream().map(d -> {
-//      SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-//      Session openSession = sessionFactory.openSession();
-//      EntityManager createEntityManager =
-//          openSession.getEntityManagerFactory().createEntityManager();
-//      QwandaRepository repo =
-//          new QwandaRepositoryImpl(createEntityManager);
-//      BatchLoading bl = new BatchLoading(repo);
-//      return Tuple.of(d,bl);
-//      }
-//    ).collect(Collectors.toList());
-//    
-//    collect.parallelStream().forEach(d -> d._2.persistProject(d._1));
+    List<Tuple2<RealmUnit, BatchLoading>> collect = realm.getDataUnits().stream().map(d -> {
+      SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+      Session openSession = sessionFactory.openSession();
+      EntityManager createEntityManager =
+          openSession.getEntityManagerFactory().createEntityManager();
+      QwandaRepository repo =
+          new QwandaRepositoryImpl(createEntityManager);
+      BatchLoading bl = new BatchLoading(repo);
+      return Tuple.of(d,bl);
+      }
+    ).collect(Collectors.toList());
+    
+    collect.parallelStream().forEach(d -> d._2.persistProject(d._1));
   }
 
   public static void mains(String... args) {

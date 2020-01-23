@@ -6,7 +6,6 @@ import java.util.Set;
 
 public class StateModel implements Serializable{
 
-
   /**
    * 
    */
