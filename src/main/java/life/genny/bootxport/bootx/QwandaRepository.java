@@ -15,6 +15,8 @@ public interface QwandaRepository {
 
 
   public void setRealm(String realm);
+  
+  public <T> void delete(T entity);
 
   public Validation upsert(Validation validation);
 

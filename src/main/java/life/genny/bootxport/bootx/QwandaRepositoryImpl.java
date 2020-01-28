@@ -845,4 +845,8 @@ public class QwandaRepositoryImpl implements QwandaRepository {
   public QwandaRepositoryImpl(EntityManager em){
     this.em = em ;
   }
+  @Override
+  public <T> void delete(T entity) {
+    em.remove(entity);
+  }
 }

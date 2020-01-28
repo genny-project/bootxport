@@ -48,6 +48,28 @@ public class SheetState {
     SheetState.updateState.remove(key);
   }
   
+  public static RealmUnit getDeletedRowsFromRealms(String realmName) {
+    Realm realm = getPreviousRealm();
+    realm.init();
+    RealmUnit updatedRealm = realm.getDataUnits().stream()
+        .filter(d -> d.getCode().equals(realmName.toLowerCase()))
+        .map(realmUnit -> {
+          RealmUnit previousRealm = SheetState.getPreviousRealmUnit(realmUnit.getCode());
+          realmUnit.setBaseEntitys(findDeletedRows(realmUnit.baseEntitys,previousRealm.baseEntitys));
+          realmUnit.setAsks(findDeletedRows(realmUnit.asks,previousRealm.asks));
+          realmUnit.setAttributeLinks(findDeletedRows(realmUnit.attributeLinks,previousRealm.attributeLinks));
+          realmUnit.setDataTypes(findDeletedRows(realmUnit.dataTypes,previousRealm.dataTypes));
+          realmUnit.setAttributes(findDeletedRows(realmUnit.attributes,previousRealm.attributes));
+          realmUnit.setEntityAttributes(findDeletedRows(realmUnit.entityAttributes,previousRealm.entityAttributes));
+          realmUnit.setValidations(findDeletedRows(realmUnit.validations,previousRealm.validations));
+          realmUnit.setQuestions(findDeletedRows(realmUnit.questions,previousRealm.questions));
+          realmUnit.setQuestionQuestions(findDeletedRows(realmUnit.questionQuestions,previousRealm.questionQuestions));
+          realmUnit.setNotifications(findDeletedRows(realmUnit.notifications,previousRealm.notifications));
+          realmUnit.setMessages(findDeletedRows(realmUnit.messages,previousRealm.messages));
+          return realmUnit;
+    }).findFirst().get();
+    return updatedRealm;
+  }
 
   public static RealmUnit getUpdatedRealms(String realmName) {
     Realm realm = getPreviousRealm();
@@ -56,31 +78,52 @@ public class SheetState {
         .filter(d -> d.getCode().equals(realmName.toLowerCase()))
         .map(realmUnit -> {
           RealmUnit previousRealm = SheetState.getPreviousRealmUnit(realmUnit.getCode());
-          realmUnit.setBaseEntitys(findUpdateRows(realmUnit.baseEntitys,previousRealm.baseEntitys));
-          realmUnit.setAsks(findUpdateRows(realmUnit.asks,previousRealm.asks));
-          realmUnit.setAttributeLinks(findUpdateRows(realmUnit.attributeLinks,previousRealm.attributeLinks));
-          realmUnit.setDataTypes(findUpdateRows(realmUnit.dataTypes,previousRealm.dataTypes));
-          realmUnit.setAttributes(findUpdateRows(realmUnit.attributes,previousRealm.attributes));
-          realmUnit.setEntityAttributes(findUpdateRows(realmUnit.entityAttributes,previousRealm.entityAttributes));
-          realmUnit.setValidations(findUpdateRows(realmUnit.validations,previousRealm.validations));
-          realmUnit.setQuestions(findUpdateRows(realmUnit.questions,previousRealm.questions));
-          realmUnit.setQuestionQuestions(findUpdateRows(realmUnit.questionQuestions,previousRealm.questionQuestions));
-          realmUnit.setNotifications(findUpdateRows(realmUnit.notifications,previousRealm.notifications));
-          realmUnit.setMessages(findUpdateRows(realmUnit.messages,previousRealm.messages));
+          realmUnit.setBaseEntitys(findUpdatedRows(realmUnit.baseEntitys,previousRealm.baseEntitys));
+          realmUnit.setAsks(findUpdatedRows(realmUnit.asks,previousRealm.asks));
+          realmUnit.setAttributeLinks(findUpdatedRows(realmUnit.attributeLinks,previousRealm.attributeLinks));
+          realmUnit.setDataTypes(findUpdatedRows(realmUnit.dataTypes,previousRealm.dataTypes));
+          realmUnit.setAttributes(findUpdatedRows(realmUnit.attributes,previousRealm.attributes));
+          realmUnit.setEntityAttributes(findUpdatedRows(realmUnit.entityAttributes,previousRealm.entityAttributes));
+          realmUnit.setValidations(findUpdatedRows(realmUnit.validations,previousRealm.validations));
+          realmUnit.setQuestions(findUpdatedRows(realmUnit.questions,previousRealm.questions));
+          realmUnit.setQuestionQuestions(findUpdatedRows(realmUnit.questionQuestions,previousRealm.questionQuestions));
+          realmUnit.setNotifications(findUpdatedRows(realmUnit.notifications,previousRealm.notifications));
+          realmUnit.setMessages(findUpdatedRows(realmUnit.messages,previousRealm.messages));
           return realmUnit;
     }).findFirst().get();
     return updatedRealm;
   }
 
-  public static Map<String, Map<String, String>> findUpdateRows(
+  public static Map<String, Map<String, String>> findDeletedRows(
+      Map<String, Map<String, String>> newRows,
+      Map<String, Map<String, String>> oldRows){
+      Optional<Map<String, Map<String, String>>> reduce = oldRows.entrySet().stream()
+        .filter(o ->{
+            return !newRows.containsKey(o.getKey());
+          }
+        )
+        .map(data -> {
+          Map<String, Map<String, String>> map = new HashMap<>();
+          map.put(data.getKey(),data.getValue());
+          return map;
+        })
+        .reduce((acc,n)->{
+          acc.putAll(n);
+          return acc;
+          });
+      return reduce.orElseGet(HashMap::new);
+  }
+
+  public static Map<String, Map<String, String>> findUpdatedRows(
       Map<String, Map<String, String>> newRows,
       Map<String, Map<String, String>> oldRows){
       Optional<Map<String, Map<String, String>>> reduce = newRows.entrySet().stream()
         .filter(o ->{
-          return !oldRows.containsKey(o.getKey())
-          ||
-          !oldRows.containsValue(o.getValue());}
-          )
+            return !oldRows.containsKey(o.getKey())
+            ||
+            !oldRows.containsValue(o.getValue());
+          }
+        )
         .map(data -> {
           Map<String, Map<String, String>> map = new HashMap<>();
           map.put(data.getKey(),data.getValue());

@@ -22,6 +22,7 @@ import org.apache.logging.log4j.Logger;
 import life.genny.bootxport.bootx.QwandaRepository;
 import life.genny.bootxport.bootx.RealmUnit;
 import life.genny.qwanda.Ask;
+import life.genny.qwanda.Context;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.attribute.Attribute;
@@ -716,7 +717,7 @@ public class BatchLoading {
 					}
 
 				} catch (Exception e) {
-					log.error("Cannot add MessageTemplate");
+	log.error("Cannot add MessageTemplate");
 
 				}
 			}
@@ -801,19 +802,96 @@ public class BatchLoading {
 	}
 
 	public void persistProject(life.genny.bootxport.bootx.RealmUnit rx) {
-
-		service.setRealm(rx.getCode());
-		validations(rx.getValidations(), rx.getCode());
-		Map<String, DataType> dataTypes = dataType(rx.getDataTypes());
-		attributes(rx.getAttributes(), dataTypes, rx.getCode());
-		baseEntitys(rx.getBaseEntitys(), rx.getCode());
-		attributeLinks(rx.getAttributeLinks(), dataTypes, rx.getCode());
-		baseEntityAttributes(rx.getEntityAttributes(), rx.getCode());
-		entityEntitys(rx.getEntityEntitys());
-		questions(rx.getQuestions(), rx.getCode());
-		questionQuestions(rx.getQuestionQuestions(), rx.getCode());
-		asks(rx.getAsks(), rx.getCode());
-		messageTemplates(rx.getNotifications(), rx.getCode());
-		messageTemplates(rx.getMessages(), rx.getCode());
+	  service.setRealm(rx.getCode());
+	  validations(rx.getValidations(), rx.getCode());
+	  Map<String, DataType> dataTypes = dataType(rx.getDataTypes());
+	  attributes(rx.getAttributes(), dataTypes, rx.getCode());
+	  baseEntitys(rx.getBaseEntitys(), rx.getCode());
+	  attributeLinks(rx.getAttributeLinks(), dataTypes, rx.getCode());
+	  baseEntityAttributes(rx.getEntityAttributes(), rx.getCode());
+	  entityEntitys(rx.getEntityEntitys());
+	  questions(rx.getQuestions(), rx.getCode());
+	  questionQuestions(rx.getQuestionQuestions(), rx.getCode());
+	  asks(rx.getAsks(), rx.getCode());
+	  messageTemplates(rx.getNotifications(), rx.getCode());
+	  messageTemplates(rx.getMessages(), rx.getCode());
 	}
+	
+	public void deleteFromProject(life.genny.bootxport.bootx.RealmUnit rx) {
+	  service.setRealm(rx.getCode());
+	  deleteAttributes(rx.getAttributes(),  rx.getCode());
+	  deleteBaseEntitys(rx.getBaseEntitys(), rx.getCode());
+	  deleteAttributeLinks(rx.getAttributeLinks(), rx.getCode());
+	  deleteEntityEntitys(rx.getEntityEntitys());
+	  deleteQuestions(rx.getQuestions(), rx.getCode());
+	  deleteQuestionQuestions(rx.getQuestionQuestions(), rx.getCode());
+	  deleteMessageTemplates(rx.getNotifications(), rx.getCode());
+	  deleteMessageTemplates(rx.getMessages(), rx.getCode());
+	}
+
+	public void deleteAttributes(Map<String, Map<String, String>> project, String realmName){ project.entrySet().stream().forEach(d -> {
+        Attribute attribute = service.findAttributeByCode(d.getKey());
+        service.delete(attribute);
+	  });
+	}
+
+	public void deleteBaseEntitys(Map<String, Map<String, String>> project, String realmName) {
+	  project.entrySet().stream().forEach(d -> {
+        BaseEntity baseEntity = service.findBaseEntityByCode(d.getKey());
+        service.delete(baseEntity);
+	  });
+	  
+	}
+
+	public void deleteAttributeLinks(Map<String, Map<String, String>> project, String realmName) {
+	  project.entrySet().stream().forEach(d -> {
+        Attribute attribute = service.findAttributeByCode(d.getKey());
+        service.delete(attribute);
+	  });
+	  
+	}
+
+	public void deleteEntityEntitys(Map<String, Map<String, String>> project) {
+	  project.entrySet().stream().forEach(d -> {
+	    Map<String, String> entEnts = d.getValue();
+		String parentCode = (String) entEnts.get("parentCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+
+		String linkCode = (String) entEnts.get("linkCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+		if (parentCode == null)
+			parentCode = (String) entEnts.get("sourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+
+		String targetCode = (String) entEnts.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+
+        EntityEntity entityEntity = service.findEntityEntity(parentCode, targetCode, linkCode);
+        service.delete(entityEntity);
+
+	  });
+	}
+
+	public void deleteQuestions(Map<String, Map<String, String>> project, String realmName) {
+	  project.entrySet().stream().forEach(d -> {
+        Question question = service.findQuestionByCode(d.getKey());
+        service.delete(question);
+	  });
+	}
+
+	public void deleteQuestionQuestions(Map<String, Map<String, String>> project, String realmName) {
+	  project.entrySet().stream().forEach(d -> {
+	    Map<String, String> queQues = d.getValue();
+		String parentCode = (String) queQues.get("parentCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+		String targetCode = (String) queQues.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+        QuestionQuestion questionQuestion = service.findQuestionQuestionByCode(parentCode, targetCode);
+        service.delete(questionQuestion);
+	  });
+	  
+	}
+
+	public void deleteMessageTemplates(Map<String, Map<String, String>> project, String realmName) {
+	  project.entrySet().stream().forEach(d -> {
+	    QBaseMSGMessageTemplate template = service.findTemplateByCode(d.getKey());
+	    service.delete(template);
+	  });
+	  
+	}
+	
 }

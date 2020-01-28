@@ -32,6 +32,14 @@ public class StateManagement {
     SheetState.setPreviousRealm(realm);
     SheetState.setRealmUnitState();
   }
+  public static List<RealmUnit> getDeletedRowsFromRealmUnits() {
+    List<RealmUnit> updatedRealms = findEnabledRealm().stream()
+       .map(SheetState::getDeletedRowsFromRealms)
+       .collect(Collectors.toList());
+    syncWithLatest();
+    SheetState.setRealmUnitState();
+   return updatedRealms;
+  }
 
   public static List<RealmUnit> getUpdatedRealmUnits() {
     List<RealmUnit> updatedRealms = findEnabledRealm().stream()
