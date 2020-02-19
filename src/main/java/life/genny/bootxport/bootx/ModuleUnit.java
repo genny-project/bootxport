@@ -16,12 +16,13 @@ public class ModuleUnit extends DataUnit{
   public ModuleUnit(BatchLoadMode mode,XlsxImport xlsxImport, String sheetURI) { 
     
     this.service = new ImportService(mode, SheetState.getState());
-    this.baseEntitys = service.fetchBaseEntity(sheetURI);
-    this.attributes = service.fetchAttribute(sheetURI);
-    this.attributeLinks = service.fetchAttributeLink(sheetURI);
-    this.questionQuestions = service.fetchQuestionQuestion(sheetURI);
     this.validations = service.fetchValidation(sheetURI);
     this.dataTypes = service.fetchDataType(sheetURI);
+    this.attributes = service.fetchAttribute(sheetURI);
+    this.attributeLinks = service.fetchAttributeLink(sheetURI);
+
+    this.baseEntitys = service.fetchBaseEntity(sheetURI);
+    this.questionQuestions = service.fetchQuestionQuestion(sheetURI);
     this.questions = service.fetchQuestion(sheetURI);
     this.asks = service.fetchAsk(sheetURI);
 //    this.notifications = service.fetchNotifications(sheetURI);
