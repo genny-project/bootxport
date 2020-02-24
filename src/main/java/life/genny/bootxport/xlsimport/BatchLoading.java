@@ -234,6 +234,7 @@ public class BatchLoading {
 			}
 			if (!dataTypeMap.containsKey(code)) {
 				final DataType dataTypeRecord = new DataType(name, validationList, name, inputmask);
+                dataTypeRecord.setDttCode(code);
 				dataTypeMap.put(code, dataTypeRecord);
 			}
 		});
