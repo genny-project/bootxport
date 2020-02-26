@@ -164,7 +164,7 @@ public class BatchLoading {
 				;
 				String dataType = null;
 				try {
-					dataType = ((String) attributes.get("datatype")).replaceAll("^\"|\"$", "");
+					dataType = ((String) attributes.get("datatype")).trim().replaceAll("^\"|\"$", "");
 					;
 					log.info("This is the datatype object code: " + dataType);
 				} catch (NullPointerException npe) {
@@ -214,7 +214,7 @@ public class BatchLoading {
 		project.entrySet().stream().filter(d -> !d.getKey().matches("\\s*")).forEach(data -> {
 			Map<String, String> dataType = data.getValue();
 			String validations = (String) dataType.get("validations");
-			String code = ((String) dataType.get("code")).replaceAll("^\"|\"$", "");
+			String code = ((String) dataType.get("code")).trim().replaceAll("^\"|\"$", "");
 			;
 			String name = ((String) dataType.get("name")).replaceAll("^\"|\"$", "");
 			;
@@ -508,7 +508,7 @@ public class BatchLoading {
 			AttributeLink linkAttribute = null;
 
 			try {
-				dataType = ((String) attributeLink.get("dataType".toLowerCase().replaceAll("^\"|\"$|_|-", "")))
+				dataType = ((String) attributeLink.get("dataType".toLowerCase().trim().replaceAll("^\"|\"$|_|-", "")))
 						.replaceAll("^\"|\"$", "");
 				;
 				String name = ((String) attributeLink.get("name")).replaceAll("^\"|\"$", "");
@@ -733,7 +733,9 @@ public class BatchLoading {
 		Validator validator = factory.getValidator();
 		Attribute attr = service.findAttributeByCode("ENV_KEYCLOAK_JSON");
 		if (attr == null) {
-			attr = new Attribute("ENV_KEYCLOAK_JSON", "Keycloak Json", new DataType("DTT_TEXT"));
+            DataType dataType = new DataType("DTT_TEXT");
+            dataType.setDttCode("DTT_TEXT");
+			attr = new Attribute("ENV_KEYCLOAK_JSON", "Keycloak Json",dataType);
 			attr.setRealm(mainRealm);
 			Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
 			for (ConstraintViolation<Attribute> constraint : constraints) {
@@ -762,7 +764,9 @@ public class BatchLoading {
 		Attribute attr = service.findAttributeByCode("ENV_URL_LIST");
 		attr.setRealm(mainRealm);
 		if (attr == null) {
-			attr = new Attribute("ENV_URL_LIST", "Url List", new DataType("DTT_TEXT"));
+            DataType dataType = new DataType("DTT_TEXT");
+            dataType.setDttCode("DTT_TEXT");
+			attr = new Attribute("ENV_URL_LIST", "Url List", dataType);
 			Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
 			for (ConstraintViolation<Attribute> constraint : constraints) {
 				log.info("[" + this.mainRealm + "]" + constraint.getPropertyPath() + " " + constraint.getMessage());
