@@ -1,28 +1,10 @@
 package life.genny.bootxport.xlsimport;
 
-import java.lang.invoke.MethodHandles;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import javax.persistence.NoResultException;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.Logger;
 import life.genny.bootxport.bootx.QwandaRepository;
 import life.genny.bootxport.bootx.RealmUnit;
 import life.genny.qwanda.Ask;
-import life.genny.qwanda.Context;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.attribute.Attribute;
@@ -36,6 +18,17 @@ import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
 import life.genny.qwandautils.GennySettings;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.Logger;
+
+import javax.persistence.NoResultException;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+import java.lang.invoke.MethodHandles;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.*;
 
 class Options {
 	public String optionCode = null;
@@ -124,9 +117,11 @@ public class BatchLoading {
 
 			val.setRealm(realmName);
 
-			log.info("realm:" + validations.get("realm") + ",code:" + code + ",name:" + name + ",val:" + val + ", grp="
-
-					+ (groupCodesStr != null ? groupCodesStr : "X"));
+			log.info("realm:" + validations.get("realm")
+			+ ", code:" + code
+			+ ", name:" + name
+			+ ", val:" + val
+			+ ", grp:" + (groupCodesStr != null ? groupCodesStr : "X"));
 
 			Set<ConstraintViolation<Validation>> constraints = validator.validate(val);
 			for (ConstraintViolation<Validation> constraint : constraints) {
@@ -161,27 +156,24 @@ public class BatchLoading {
 			try {
 				Map<String, String> attributes = data.getValue();
 				String code = ((String) attributes.get("code")).replaceAll("^\"|\"$", "");
-				;
 				String dataType = null;
 				try {
 					dataType = ((String) attributes.get("datatype")).replaceAll("^\"|\"$", "");
-					;
-					log.info("This is the datatype object code: " + dataType);
+					log.trace("This is the datatype object code: " + dataType);
 				} catch (NullPointerException npe) {
 					log.error("DataType for " + code + " cannot be null");
 					throw new Exception("Bad DataType given for code " + code);
 				}
 				String name = ((String) attributes.get("name")).replaceAll("^\"|\"$", "");
-				;
 				DataType dataTypeRecord = dataTypeMap.get(dataType);
-				log.info("This is the datatype map: " + dataTypeRecord);
+				log.trace("This is the datatype map: " + dataTypeRecord);
 				String privacyStr = (String) attributes.get("privacy");
 				if (privacyStr != null) {
 					privacyStr = privacyStr.toUpperCase();
 				}
 				Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
 				if (privacy) {
-					log.info(attributes.get("realm") + "Attribute " + code + " has default privacy");
+					log.info("Realm:" + attributes.get("realm") + ", Attribute " + code + " has default privacy");
 				}
 				String descriptionStr = (String) attributes.get("description");
 				String helpStr = (String) attributes.get("help");
@@ -198,7 +190,7 @@ public class BatchLoading {
 				// attr.setRealm(mainRealm);
 				Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
 				for (ConstraintViolation<Attribute> constraint : constraints) {
-					log.info(constraint.getPropertyPath() + " " + constraint.getMessage());
+					log.trace(constraint.getPropertyPath() + " " + constraint.getMessage());
 				}
 				if (constraints.isEmpty()) {
 					service.upsert(attr);
@@ -256,7 +248,7 @@ public class BatchLoading {
 
 			Set<ConstraintViolation<BaseEntity>> constraints = validator.validate(be);
 			for (ConstraintViolation<BaseEntity> constraint : constraints) {
-				log.info(constraint.getPropertyPath() + " " + constraint.getMessage());
+				log.trace(constraint.getPropertyPath() + " " + constraint.getMessage());
 			}
 
 			if (constraints.isEmpty()) {
@@ -315,7 +307,7 @@ public class BatchLoading {
 				BaseEntity be = null;
 				try {
 					attribute = service.findAttributeByCode(attributeCode);
-					log.info("BseEntityCode: " + baseEntityCode + " attributeCode: " + attribute.getCode());
+					log.trace("BseEntityCode: " + baseEntityCode + ", attributeCode: " + attribute.getCode());
 					if (attribute == null) {
 						log.error("BASE ENTITY CODE: " + baseEntityCode + " " + attributeCode
 								+ " is not in the Attribute Table!!!");
@@ -352,8 +344,7 @@ public class BatchLoading {
 				if (baseEntityAttr != null) {
 					beCode = (String) baseEntityAttr.get("baseEntityCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
 				}
-				log.error("Error in getting baseEntityAttr  for AttributeCode " + attributeCode + " and beCode="
-						+ beCode);
+				log.error("Error in getting baseEntityAttr for AttributeCode:" + attributeCode + " and beCode:" + beCode);
 			}
 
 		});
@@ -488,8 +479,7 @@ public class BatchLoading {
 					}
 
 				} catch (NullPointerException e) {
-					log.error("Cannot find QuestionQuestion targetCode:" + targetCode + ":parentCode:" + parentCode);
-
+					log.error("Cannot find QuestionQuestion targetCode:" + targetCode + ", parentCode:" + parentCode);
 				}
 			} catch (final BadDataException e) {
 				e.printStackTrace();
