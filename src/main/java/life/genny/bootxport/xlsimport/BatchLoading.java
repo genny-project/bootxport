@@ -158,15 +158,15 @@ public class BatchLoading {
 				String code = ((String) attributes.get("code")).replaceAll("^\"|\"$", "");
 				String dataType = null;
 				try {
-					dataType = ((String) attributes.get("datatype")).replaceAll("^\"|\"$", "");
-					log.trace("This is the datatype object code: " + dataType);
+					dataType = ((String) attributes.get("datatype")).trim().replaceAll("^\"|\"$", "");
+					log.trace("This is the datatype object code:" + dataType);
 				} catch (NullPointerException npe) {
 					log.error("DataType for " + code + " cannot be null");
-					throw new Exception("Bad DataType given for code " + code);
+					throw new Exception("Bad DataType given for code:" + code);
 				}
 				String name = ((String) attributes.get("name")).replaceAll("^\"|\"$", "");
 				DataType dataTypeRecord = dataTypeMap.get(dataType);
-				log.trace("This is the datatype map: " + dataTypeRecord);
+				log.trace("This is the datatype map:" + dataTypeRecord);
 				String privacyStr = (String) attributes.get("privacy");
 				if (privacyStr != null) {
 					privacyStr = privacyStr.toUpperCase();
@@ -190,7 +190,7 @@ public class BatchLoading {
 				// attr.setRealm(mainRealm);
 				Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
 				for (ConstraintViolation<Attribute> constraint : constraints) {
-					log.trace(constraint.getPropertyPath() + " " + constraint.getMessage());
+					log.trace(constraint.getPropertyPath() + ", " + constraint.getMessage());
 				}
 				if (constraints.isEmpty()) {
 					service.upsert(attr);
@@ -206,7 +206,7 @@ public class BatchLoading {
 		project.entrySet().stream().filter(d -> !d.getKey().matches("\\s*")).forEach(data -> {
 			Map<String, String> dataType = data.getValue();
 			String validations = (String) dataType.get("validations");
-			String code = ((String) dataType.get("code")).replaceAll("^\"|\"$", "");
+			String code = ((String) dataType.get("code")).trim().replaceAll("^\"|\"$", "");
 			;
 			String name = ((String) dataType.get("name")).replaceAll("^\"|\"$", "");
 			;
@@ -248,7 +248,7 @@ public class BatchLoading {
 
 			Set<ConstraintViolation<BaseEntity>> constraints = validator.validate(be);
 			for (ConstraintViolation<BaseEntity> constraint : constraints) {
-				log.trace(constraint.getPropertyPath() + " " + constraint.getMessage());
+				log.trace(constraint.getPropertyPath() + ", " + constraint.getMessage());
 			}
 
 			if (constraints.isEmpty()) {
@@ -307,7 +307,7 @@ public class BatchLoading {
 				BaseEntity be = null;
 				try {
 					attribute = service.findAttributeByCode(attributeCode);
-					log.trace("BseEntityCode: " + baseEntityCode + ", attributeCode: " + attribute.getCode());
+					log.trace("BseEntityCode:" + baseEntityCode + ", attributeCode:" + attribute.getCode());
 					if (attribute == null) {
 						log.error("BASE ENTITY CODE: " + baseEntityCode + " " + attributeCode
 								+ " is not in the Attribute Table!!!");
@@ -498,7 +498,7 @@ public class BatchLoading {
 			AttributeLink linkAttribute = null;
 
 			try {
-				dataType = ((String) attributeLink.get("dataType".toLowerCase().replaceAll("^\"|\"$|_|-", "")))
+				dataType = ((String) attributeLink.get("dataType".toLowerCase().trim().replaceAll("^\"|\"$|_|-", "")))
 						.replaceAll("^\"|\"$", "");
 				;
 				String name = ((String) attributeLink.get("name")).replaceAll("^\"|\"$", "");
@@ -723,7 +723,9 @@ public class BatchLoading {
 		Validator validator = factory.getValidator();
 		Attribute attr = service.findAttributeByCode("ENV_KEYCLOAK_JSON");
 		if (attr == null) {
-			attr = new Attribute("ENV_KEYCLOAK_JSON", "Keycloak Json", new DataType("DTT_TEXT"));
+            DataType dataType = new DataType("DTT_TEXT");
+            dataType.setDttCode("DTT_TEXT");
+			attr = new Attribute("ENV_KEYCLOAK_JSON", "Keycloak Json",dataType);
 			attr.setRealm(mainRealm);
 			Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
 			for (ConstraintViolation<Attribute> constraint : constraints) {
@@ -752,7 +754,9 @@ public class BatchLoading {
 		Attribute attr = service.findAttributeByCode("ENV_URL_LIST");
 		attr.setRealm(mainRealm);
 		if (attr == null) {
-			attr = new Attribute("ENV_URL_LIST", "Url List", new DataType("DTT_TEXT"));
+            DataType dataType = new DataType("DTT_TEXT");
+            dataType.setDttCode("DTT_TEXT");
+			attr = new Attribute("ENV_URL_LIST", "Url List", dataType);
 			Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
 			for (ConstraintViolation<Attribute> constraint : constraints) {
 				log.info("[" + this.mainRealm + "]" + constraint.getPropertyPath() + " " + constraint.getMessage());
