@@ -1,19 +1,15 @@
 package life.genny.bootxport.bootx;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import com.google.common.collect.Lists;
-import io.vavr.Function1;
 import io.vavr.Function2;
 import io.vavr.Function3;
 import io.vavr.Tuple2;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class XlsxImportOnline extends XlsxImport {
 
@@ -29,7 +25,7 @@ public class XlsxImportOnline extends XlsxImport {
         data = Lists.newArrayList(fetchSpreadSheet(sheetName, sheetId));
       } catch (IOException e) {
         // TODO Auto-generated catch block
-        System.out.println("There was a Error " + " in " + sheetId + " and " + sheetName);
+        System.out.println("There was a Error in sheet:" + sheetId + ",SheetID:" + sheetName + ", Error:" + e.getMessage());
         data = new ArrayList<>();
       }
       if(data.isEmpty()) {
@@ -46,7 +42,7 @@ public class XlsxImportOnline extends XlsxImport {
       try {
         data = Lists.newArrayList(fetchSpreadSheet(sheetName, sheetId));
       } catch (IOException e) {
-        System.out.println("There was a Error " + " in " + sheetId + " and " + sheetName);
+        System.out.println("There was a Error in sheet:" + sheetId + ",sheetID: " + sheetName + ", Error:" + e.getMessage());
         data = new ArrayList<>();
       }
     
