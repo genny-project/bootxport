@@ -350,13 +350,13 @@ public class BatchLoading {
 				Attribute attribute = null;
 				BaseEntity be = null;
 				try {
-					attribute = aMap.get(attributeCode); //service.findAttributeByCode(attributeCode);
+					attribute = aMap.get(realmName+":"+attributeCode); //service.findAttributeByCode(attributeCode);
 					if (attribute == null) {
 						log.error("BASE ENTITY CODE: " + baseEntityCode + " " + attributeCode
 								+ " is not in the Attribute Table!!!");
 					} else {
 
-						be = beMap.get(baseEntityCode); //service.findBaseEntityByCode(baseEntityCode);
+						be = beMap.get(realmName+":"+baseEntityCode); //service.findBaseEntityByCode(baseEntityCode);
 						
 						Double weightField = null;
 						try {
@@ -427,7 +427,7 @@ public class BatchLoading {
 		for (String beCode : updatedBes) {
 			log.trace("BaseEntityCode:" + beCode+" updated ");
 
-			BaseEntity be = beMap.get(beCode);
+			BaseEntity be = beMap.get(realmName+":"+beCode);
 			service.updateWithAttributes(be);
 		}
 	}
