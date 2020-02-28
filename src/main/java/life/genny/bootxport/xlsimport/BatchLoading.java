@@ -214,7 +214,7 @@ public class BatchLoading {
 				attr.setRealm(realmName);
 				// attr.setRealm(mainRealm);
 				Attribute existing = aMap.get(code);
-				if ((existing != null) && (!existing.equals(attr))) {
+				if ((existing == null)||((existing != null) && (!existing.equals(attr)))) {
 
 					Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
 					for (ConstraintViolation<Attribute> constraint : constraints) {
@@ -224,7 +224,7 @@ public class BatchLoading {
 						Attribute updated = service.upsert(attr);
 						aMap.put(realmName + ":" + updated.getCode(), updated);
 					}
-				}
+				} 
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -290,7 +290,7 @@ public class BatchLoading {
 
 			be.setRealm(realmName);
 			BaseEntity existing = beMap.get(code);
-			if ((existing != null) && (!existing.equals(be))) {
+			if ((existing==null)||((existing != null) && (!existing.equals(be)))) {
 
 				Set<ConstraintViolation<BaseEntity>> constraints = validator.validate(be);
 				for (ConstraintViolation<BaseEntity> constraint : constraints) {
