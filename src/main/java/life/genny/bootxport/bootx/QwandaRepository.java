@@ -1,5 +1,6 @@
 package life.genny.bootxport.bootx;
 
+import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.validation.constraints.NotNull;
 import life.genny.qwanda.Ask;
@@ -13,6 +14,7 @@ import life.genny.qwanda.validation.Validation;
 
 public interface QwandaRepository {
 
+  public EntityManager getEntityManager();
 
   public void setRealm(String realm);
   

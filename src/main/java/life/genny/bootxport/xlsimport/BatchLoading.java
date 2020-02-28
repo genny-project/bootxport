@@ -21,7 +21,12 @@ import life.genny.qwandautils.GennySettings;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 
+import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Root;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
@@ -29,6 +34,7 @@ import java.lang.invoke.MethodHandles;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 class Options {
 	public String optionCode = null;
@@ -36,14 +42,20 @@ class Options {
 }
 
 public class BatchLoading {
+	protected static final Logger log = org.apache.logging.log4j.LogManager
+			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+
 	private QwandaRepository service;
 
 	private String mainRealm = GennySettings.mainrealm;
 	// private static final String VALIDATIONS = "validations";
 	private static boolean isSynchronise;
 
-	protected static final Logger log = org.apache.logging.log4j.LogManager
-			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+	private Map<String, BaseEntity> beMap = new ConcurrentHashMap<>();
+	private List<String> updatedBes = new ArrayList<String>();
+	
+	private Map<String, Attribute> aMap = new ConcurrentHashMap<>();
+
 
 	public BatchLoading(QwandaRepository repo) {
 		this.service = repo;
@@ -117,11 +129,8 @@ public class BatchLoading {
 
 			val.setRealm(realmName);
 
-			log.info("realm:" + validations.get("realm")
-			+ ", code:" + code
-			+ ", name:" + name
-			+ ", val:" + val
-			+ ", grp:" + (groupCodesStr != null ? groupCodesStr : "X"));
+			log.info("realm:" + validations.get("realm") + ", code:" + code + ", name:" + name + ", val:" + val
+					+ ", grp:" + (groupCodesStr != null ? groupCodesStr : "X"));
 
 			Set<ConstraintViolation<Validation>> constraints = validator.validate(val);
 			for (ConstraintViolation<Validation> constraint : constraints) {
@@ -149,6 +158,20 @@ public class BatchLoading {
 
 	public void attributes(Map<String, Map<String, String>> project, Map<String, DataType> dataTypeMap,
 			String realmName) {
+
+		EntityManager em = service.getEntityManager();
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<Attribute> query = builder.createQuery(Attribute.class);
+		Root<Attribute> be2 = query.from(Attribute.class);
+		query.select(be2);
+		query.distinct(true);
+		query.where(builder.equal(be2.get("realm"), realmName));
+
+		List<Attribute> results = em.createQuery(query).getResultList();
+		results.parallelStream().forEach(item -> {
+			aMap.put(realmName + ":" + item.getCode(), item);
+		});
+
 		ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
 		Validator validator = factory.getValidator();
 
@@ -188,12 +211,16 @@ public class BatchLoading {
 				attr.setDefaultValue(defaultValueStr);
 				attr.setRealm(realmName);
 				// attr.setRealm(mainRealm);
-				Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
-				for (ConstraintViolation<Attribute> constraint : constraints) {
-					log.trace(constraint.getPropertyPath() + ", " + constraint.getMessage());
-				}
-				if (constraints.isEmpty()) {
-					service.upsert(attr);
+				Attribute existing = aMap.get(code);
+				if ((existing != null) && (!existing.equals(attr))) {
+
+					Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
+					for (ConstraintViolation<Attribute> constraint : constraints) {
+						log.trace(constraint.getPropertyPath() + ", " + constraint.getMessage());
+					}
+					if (constraints.isEmpty()) {
+						service.upsert(attr);
+					}
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -226,7 +253,7 @@ public class BatchLoading {
 			}
 			if (!dataTypeMap.containsKey(code)) {
 				final DataType dataTypeRecord = new DataType(name, validationList, name, inputmask);
-                dataTypeRecord.setDttCode(code);
+				dataTypeRecord.setDttCode(code);
 				dataTypeMap.put(code, dataTypeRecord);
 			}
 		});
@@ -234,6 +261,20 @@ public class BatchLoading {
 	}
 
 	public void baseEntitys(Map<String, Map<String, String>> project, String realmName) {
+		EntityManager em = service.getEntityManager();
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<BaseEntity> query = builder.createQuery(BaseEntity.class);
+		Root<BaseEntity> be2 = query.from(BaseEntity.class);
+		Join<BaseEntity, EntityAttribute> ea = (Join) be2.fetch("baseEntityAttributes");
+		query.select(be2);
+		query.distinct(true);
+		query.where(builder.equal(ea.get("realm"), realmName));
+
+		List<BaseEntity> results = em.createQuery(query).getResultList();
+		results.parallelStream().forEach(item -> {
+			beMap.put(realmName + ":" + item.getCode(), item);
+		});
+
 		ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
 		Validator validator = factory.getValidator();
 
@@ -245,14 +286,17 @@ public class BatchLoading {
 			BaseEntity be = new BaseEntity(code, name);
 
 			be.setRealm(realmName);
+			BaseEntity existing = beMap.get(code);
+			if ((existing != null) && (!existing.equals(be))) {
 
-			Set<ConstraintViolation<BaseEntity>> constraints = validator.validate(be);
-			for (ConstraintViolation<BaseEntity> constraint : constraints) {
-				log.trace(constraint.getPropertyPath() + ", " + constraint.getMessage());
-			}
+				Set<ConstraintViolation<BaseEntity>> constraints = validator.validate(be);
+				for (ConstraintViolation<BaseEntity> constraint : constraints) {
+					log.trace(constraint.getPropertyPath() + ", " + constraint.getMessage());
+				}
 
-			if (constraints.isEmpty()) {
-				service.upsert(be);
+				if (constraints.isEmpty()) {
+					service.upsert(be);
+				}
 			}
 		});
 	}
@@ -306,19 +350,46 @@ public class BatchLoading {
 				Attribute attribute = null;
 				BaseEntity be = null;
 				try {
-					attribute = service.findAttributeByCode(attributeCode);
-					log.trace("BseEntityCode:" + baseEntityCode + ", attributeCode:" + attribute.getCode());
+					attribute = aMap.get(attributeCode); //service.findAttributeByCode(attributeCode);
 					if (attribute == null) {
 						log.error("BASE ENTITY CODE: " + baseEntityCode + " " + attributeCode
 								+ " is not in the Attribute Table!!!");
 					} else {
-						be = service.findBaseEntityByCode(baseEntityCode);
+
+						be = beMap.get(baseEntityCode); //service.findBaseEntityByCode(baseEntityCode);
+						
 						Double weightField = null;
 						try {
 							weightField = Double.valueOf(weight);
 						} catch (java.lang.NumberFormatException ee) {
 							weightField = 0.0;
 						}
+						EntityAttribute existing = be.findEntityAttribute(attribute);
+						Boolean changed = false;
+						if (existing != null) {
+							if (existing.getPrivacyFlag().booleanValue() == (privacy || attribute.getDefaultPrivacyFlag())) {
+								if (valueInt != null) {
+									if (existing.getValueInteger().intValue() != valueInt) {
+										changed = true;
+									} else {
+										if (existing.getWeight().compareTo(weightField)!=0) {
+											changed = true;
+										}
+									}
+								} else {
+									if (!existing.getValueString().equals(valueStr)) {
+										changed = true;		
+									}
+								}
+
+							} else {
+								changed = true;
+							}
+						} else {
+							changed = true; 
+						}
+						if (changed) {
+							
 						try {
 							EntityAttribute ea;
 							if (valueInt != null) {
@@ -334,7 +405,10 @@ public class BatchLoading {
 						}
 						// be.setRealm(mainRealm);
 						be.setRealm(realmName);
-						service.updateWithAttributes(be);
+						beMap.put(realmName+":"+baseEntityCode, be);
+						updatedBes.add(baseEntityCode);
+						
+						}
 					}
 				} catch (final NoResultException e) {
 				}
@@ -344,10 +418,18 @@ public class BatchLoading {
 				if (baseEntityAttr != null) {
 					beCode = (String) baseEntityAttr.get("baseEntityCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
 				}
-				log.error("Error in getting baseEntityAttr for AttributeCode:" + attributeCode + " and beCode:" + beCode);
+				log.error(
+						"Error in getting baseEntityAttr for AttributeCode:" + attributeCode + " and beCode:" + beCode);
 			}
 
 		});
+		
+		for (String beCode : updatedBes) {
+			log.trace("BaseEntityCode:" + beCode+" updated ");
+
+			BaseEntity be = beMap.get(beCode);
+			service.updateWithAttributes(be);
+		}
 	}
 
 	public void entityEntitys(Map<String, Map<String, String>> project) {
@@ -708,7 +790,7 @@ public class BatchLoading {
 					}
 
 				} catch (Exception e) {
-	log.error("Cannot add MessageTemplate");
+					log.error("Cannot add MessageTemplate");
 
 				}
 			}
@@ -723,9 +805,9 @@ public class BatchLoading {
 		Validator validator = factory.getValidator();
 		Attribute attr = service.findAttributeByCode("ENV_KEYCLOAK_JSON");
 		if (attr == null) {
-            DataType dataType = new DataType("DTT_TEXT");
-            dataType.setDttCode("DTT_TEXT");
-			attr = new Attribute("ENV_KEYCLOAK_JSON", "Keycloak Json",dataType);
+			DataType dataType = new DataType("DTT_TEXT");
+			dataType.setDttCode("DTT_TEXT");
+			attr = new Attribute("ENV_KEYCLOAK_JSON", "Keycloak Json", dataType);
 			attr.setRealm(mainRealm);
 			Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
 			for (ConstraintViolation<Attribute> constraint : constraints) {
@@ -754,8 +836,8 @@ public class BatchLoading {
 		Attribute attr = service.findAttributeByCode("ENV_URL_LIST");
 		attr.setRealm(mainRealm);
 		if (attr == null) {
-            DataType dataType = new DataType("DTT_TEXT");
-            dataType.setDttCode("DTT_TEXT");
+			DataType dataType = new DataType("DTT_TEXT");
+			dataType.setDttCode("DTT_TEXT");
 			attr = new Attribute("ENV_URL_LIST", "Url List", dataType);
 			Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
 			for (ConstraintViolation<Attribute> constraint : constraints) {
@@ -797,96 +879,97 @@ public class BatchLoading {
 	}
 
 	public void persistProject(life.genny.bootxport.bootx.RealmUnit rx) {
-	  service.setRealm(rx.getCode());
-	  validations(rx.getValidations(), rx.getCode());
-	  Map<String, DataType> dataTypes = dataType(rx.getDataTypes());
-	  attributes(rx.getAttributes(), dataTypes, rx.getCode());
-	  baseEntitys(rx.getBaseEntitys(), rx.getCode());
-	  attributeLinks(rx.getAttributeLinks(), dataTypes, rx.getCode());
-	  baseEntityAttributes(rx.getEntityAttributes(), rx.getCode());
-	  entityEntitys(rx.getEntityEntitys());
-	  questions(rx.getQuestions(), rx.getCode());
-	  questionQuestions(rx.getQuestionQuestions(), rx.getCode());
-	  asks(rx.getAsks(), rx.getCode());
-	  messageTemplates(rx.getNotifications(), rx.getCode());
-	  messageTemplates(rx.getMessages(), rx.getCode());
-	}
-	
-	public void deleteFromProject(life.genny.bootxport.bootx.RealmUnit rx) {
-	  service.setRealm(rx.getCode());
-	  deleteAttributes(rx.getAttributes(),  rx.getCode());
-	  deleteBaseEntitys(rx.getBaseEntitys(), rx.getCode());
-	  deleteAttributeLinks(rx.getAttributeLinks(), rx.getCode());
-	  deleteEntityEntitys(rx.getEntityEntitys());
-	  deleteQuestions(rx.getQuestions(), rx.getCode());
-	  deleteQuestionQuestions(rx.getQuestionQuestions(), rx.getCode());
-	  deleteMessageTemplates(rx.getNotifications(), rx.getCode());
-	  deleteMessageTemplates(rx.getMessages(), rx.getCode());
+		service.setRealm(rx.getCode());
+		validations(rx.getValidations(), rx.getCode());
+		Map<String, DataType> dataTypes = dataType(rx.getDataTypes());
+		attributes(rx.getAttributes(), dataTypes, rx.getCode());
+		baseEntitys(rx.getBaseEntitys(), rx.getCode());
+		attributeLinks(rx.getAttributeLinks(), dataTypes, rx.getCode());
+		baseEntityAttributes(rx.getEntityAttributes(), rx.getCode());
+		entityEntitys(rx.getEntityEntitys());
+		questions(rx.getQuestions(), rx.getCode());
+		questionQuestions(rx.getQuestionQuestions(), rx.getCode());
+		asks(rx.getAsks(), rx.getCode());
+		messageTemplates(rx.getNotifications(), rx.getCode());
+		messageTemplates(rx.getMessages(), rx.getCode());
 	}
 
-	public void deleteAttributes(Map<String, Map<String, String>> project, String realmName){ project.entrySet().stream().forEach(d -> {
-        Attribute attribute = service.findAttributeByCode(d.getKey());
-        service.delete(attribute);
-	  });
+	public void deleteFromProject(life.genny.bootxport.bootx.RealmUnit rx) {
+		service.setRealm(rx.getCode());
+		deleteAttributes(rx.getAttributes(), rx.getCode());
+		deleteBaseEntitys(rx.getBaseEntitys(), rx.getCode());
+		deleteAttributeLinks(rx.getAttributeLinks(), rx.getCode());
+		deleteEntityEntitys(rx.getEntityEntitys());
+		deleteQuestions(rx.getQuestions(), rx.getCode());
+		deleteQuestionQuestions(rx.getQuestionQuestions(), rx.getCode());
+		deleteMessageTemplates(rx.getNotifications(), rx.getCode());
+		deleteMessageTemplates(rx.getMessages(), rx.getCode());
+	}
+
+	public void deleteAttributes(Map<String, Map<String, String>> project, String realmName) {
+		project.entrySet().stream().forEach(d -> {
+			Attribute attribute = service.findAttributeByCode(d.getKey());
+			service.delete(attribute);
+		});
 	}
 
 	public void deleteBaseEntitys(Map<String, Map<String, String>> project, String realmName) {
-	  project.entrySet().stream().forEach(d -> {
-        BaseEntity baseEntity = service.findBaseEntityByCode(d.getKey());
-        service.delete(baseEntity);
-	  });
-	  
+		project.entrySet().stream().forEach(d -> {
+			BaseEntity baseEntity = service.findBaseEntityByCode(d.getKey());
+			service.delete(baseEntity);
+		});
+
 	}
 
 	public void deleteAttributeLinks(Map<String, Map<String, String>> project, String realmName) {
-	  project.entrySet().stream().forEach(d -> {
-        Attribute attribute = service.findAttributeByCode(d.getKey());
-        service.delete(attribute);
-	  });
-	  
+		project.entrySet().stream().forEach(d -> {
+			Attribute attribute = service.findAttributeByCode(d.getKey());
+			service.delete(attribute);
+		});
+
 	}
 
 	public void deleteEntityEntitys(Map<String, Map<String, String>> project) {
-	  project.entrySet().stream().forEach(d -> {
-	    Map<String, String> entEnts = d.getValue();
-		String parentCode = (String) entEnts.get("parentCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+		project.entrySet().stream().forEach(d -> {
+			Map<String, String> entEnts = d.getValue();
+			String parentCode = (String) entEnts.get("parentCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
 
-		String linkCode = (String) entEnts.get("linkCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-		if (parentCode == null)
-			parentCode = (String) entEnts.get("sourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+			String linkCode = (String) entEnts.get("linkCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+			if (parentCode == null)
+				parentCode = (String) entEnts.get("sourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
 
-		String targetCode = (String) entEnts.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+			String targetCode = (String) entEnts.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
 
-        EntityEntity entityEntity = service.findEntityEntity(parentCode, targetCode, linkCode);
-        service.delete(entityEntity);
+			EntityEntity entityEntity = service.findEntityEntity(parentCode, targetCode, linkCode);
+			service.delete(entityEntity);
 
-	  });
+		});
 	}
 
 	public void deleteQuestions(Map<String, Map<String, String>> project, String realmName) {
-	  project.entrySet().stream().forEach(d -> {
-        Question question = service.findQuestionByCode(d.getKey());
-        service.delete(question);
-	  });
+		project.entrySet().stream().forEach(d -> {
+			Question question = service.findQuestionByCode(d.getKey());
+			service.delete(question);
+		});
 	}
 
 	public void deleteQuestionQuestions(Map<String, Map<String, String>> project, String realmName) {
-	  project.entrySet().stream().forEach(d -> {
-	    Map<String, String> queQues = d.getValue();
-		String parentCode = (String) queQues.get("parentCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-		String targetCode = (String) queQues.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-        QuestionQuestion questionQuestion = service.findQuestionQuestionByCode(parentCode, targetCode);
-        service.delete(questionQuestion);
-	  });
-	  
+		project.entrySet().stream().forEach(d -> {
+			Map<String, String> queQues = d.getValue();
+			String parentCode = (String) queQues.get("parentCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+			String targetCode = (String) queQues.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+			QuestionQuestion questionQuestion = service.findQuestionQuestionByCode(parentCode, targetCode);
+			service.delete(questionQuestion);
+		});
+
 	}
 
 	public void deleteMessageTemplates(Map<String, Map<String, String>> project, String realmName) {
-	  project.entrySet().stream().forEach(d -> {
-	    QBaseMSGMessageTemplate template = service.findTemplateByCode(d.getKey());
-	    service.delete(template);
-	  });
-	  
+		project.entrySet().stream().forEach(d -> {
+			QBaseMSGMessageTemplate template = service.findTemplateByCode(d.getKey());
+			service.delete(template);
+		});
+
 	}
-	
+
 }

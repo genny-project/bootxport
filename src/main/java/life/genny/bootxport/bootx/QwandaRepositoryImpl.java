@@ -55,7 +55,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
     this.realm = realm;
   }
 
-  protected EntityManager getEntityManager() {
+  public EntityManager getEntityManager() {
     return em;
   }
   
