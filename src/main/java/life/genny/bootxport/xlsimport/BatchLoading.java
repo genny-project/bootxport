@@ -171,6 +171,8 @@ public class BatchLoading {
 		results.parallelStream().forEach(item -> {
 			aMap.put(realmName + ":" + item.getCode(), item);
 		});
+		
+		log.info("Number of existing Attributes = "+aMap.size());
 
 		ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
 		Validator validator = factory.getValidator();
@@ -219,7 +221,8 @@ public class BatchLoading {
 						log.trace(constraint.getPropertyPath() + ", " + constraint.getMessage());
 					}
 					if (constraints.isEmpty()) {
-						service.upsert(attr);
+						Attribute updated = service.upsert(attr);
+						aMap.put(realmName + ":" + updated.getCode(), updated);
 					}
 				}
 			} catch (Exception e) {
@@ -295,7 +298,8 @@ public class BatchLoading {
 				}
 
 				if (constraints.isEmpty()) {
-					service.upsert(be);
+					BaseEntity item = service.upsert(be);
+					beMap.put(realmName + ":" + item.getCode(), item);
 				}
 			}
 		});
