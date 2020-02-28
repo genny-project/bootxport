@@ -198,7 +198,7 @@ public class BatchLoading {
 				}
 				Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
 				if (privacy) {
-					log.info("Realm:" + attributes.get("realm") + ", Attribute " + code + " has default privacy");
+					log.info("Realm:" + aMap.get(realmName+":"+code) + ", Attribute " + code + " has default privacy");
 				}
 				String descriptionStr = (String) attributes.get("description");
 				String helpStr = (String) attributes.get("help");
@@ -368,7 +368,12 @@ public class BatchLoading {
 						} catch (java.lang.NumberFormatException ee) {
 							weightField = 0.0;
 						}
-						EntityAttribute existing = be.findEntityAttribute(attribute);
+						EntityAttribute existing = null;
+						try {
+							existing = be.findEntityAttribute(attribute);
+						} catch (Exception e1) {
+							
+						}
 						Boolean changed = false;
 						if (existing != null) {
 							if (existing.getPrivacyFlag().booleanValue() == (privacy || attribute.getDefaultPrivacyFlag())) {
