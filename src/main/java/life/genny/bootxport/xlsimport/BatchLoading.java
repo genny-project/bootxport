@@ -698,15 +698,19 @@ public class BatchLoading {
 			Boolean readonly = "TRUE".equalsIgnoreCase(readonlyStr);
 			Boolean hidden = "TRUE".equalsIgnoreCase(hiddenStr);
 			Question question = service.findQuestionByCode(qCode);
-			final Ask ask = new Ask(question, sourceCode, targetCode, mandatory, weight);
-			ask.setName(name);
-			ask.setHidden(hidden);
-			ask.setReadonly(readonly);
+			try {
+				final Ask ask = new Ask(question, sourceCode, targetCode, mandatory, weight);
+				ask.setName(name);
+				ask.setHidden(hidden);
+				ask.setReadonly(readonly);
 
-			// ask.setRealm(mainRealm);
-			ask.setRealm(realmName);
+				// ask.setRealm(mainRealm);
+				ask.setRealm(realmName);
 
-			service.insert(ask);
+				service.insert(ask);
+			} catch (Exception e) {
+				log.error("Bad Ask Construction - "+attributeCode);
+			}
 		});
 	}
 
