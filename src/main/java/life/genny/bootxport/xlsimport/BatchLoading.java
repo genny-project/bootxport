@@ -198,7 +198,7 @@ public class BatchLoading {
 				}
 				Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
 				if (privacy) {
-					log.info("Realm:" + aMap.get(realmName+":"+code) + ", Attribute " + code + " has default privacy");
+					log.info("Realm:" + realmName + ", Attribute " + code + " has default privacy");
 				}
 				String descriptionStr = (String) attributes.get("description");
 				String helpStr = (String) attributes.get("help");
