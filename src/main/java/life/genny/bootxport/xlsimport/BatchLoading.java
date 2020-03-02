@@ -55,7 +55,8 @@ public class BatchLoading {
 	private List<String> updatedBes = new ArrayList<String>();
 	
 	private Map<String, Attribute> aMap = new ConcurrentHashMap<>();
-
+	private Map<String, Question> qMap = new ConcurrentHashMap<>();
+	private Map<String, QuestionQuestion> qqMap = new ConcurrentHashMap<>();
 
 	public BatchLoading(QwandaRepository repo) {
 		this.service = repo;
@@ -492,6 +493,16 @@ public class BatchLoading {
 	}
 
 	public void questionQuestions(Map<String, Map<String, String>> project, String realmName) {
+		EntityManager em = service.getEntityManager();
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<QuestionQuestion> query = builder.createQuery(QuestionQuestion.class);
+		Root<QuestionQuestion> be2 = query.from(QuestionQuestion.class);
+		query.where(builder.equal(be2.get("realm"), realmName));
+
+		List<QuestionQuestion> results = em.createQuery(query).getResultList();
+		results.parallelStream().forEach(item -> {
+			qqMap.put(realmName + ":" + item.getPk().getSourceCode()+":"+item.getPk().getTargetCode(), item);
+		});
 		project.entrySet().stream().forEach(data -> {
 			Map<String, String> queQues = data.getValue();
 			String parentCode = (String) queQues.get("parentCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
@@ -526,8 +537,12 @@ public class BatchLoading {
 			Question tbe = null;
 
 			try {
-				sbe = service.findQuestionByCode(parentCode);
-				tbe = service.findQuestionByCode(targetCode);
+				sbe = qMap.get(parentCode); //service.findQuestionByCode(parentCode);
+				tbe = qMap.get(targetCode); //service.findQuestionByCode(targetCode);
+				if ((sbe == null)||(tbe==null)) {
+					sbe = service.findQuestionByCode(parentCode);
+					tbe = service.findQuestionByCode(targetCode);
+				}
 				try {
 					String oneshotStr = (String) queQues.get("oneshot");
 					Boolean oneshot = false;
@@ -549,11 +564,13 @@ public class BatchLoading {
 
 					QuestionQuestion existing = null;
 					try {
-						existing = service.findQuestionQuestionByCode(parentCode, targetCode);
+						existing = qqMap.get(realmName + ":" + parentCode+":"+targetCode); //service.findQuestionQuestionByCode(parentCode, targetCode);
 						if (existing == null) {
 							qq = service.upsert(qq);
 						} else {
-							service.upsert(qq);
+							if (!existing.equals(qq)) {
+								service.upsert(qq);
+							}
 						}
 					} catch (NoResultException e1) {
 						qq = service.upsert(qq);
@@ -623,6 +640,18 @@ public class BatchLoading {
 	}
 
 	public void questions(Map<String, Map<String, String>> project, String realmName) {
+		EntityManager em = service.getEntityManager();
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<Question> query = builder.createQuery(Question.class);
+		Root<Question> be2 = query.from(Question.class);
+		query.distinct(true);
+		query.where(builder.equal(be2.get("realm"), realmName));
+
+		List<Question> results = em.createQuery(query).getResultList();
+		results.parallelStream().forEach(item -> {
+			qMap.put(realmName + ":" + item.getCode(), item);
+		});
+
 		project.entrySet().stream().filter(rawData -> !rawData.getKey().isEmpty()).forEach(data -> {
 			Map<String, String> questions = data.getValue();
 			String code = (String) questions.get("code");
@@ -639,7 +668,7 @@ public class BatchLoading {
 			Boolean readonly = getBooleanFromString(readonlyStr);
 			Boolean mandatory = getBooleanFromString(mandatoryStr);
 			Attribute attr;
-			attr = service.findAttributeByCode(attrCode);
+			attr = aMap.get(realmName+":"+attrCode); //service.findAttributeByCode(attrCode);
 			if (attr == null) {
 				log.error(attrCode + " HAS NO ATTRIBUTE IN DATABASE");
 
@@ -658,20 +687,21 @@ public class BatchLoading {
 				// q.setRealm(mainRealm);
 				q.setRealm(realmName);
 
-				Question existing = service.findQuestionByCode(code);
+				Question existing = qMap.get(realmName+":"+code); //service.findQuestionByCode(code);
 				if (existing == null) {
 					if (isSynchronise()) {
-						Question val = service.findQuestionByCode(q.getCode(), mainRealm);
-						if (val != null) {
-
-							// val.setRealm(mainRealm);
-							val.setRealm(realmName);
-
-							service.updateRealm(val);
-							return;
-						}
+//						Question val = service.findQuestionByCode(q.getCode(), mainRealm);
+//						if (val != null) {
+//
+//							// val.setRealm(mainRealm);
+//							val.setRealm(realmName);
+//
+//							service.updateRealm(val);
+//							return;
+//						}
 					}
 					service.insert(q);
+					qMap.put(realmName+":"+code, q);
 				} else {
 					existing.setName(name);
 					existing.setHtml(html);
@@ -679,8 +709,10 @@ public class BatchLoading {
 					existing.setReadonly(readonly);
 					existing.setMandatory(mandatory);
 					service.upsert(existing);
+					qMap.put(realmName+":"+code, existing);
 				}
 			}
+			
 
 		});
 	}
