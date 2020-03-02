@@ -129,7 +129,7 @@ public class BatchLoading {
 
 			val.setRealm(realmName);
 
-			log.info("realm:" + validations.get("realm") + ", code:" + code + ", name:" + name + ", val:" + val
+			log.info("realm:" + realmName + ", code:" + code + ", name:" + name + ", val:" + val
 					+ ", grp:" + (groupCodesStr != null ? groupCodesStr : "X"));
 
 			Set<ConstraintViolation<Validation>> constraints = validator.validate(val);
