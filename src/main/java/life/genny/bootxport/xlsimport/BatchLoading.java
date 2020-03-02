@@ -348,6 +348,7 @@ public class BatchLoading {
 			try {
 				baseEntityCode = ((String) baseEntityAttr
 						.get("baseEntityCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""))).replaceAll("^\"|\"$", "");
+				baseEntityCode = baseEntityCode.toUpperCase();
 				String weight = (String) baseEntityAttr.get("weight");
 				String privacyStr = (String) baseEntityAttr.get("privacy");
 				Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
