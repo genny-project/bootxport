@@ -429,8 +429,8 @@ public class BatchLoading {
 				if (baseEntityAttr != null) {
 					beCode = (String) baseEntityAttr.get("baseEntityCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
 				}
-				log.error(
-						"Error in getting baseEntityAttr for AttributeCode:" + attributeCode + " and beCode:" + beCode);
+//				log.error(
+//						"Error in getting baseEntityAttr for AttributeCode:" + attributeCode + " and beCode:" + beCode);
 			}
 
 		});
