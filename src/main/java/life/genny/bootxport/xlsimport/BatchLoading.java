@@ -588,7 +588,13 @@ public class BatchLoading {
 					}
 
 				} catch (NullPointerException e) {
-					log.error("Cannot find QuestionQuestion targetCode:" + targetCode + ", parentCode:" + parentCode);
+					if (sbe  == null){
+						log.error("Cannot find parentCode:" + parentCode);
+					} else if (tbe  == null){
+						log.error("Cannot find targetCode:" + targetCode);
+					} else {
+						e.printStackTrace();
+					}
 				}
 			} catch (final BadDataException e) {
 				e.printStackTrace();
