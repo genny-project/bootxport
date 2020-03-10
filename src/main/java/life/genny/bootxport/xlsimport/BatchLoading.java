@@ -1,28 +1,10 @@
 package life.genny.bootxport.xlsimport;
 
-import java.lang.invoke.MethodHandles;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import javax.persistence.NoResultException;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.Logger;
 import life.genny.bootxport.bootx.QwandaRepository;
 import life.genny.bootxport.bootx.RealmUnit;
 import life.genny.qwanda.Ask;
-import life.genny.qwanda.Context;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.attribute.Attribute;
@@ -36,6 +18,17 @@ import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
 import life.genny.qwandautils.GennySettings;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.Logger;
+
+import javax.persistence.NoResultException;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+import java.lang.invoke.MethodHandles;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.*;
 
 class Options {
 	public String optionCode = null;
@@ -165,23 +158,21 @@ public class BatchLoading {
 				String dataType = null;
 				try {
 					dataType = ((String) attributes.get("datatype")).trim().replaceAll("^\"|\"$", "");
-					;
-					log.info("This is the datatype object code: " + dataType);
+//					log.info("This is the datatype object code: " + dataType);
 				} catch (NullPointerException npe) {
 					log.error("DataType for " + code + " cannot be null");
 					throw new Exception("Bad DataType given for code " + code);
 				}
 				String name = ((String) attributes.get("name")).replaceAll("^\"|\"$", "");
-				;
 				DataType dataTypeRecord = dataTypeMap.get(dataType);
-				log.info("This is the datatype map: " + dataTypeRecord);
+//				log.info("This is the datatype map: " + dataTypeRecord);
 				String privacyStr = (String) attributes.get("privacy");
 				if (privacyStr != null) {
 					privacyStr = privacyStr.toUpperCase();
 				}
 				Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
 				if (privacy) {
-					log.info(attributes.get("realm") + "Attribute " + code + " has default privacy");
+					log.info("Realm:" + realmName +  ", Attribute " + code + " has default privacy");
 				}
 				String descriptionStr = (String) attributes.get("description");
 				String helpStr = (String) attributes.get("help");
@@ -315,7 +306,7 @@ public class BatchLoading {
 				BaseEntity be = null;
 				try {
 					attribute = service.findAttributeByCode(attributeCode);
-					log.info("BseEntityCode: " + baseEntityCode + " attributeCode: " + attribute.getCode());
+//					log.info("BseEntityCode: " + baseEntityCode + " attributeCode: " + attribute.getCode());
 					if (attribute == null) {
 						log.error("BASE ENTITY CODE: " + baseEntityCode + " " + attributeCode
 								+ " is not in the Attribute Table!!!");
@@ -488,8 +479,13 @@ public class BatchLoading {
 					}
 
 				} catch (NullPointerException e) {
-					log.error("Cannot find QuestionQuestion targetCode:" + targetCode + ":parentCode:" + parentCode);
-
+					if (sbe == null){
+						log.error("Cannot find parentCode:" + parentCode + " from Question.");
+					} else if (tbe == null) {
+						log.error("Cannot find targetCode:" + targetCode + " from Question.");
+					} else {
+						log.error("Exception:" + e.toString());
+					}
 				}
 			} catch (final BadDataException e) {
 				e.printStackTrace();
