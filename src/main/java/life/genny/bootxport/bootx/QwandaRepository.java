@@ -102,9 +102,9 @@ public interface QwandaRepository {
 
     List<QBaseMSGMessageTemplate> queryMessage(@NotNull final String realm);
 
-    void insert( ArrayList<Validation> validationList);
+    void insertValidations(ArrayList<Validation> validationList);
 
-    void insert(Attribute attribute);
+    void insertAttributes(ArrayList<Attribute> attributeList);
 
     Long insert(BaseEntity baseEntity);
 }

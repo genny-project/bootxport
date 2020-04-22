@@ -27,6 +27,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+import javax.ws.rs.NotFoundException;
 import java.lang.invoke.MethodHandles;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -117,13 +118,18 @@ public class BatchLoading {
             codeSet.add(vld.getCode());
         }
         ArrayList<Validation> validationList = new ArrayList<>();
+        int invalid = 0;
+        int total = 0;
+        int skipped = 0;
 
         for (Map<String, String> validations : project.values()) {
+            total += 1;
             String code = validations.get("code").replaceAll("^\"|\"$", "");
 
             if (codeSet.contains(code)) {
                 // TODO merger and update if needed
-                log.trace("Validation:" + code + ", Realm:" + realmName + "exists in db, skip.");
+//                log.trace("Validation:" + code + ", Realm:" + realmName + "exists in db, skip.");
+                skipped += 1;
                 continue;
             }
 
@@ -136,9 +142,12 @@ public class BatchLoading {
 
             if (constraints.isEmpty()) {
                 validationList.add(val);
+            } else {
+                invalid += 1;
             }
         }
-        service.insert(validationList);
+        service.insertValidations(validationList);
+        log.debug("Validation: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
     }
 
     private Boolean getBooleanFromString(final String booleanString) {
@@ -152,58 +161,85 @@ public class BatchLoading {
 
     }
 
-    public void attributes(Map<String, Map<String, String>> project, Map<String, DataType> dataTypeMap,
-                           String realmName) {
+    private Attribute buildAttrribute(Map<String, String> attributes, Map<String, DataType> dataTypeMap,
+                                      String realmName, String code) {
+        String dataType = null;
+        if (!attributes.containsKey("datatype")) {
+            log.error("DataType for " + code + " cannot be null");
+            throw new NotFoundException("Bad DataType given for code " + code);
+        }
+
+        dataType = attributes.get("datatype").trim().replaceAll("^\"|\"$", "");
+//        log.info("This is the datatype object code: " + dataType);
+        String name = attributes.get("name").replaceAll("^\"|\"$", "");
+        DataType dataTypeRecord = dataTypeMap.get(dataType);
+//        log.info("This is the datatype map: " + dataTypeRecord);
+
+        String privacyStr = attributes.get("privacy");
+        if (privacyStr != null) {
+            privacyStr = privacyStr.toUpperCase();
+        }
+
+        Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
+        if (privacy) {
+            log.info("Realm:" + realmName + ", Attribute " + code + " has default privacy");
+        }
+        String descriptionStr = attributes.get("description");
+        String helpStr = attributes.get("help");
+        String placeholderStr = attributes.get("placeholder");
+        String defaultValueStr = attributes.get("defaultValue".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+        Attribute attr = new Attribute(code, name, dataTypeRecord);
+        attr.setDefaultPrivacyFlag(privacy);
+        attr.setDescription(descriptionStr);
+        attr.setHelp(helpStr);
+        attr.setPlaceholder(placeholderStr);
+        attr.setDefaultValue(defaultValueStr);
+        attr.setRealm(realmName);
+        // attr.setRealm(mainRealm);
+        return attr;
+    }
+
+    public void attributes(Map<String, Map<String, String>> project, Map<String, DataType> dataTypeMap, String realmName) {
         ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
         Validator validator = factory.getValidator();
 
+        List<Attribute> attributesFromDB = service.queryAttributes(realmName);
+        HashSet<String> codeSet = new HashSet<>();
+        for (Attribute vld : attributesFromDB) {
+            codeSet.add(vld.getCode());
+        }
+
+        ArrayList<Attribute> attributeList = new ArrayList<>();
+        int invalid = 0;
+        int total = 0;
+        int skipped = 0;
+
         for (Map.Entry<String, Map<String, String>> data : project.entrySet()) {
-            try {
-                Map<String, String> attributes = data.getValue();
-                String code = attributes.get("code").replaceAll("^\"|\"$", "");
-                String dataType = null;
-                try {
-                    dataType = attributes.get("datatype").trim().replaceAll("^\"|\"$", "");
-//					log.info("This is the datatype object code: " + dataType);
-                } catch (NullPointerException npe) {
-                    log.error("DataType for " + code + " cannot be null");
-                    throw new Exception("Bad DataType given for code " + code);
-                }
-                String name = attributes.get("name").replaceAll("^\"|\"$", "");
-                DataType dataTypeRecord = dataTypeMap.get(dataType);
-//				log.info("This is the datatype map: " + dataTypeRecord);
-                String privacyStr = attributes.get("privacy");
-                if (privacyStr != null) {
-                    privacyStr = privacyStr.toUpperCase();
-                }
-                Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
-                if (privacy) {
-                    log.info("Realm:" + realmName + ", Attribute " + code + " has default privacy");
-                }
-                String descriptionStr = attributes.get("description");
-                String helpStr = attributes.get("help");
-                String placeholderStr = attributes.get("placeholder");
-                String defaultValueStr = attributes
-                        .get("defaultValue".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-                Attribute attr = new Attribute(code, name, dataTypeRecord);
-                attr.setDefaultPrivacyFlag(privacy);
-                attr.setDescription(descriptionStr);
-                attr.setHelp(helpStr);
-                attr.setPlaceholder(placeholderStr);
-                attr.setDefaultValue(defaultValueStr);
-                attr.setRealm(realmName);
-                // attr.setRealm(mainRealm);
-                Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
-                for (ConstraintViolation<Attribute> constraint : constraints) {
-                    log.info(constraint.getPropertyPath() + " " + constraint.getMessage());
-                }
-                if (constraints.isEmpty()) {
-                    service.upsert(attr);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+            total += 1;
+            Map<String, String> attributes = data.getValue();
+            String code = attributes.get("code").replaceAll("^\"|\"$", "");
+            if (codeSet.contains(code)) {
+                // TODO merger and update if needed
+//                log.trace("Attributes:" + code + ", Realm:" + realmName + "exists in db, skip.");
+                skipped += 1;
+                continue;
+            }
+
+            Attribute attr = buildAttrribute(attributes, dataTypeMap, realmName, code);
+
+            Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
+            for (ConstraintViolation<Attribute> constraint : constraints) {
+                log.info(constraint.getPropertyPath() + " " + constraint.getMessage());
+            }
+
+            if (constraints.isEmpty()) {
+                attributeList.add(attr);
+            } else {
+                invalid += 1;
             }
         }
+        service.insertAttributes(attributeList);
+        log.debug("Attribute: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
     }
 
     public Map<String, DataType> dataType(Map<String, Map<String, String>> project) {
@@ -784,9 +820,6 @@ public class BatchLoading {
     }
 
     public void persistProject(life.genny.bootxport.bootx.RealmUnit rx) {
-//	  if (! rx.getCode().equals("internmatch")){
-//	  	return;
-//		}
         String code = rx.getCode();
         boolean skipGoogleDoc = rx.getSkipGoogleDoc();
         boolean disabled = rx.getDisable();
@@ -801,21 +834,39 @@ public class BatchLoading {
         }
 
         service.setRealm(code);
-        log.info("Processing realm:" + code);
         validations(rx.getValidations(), code);
+        log.info("Realm:" + code + ", Persisted Validation.");
 
         Map<String, DataType> dataTypes = dataType(rx.getDataTypes());
         attributes(rx.getAttributes(), dataTypes, code);
+        log.info("Realm:" + code + ", Persisted Attributes.");
 
         baseEntitys(rx.getBaseEntitys(), code);
+        log.info("Realm:" + code + ", Persisted BaseEntitys.");
+
         attributeLinks(rx.getAttributeLinks(), dataTypes, code);
+        log.info("Realm:" + code + ", Persisted AttributeLinks.");
+
         baseEntityAttributes(rx.getEntityAttributes(), code);
+        log.info("Realm:" + code + ", Persisted EntityAttributes.");
+
         entityEntitys(rx.getEntityEntitys());
+        log.info("Realm:" + code + ", Persisted EntityEntitys.");
+
         questions(rx.getQuestions(), code);
+        log.info("Realm:" + code + ", Persisted Questions.");
+
         questionQuestions(rx.getQuestionQuestions(), code);
+        log.info("Realm:" + code + ", Persisted QuestionQuestions.");
+
         asks(rx.getAsks(), code);
+        log.info("Realm:" + code + ", Persisted Asks.");
+
         messageTemplates(rx.getNotifications(), code);
+        log.info("Realm:" + code + ", Persisted Notifications.");
+
         messageTemplates(rx.getMessages(), code);
+        log.info("Realm:" + code + ", Persisted Messages.");
     }
 
     public void deleteFromProject(life.genny.bootxport.bootx.RealmUnit rx) {

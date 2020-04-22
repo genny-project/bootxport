@@ -63,7 +63,8 @@ public class QwandaRepositoryImpl implements QwandaRepository {
     }
 
     @Override
-    public void insert(ArrayList<Validation> validationList) {
+    public void insertValidations(ArrayList<Validation> validationList) {
+        if (validationList.size() == 0) return;
         int index = 1;
         EntityTransaction transaction = em.getTransaction();
         if (!transaction.isActive()) transaction.begin();
@@ -72,7 +73,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
             em.persist(validation);
             if (index % BATCHSIZE == 0) {
                 //flush a batch of inserts and release memory:
-                log.debug("Batch is full, flush to database.");
+                log.debug("Validation Batch is full, flush to database.");
                 em.flush();
             }
             index += 1;
@@ -81,7 +82,22 @@ public class QwandaRepositoryImpl implements QwandaRepository {
     }
 
     @Override
-    public void insert(Attribute attribute) {
+    public void insertAttributes(ArrayList<Attribute> attributeList) {
+        if (attributeList.size() == 0) return;
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
+
+        for (Attribute attribute : attributeList) {
+            em.persist(attribute);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("Attribute Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
     }
 
     @Override
