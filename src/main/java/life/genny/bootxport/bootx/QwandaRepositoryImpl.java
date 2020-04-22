@@ -2,6 +2,7 @@ package life.genny.bootxport.bootx;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,8 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 
+import life.genny.qwanda.attribute.AttributeLink;
+import life.genny.qwanda.attribute.EntityAttribute;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.exception.ConstraintViolationException;
@@ -30,6 +33,7 @@ import life.genny.qwanda.validation.Validation;
 import life.genny.qwandautils.JsonUtils;
 
 public class QwandaRepositoryImpl implements QwandaRepository {
+    private static final int BATCHSIZE = 500;
     protected static final Logger log = LogManager.getLogger(
             MethodHandles.lookup().lookupClass().getCanonicalName());
 
@@ -58,6 +62,28 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         return em;
     }
 
+    @Override
+    public void insert(ArrayList<Validation> validationList) {
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
+
+        for (Validation validation : validationList) {
+            em.persist(validation);
+            if (index % BATCHSIZE == 0) {
+                //same as the JDBC batch size //20,与JDBC批量设置相同
+                //flush a batch of inserts and release memory:
+                log.debug("Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
+    }
+
+    @Override
+    public void insert(Attribute attribute) {
+    }
 
     @Override
     public Validation upsert(Validation validation) {
@@ -101,10 +127,9 @@ public class QwandaRepositoryImpl implements QwandaRepository {
                 log.error("Error in saving validation :" + validation + " :"
                         + pe.getLocalizedMessage());
             }
-            Validation id = validation;
             transaction.commit();
 
-            return id;
+            return validation;
         }
     }
 
@@ -850,11 +875,143 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         em.remove(entity);
     }
 
+    @Override
     public List<Validation> queryValidation(@NotNull final String realm)
             throws NoResultException {
         List<Validation> result = Collections.emptyList();
         try {
             Query query = getEntityManager().createQuery("SELECT temp FROM Validation temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error("Query Validation table Error:" + e.getMessage());
+        }
+        return result;
+    }
+
+    @Override
+    public List<Attribute> queryAttributes(@NotNull final String realm) {
+        List<Attribute> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM Attribute temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error("Query Validation table Error:" + e.getMessage());
+        }
+        return result;
+    }
+
+
+    @Override
+    public List<BaseEntity> queryBaseEntity(@NotNull final String realm) {
+        List<BaseEntity> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM BaseEntity temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error("Query Validation table Error:" + e.getMessage());
+        }
+        return result;
+    }
+
+    @Override
+    public List<AttributeLink> queryAttributeLinks(@NotNull final String realm) {
+        List<AttributeLink> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM AttributeLink temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error("Query Validation table Error:" + e.getMessage());
+        }
+        return result;
+    }
+
+    @Override
+    public List<EntityAttribute> queryEntityAttribute(@NotNull final String realm) {
+        List<EntityAttribute> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM EntityAttribute temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error("Query Validation table Error:" + e.getMessage());
+        }
+        return result;
+    }
+
+    @Override
+    public List<EntityEntity> queryEntityEntity(@NotNull final String realm) {
+        List<EntityEntity> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM EntityEntity temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error("Query Validation table Error:" + e.getMessage());
+        }
+        return result;
+    }
+
+    @Override
+    public List<Question> queryQuestion(@NotNull final String realm) {
+        List<Question> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM Question temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error("Query Validation table Error:" + e.getMessage());
+        }
+        return result;
+    }
+
+    @Override
+    public List<QuestionQuestion> queryQuestionQuestion(@NotNull final String realm) {
+        List<QuestionQuestion> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM QuestionQuestion temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error("Query Validation table Error:" + e.getMessage());
+        }
+        return result;
+    }
+
+    @Override
+    public List<Ask> queryAsk(@NotNull final String realm) {
+        List<Ask> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM Ask temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error("Query Validation table Error:" + e.getMessage());
+        }
+        return result;
+    }
+
+    @Override
+    public List<QBaseMSGMessageTemplate> queryNotification(@NotNull final String realm) {
+        List<QBaseMSGMessageTemplate> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM QBaseMSGMessageTemplate temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error("Query Validation table Error:" + e.getMessage());
+        }
+        return result;
+    }
+
+    @Override
+    public List<QBaseMSGMessageTemplate> queryMessage(@NotNull final String realm) {
+        List<QBaseMSGMessageTemplate> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM QBaseMSGMessageTemplate temp where temp.realm=:realmStr");
             query.setParameter("realmStr", realm);
             result = query.getResultList();
         } catch (Exception e) {

@@ -7,11 +7,14 @@ import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.attribute.Attribute;
+import life.genny.qwanda.attribute.AttributeLink;
+import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public interface QwandaRepository {
@@ -78,4 +81,30 @@ public interface QwandaRepository {
     Long update(final QBaseMSGMessageTemplate template);
 
     List<Validation> queryValidation(@NotNull final String realm);
+
+    List<Attribute> queryAttributes(@NotNull final String realm);
+
+    List<BaseEntity> queryBaseEntity(@NotNull final String realm);
+
+    List<AttributeLink> queryAttributeLinks(@NotNull final String realm);
+
+    List<EntityAttribute> queryEntityAttribute(@NotNull final String realm);
+
+    List<EntityEntity> queryEntityEntity(@NotNull final String realm);
+
+    List<Question> queryQuestion(@NotNull final String realm);
+
+    List<QuestionQuestion> queryQuestionQuestion(@NotNull final String realm);
+
+    List<Ask> queryAsk(@NotNull final String realm);
+
+    List<QBaseMSGMessageTemplate> queryNotification(@NotNull final String realm);
+
+    List<QBaseMSGMessageTemplate> queryMessage(@NotNull final String realm);
+
+    void insert( ArrayList<Validation> validationList);
+
+    void insert(Attribute attribute);
+
+    Long insert(BaseEntity baseEntity);
 }

@@ -51,8 +51,63 @@ public class BatchLoading {
         this.service = repo;
     }
 
-    public void validations(Map<String, Map<String, String>> project, String realmName) {
+    private Validation buildValidation(Map<String, String> validations, String realmName, String code) {
+        boolean needCheckOptions = false;
+        boolean hasValidOptions = false;
         Gson gsonObject = new Gson();
+        String optionString = validations.get("options");
+        if (optionString != null && (!optionString.equals(" "))) {
+            needCheckOptions = true;
+        }
+
+        if (needCheckOptions) {
+            try {
+                gsonObject.fromJson(optionString, Options[].class);
+                log.info("FOUND VALID OPTIONS STRING:" + optionString);
+                hasValidOptions = true;
+            } catch (JsonSyntaxException ex) {
+                log.error("FOUND INVALID OPTIONS STRING:" + optionString);
+                throw new JsonSyntaxException(ex.getMessage());
+            }
+        }
+
+        String regex = validations.get("regex");
+        if (regex != null) {
+            regex = regex.replaceAll("^\"|\"$", "");
+        }
+        if ("VLD_AU_DRIVER_LICENCE_NO".equalsIgnoreCase(code)) {
+            log.info("detected VLD_AU_DRIVER_LICENCE_NO");
+        }
+        String name = validations.get("name").replaceAll("^\"|\"$", "");
+        String recursiveStr = validations.get("recursive");
+        String multiAllowedStr = validations
+                .get("multi_allowed".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+        String groupCodesStr = validations.get("group_codes".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+        Boolean recursive = getBooleanFromString(recursiveStr);
+        Boolean multiAllowed = getBooleanFromString(multiAllowedStr);
+        Validation val = null;
+        if (code.startsWith(Validation.getDefaultCodePrefix() + "SELECT_")) {
+            if (hasValidOptions) {
+                log.info("Case 1, build Validation with OPTIONS String");
+                val = new Validation(code, name, groupCodesStr, recursive, multiAllowed, optionString);
+            } else {
+                val = new Validation(code, name, groupCodesStr, recursive, multiAllowed);
+            }
+        } else {
+            if (hasValidOptions) {
+                log.info("Case 2, build Validation with OPTIONS String");
+                val = new Validation(code, name, regex, optionString);
+            } else {
+                val = new Validation(code, name, regex);
+            }
+        }
+        val.setRealm(realmName);
+        log.info("realm:" + realmName + ",code:" + code + ",name:" + name + ",val:" + val + ", grp="
+                + (groupCodesStr != null ? groupCodesStr : "X"));
+        return val;
+    }
+
+    public void validations(Map<String, Map<String, String>> project, String realmName) {
         ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
         Validator validator = factory.getValidator();
 
@@ -61,70 +116,29 @@ public class BatchLoading {
         for (Validation vld : validationsFromDB) {
             codeSet.add(vld.getCode());
         }
+        ArrayList<Validation> validationList = new ArrayList<>();
 
         for (Map<String, String> validations : project.values()) {
             String code = validations.get("code").replaceAll("^\"|\"$", "");
+
             if (codeSet.contains(code)) {
+                // TODO merger and update if needed
                 log.trace("Validation:" + code + ", Realm:" + realmName + "exists in db, skip.");
                 continue;
             }
-            String optionString = validations.get("options");
-            boolean needCheckOptions = false;
-            boolean hasValidOptions = false;
-            if (optionString != null && (!optionString.equals(" "))) {
-                needCheckOptions = true;
-            }
-            if (needCheckOptions) {
-                try {
-                    gsonObject.fromJson(optionString, Options[].class);
-                    log.info("FOUND VALID OPTIONS STRING:" + optionString);
-                    hasValidOptions = true;
-                } catch (JsonSyntaxException ex) {
-                    log.error("FOUND INVALID OPTIONS STRING:" + optionString);
-                    throw new JsonSyntaxException(ex.getMessage());
-                }
-            }
-            String regex = validations.get("regex");
-            if (regex != null) {
-                regex = regex.replaceAll("^\"|\"$", "");
-            }
-            if ("VLD_AU_DRIVER_LICENCE_NO".equalsIgnoreCase(code)) {
-                log.info("detected VLD_AU_DRIVER_LICENCE_NO");
-            }
-            String name = validations.get("name").replaceAll("^\"|\"$", "");
-            String recursiveStr = validations.get("recursive");
-            String multiAllowedStr = validations
-                    .get("multi_allowed".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-            String groupCodesStr = validations.get("group_codes".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-            Boolean recursive = getBooleanFromString(recursiveStr);
-            Boolean multiAllowed = getBooleanFromString(multiAllowedStr);
-            Validation val = null;
-            if (code.startsWith(Validation.getDefaultCodePrefix() + "SELECT_")) {
-                if (hasValidOptions) {
-                    log.info("Case 1, build Validation with OPTIONS String");
-                    val = new Validation(code, name, groupCodesStr, recursive, multiAllowed, optionString);
-                } else {
-                    val = new Validation(code, name, groupCodesStr, recursive, multiAllowed);
-                }
-            } else {
-                if (hasValidOptions) {
-                    log.info("Case 2, build Validation with OPTIONS String");
-                    val = new Validation(code, name, regex, optionString);
-                } else {
-                    val = new Validation(code, name, regex);
-                }
-            }
-            val.setRealm(realmName);
-            log.info("realm:" + realmName + ",code:" + code + ",name:" + name + ",val:" + val + ", grp="
-                    + (groupCodesStr != null ? groupCodesStr : "X"));
+
+            Validation val = buildValidation(validations, realmName, code);
+
             Set<ConstraintViolation<Validation>> constraints = validator.validate(val);
             for (ConstraintViolation<Validation> constraint : constraints) {
                 log.error(constraint.getPropertyPath() + " " + constraint.getMessage());
             }
+
             if (constraints.isEmpty()) {
-                service.upsert(val);
+                validationList.add(val);
             }
         }
+        service.insert(validationList);
     }
 
     private Boolean getBooleanFromString(final String booleanString) {
@@ -774,6 +788,18 @@ public class BatchLoading {
 //	  	return;
 //		}
         String code = rx.getCode();
+        boolean skipGoogleDoc = rx.getSkipGoogleDoc();
+        boolean disabled = rx.getDisable();
+        if (disabled) {
+            log.info("Realm:" + code + " is disabled, skip");
+            return;
+        }
+
+        if (skipGoogleDoc) {
+            log.info("Realm:" + code + " disabled google sheet loading, skip");
+            return;
+        }
+
         service.setRealm(code);
         log.info("Processing realm:" + code);
         validations(rx.getValidations(), code);
