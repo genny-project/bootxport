@@ -100,6 +100,24 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         transaction.commit();
     }
 
+    public void insertAttributeLinks(ArrayList<AttributeLink> attributeLinkList) {
+        if (attributeLinkList.size() == 0) return;
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
+
+        for (AttributeLink attributeLink : attributeLinkList) {
+            em.persist(attributeLink);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("AttributeLink Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
+    }
+
     @Override
     public Validation upsert(Validation validation) {
         String realm = validation.getRealm();
@@ -964,22 +982,9 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         } catch (Exception e) {
             log.error("Query Validation table Error:" + e.getMessage());
         }
-        log.debug("IIIIII" + result.size());
         return result;
     }
 
-    @Override
-    public List<AttributeLink> queryAttributeLinks(@NotNull final String realm) {
-        List<AttributeLink> result = Collections.emptyList();
-        try {
-            Query query = getEntityManager().createQuery("SELECT temp FROM AttributeLink temp where temp.realm=:realmStr");
-            query.setParameter("realmStr", realm);
-            result = query.getResultList();
-        } catch (Exception e) {
-            log.error("Query Validation table Error:" + e.getMessage());
-        }
-        return result;
-    }
 
     @Override
     public List<EntityAttribute> queryEntityAttribute(@NotNull final String realm) {

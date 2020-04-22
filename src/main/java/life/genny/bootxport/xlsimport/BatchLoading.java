@@ -545,41 +545,58 @@ public class BatchLoading {
         }
     }
 
-    public void attributeLinks(Map<String, Map<String, String>> project, Map<String, DataType> dataTypeMap,
-                               String realmName) {
+    private AttributeLink buildAttributeLink(Map<String, String> attributeLink, Map<String, DataType> dataTypeMap, String realmName, String code) {
+        String name = attributeLink.get("name").replaceAll("^\"|\"$", "");
+        String privacyStr = attributeLink.get("privacy");
+        Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
+
+        AttributeLink linkAttribute = new AttributeLink(code, name);
+        linkAttribute.setDefaultPrivacyFlag(privacy);
+        linkAttribute.setRealm(realmName);
+
+        String dataTypeStr = "dataType".toLowerCase();
+        if (attributeLink.containsKey(dataTypeStr)){
+            String dataType = attributeLink.get("dataType".toLowerCase().trim().replaceAll("^\"|\"$|_|-", ""))
+                    .replaceAll("^\"|\"$", "");
+            DataType dataTypeRecord = dataTypeMap.get(dataType);
+            linkAttribute.setDataType(dataTypeRecord);
+        }
+//         else {
+//            linkAttribute.setRealm(attributeLink.get("realm"));
+//            linkAttribute.setRealm(attributeLink.get("realm"));
+//        }
+        return linkAttribute;
+    }
+
+    public void attributeLinks(Map<String, Map<String, String>> project, Map<String, DataType> dataTypeMap, String realmName) {
+        List<Attribute> attributeLinksFromDB = service.queryAttributes(realmName);
+        HashSet<String> codeSet = new HashSet<>();
+        for (Attribute attributeLink : attributeLinksFromDB) {
+            codeSet.add(attributeLink.getCode());
+        }
+
+        ArrayList<AttributeLink> attributeLinkList = new ArrayList<>();
+        int invalid = 0;
+        int total = 0;
+        int skipped = 0;
+
         for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
+            total += 1;
             String key = entry.getKey();
             Map<String, String> attributeLink = entry.getValue();
             String code = attributeLink.get("code").replaceAll("^\"|\"$", "");
-            String dataType = null;
-            AttributeLink linkAttribute = null;
 
-            try {
-                dataType = attributeLink.get("dataType".toLowerCase().trim().replaceAll("^\"|\"$|_|-", ""))
-                        .replaceAll("^\"|\"$", "");
-                String name = attributeLink.get("name").replaceAll("^\"|\"$", "");
-                DataType dataTypeRecord = dataTypeMap.get(dataType);
-                String privacyStr = attributeLink.get("privacy");
-                Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
-
-                linkAttribute = new AttributeLink(code, name);
-                linkAttribute.setDefaultPrivacyFlag(privacy);
-                linkAttribute.setDataType(dataTypeRecord);
-                // linkAttribute.setRealm(mainRealm);
-                linkAttribute.setRealm(realmName);
-                service.upsert(linkAttribute);
-            } catch (Exception e) {
-                String name = attributeLink.get("name").replaceAll("^\"|\"$", "");
-                String privacyStr = attributeLink.get("privacy");
-                Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
-
-                linkAttribute = new AttributeLink(code, name);
-                linkAttribute.setDefaultPrivacyFlag(privacy);
-                // linkAttribute.setRealm(mainRealm);
-                linkAttribute.setRealm(attributeLink.get("realm"));
+            if (codeSet.contains(code.toUpperCase())) {
+                // TODO merger and update if needed
+//                log.trace("AttributeLink:" + code + ", Realm:" + realmName + " exists in db, skip.");
+                skipped += 1;
+                continue;
             }
-            service.upsert(linkAttribute);
+            AttributeLink linkAttribute = buildAttributeLink(attributeLink, dataTypeMap, realmName, code);
+            attributeLinkList.add(linkAttribute);
         }
+        service.insertAttributeLinks(attributeLinkList);
+        log.debug("AttributeLink: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
     }
 
     public void questions(Map<String, Map<String, String>> project, String realmName) {
