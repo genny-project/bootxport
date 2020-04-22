@@ -906,11 +906,11 @@ public class BatchLoading {
         attributeLinks(rx.getAttributeLinks(), dataTypes, code);
         log.info("Realm:" + code + ", Persisted AttributeLinks.");
 
-//        baseEntityAttributes(rx.getEntityAttributes(), code);
-//        log.info("Realm:" + code + ", Persisted EntityAttributes.");
+        baseEntityAttributes(rx.getEntityAttributes(), code);
+        log.info("Realm:" + code + ", Persisted EntityAttributes.");
 
-//        entityEntitys(rx.getEntityEntitys());
-//        log.info("Realm:" + code + ", Persisted EntityEntitys.");
+        entityEntitys(rx.getEntityEntitys());
+        log.info("Realm:" + code + ", Persisted EntityEntitys.");
 
         questions(rx.getQuestions(), code);
         log.info("Realm:" + code + ", Persisted Questions.");
