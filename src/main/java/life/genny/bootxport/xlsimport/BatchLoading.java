@@ -555,7 +555,7 @@ public class BatchLoading {
         linkAttribute.setRealm(realmName);
 
         String dataTypeStr = "dataType".toLowerCase();
-        if (attributeLink.containsKey(dataTypeStr)){
+        if (attributeLink.containsKey(dataTypeStr)) {
             String dataType = attributeLink.get("dataType".toLowerCase().trim().replaceAll("^\"|\"$|_|-", ""))
                     .replaceAll("^\"|\"$", "");
             DataType dataTypeRecord = dataTypeMap.get(dataType);
@@ -599,68 +599,86 @@ public class BatchLoading {
         log.debug("AttributeLink: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
     }
 
-    public void questions(Map<String, Map<String, String>> project, String realmName) {
-        for (Map.Entry<String, Map<String, String>> rawData : project.entrySet()) {
-            if (!rawData.getKey().isEmpty()) {
-                Map<String, String> questions = rawData.getValue();
-                String code = questions.get("code");
-                String name = questions.get("name");
-                String placeholder = questions.get("placeholder");
-                String attrCode = questions.get("attribute_code".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-                String html = questions.get("html");
-                String oneshotStr = questions.get("oneshot");
-                String readonlyStr = questions.get("readonly");
-                // String hiddenStr = (String) questions.get("hidden");
-                String mandatoryStr = questions.get("mandatory");
+    private Question bulidQuestion( Map<String, String> questions, String code, Attribute attr, String realmName) {
+        Question q = null;
+        String name = questions.get("name");
+        String placeholder = questions.get("placeholder");
+        String html = questions.get("html");
+        String oneshotStr = questions.get("oneshot");
+        String readonlyStr = questions.get("readonly");
+        // String hiddenStr = (String) questions.get("hidden");
+        String mandatoryStr = questions.get("mandatory");
+        Boolean oneshot = getBooleanFromString(oneshotStr);
+        Boolean readonly = getBooleanFromString(readonlyStr);
+        Boolean mandatory = getBooleanFromString(mandatoryStr);
 
-                Boolean oneshot = getBooleanFromString(oneshotStr);
-                Boolean readonly = getBooleanFromString(readonlyStr);
-                Boolean mandatory = getBooleanFromString(mandatoryStr);
-                Attribute attr;
-                attr = service.findAttributeByCode(attrCode);
-                if (attr == null) {
-                    log.error(attrCode + " HAS NO ATTRIBUTE IN DATABASE");
-
-                } else {
-                    Question q = null;
-                    if (placeholder != null) {
-                        q = new Question(code, name, attr, placeholder);
-                    } else {
-                        q = new Question(code, name, attr);
-                    }
-                    q.setOneshot(oneshot);
-                    q.setHtml(html);
-                    q.setReadonly(readonly);
-                    q.setMandatory(mandatory);
-
-                    // q.setRealm(mainRealm);
-                    q.setRealm(realmName);
-
-                    Question existing = service.findQuestionByCode(code);
-                    if (existing == null) {
-                        if (isSynchronise()) {
-                            Question val = service.findQuestionByCode(q.getCode(), mainRealm);
-                            if (val != null) {
-
-                                // val.setRealm(mainRealm);
-                                val.setRealm(realmName);
-
-                                service.updateRealm(val);
-                                continue;
-                            }
-                        }
-                        service.insert(q);
-                    } else {
-                        existing.setName(name);
-                        existing.setHtml(html);
-                        existing.setOneshot(oneshot);
-                        existing.setReadonly(readonly);
-                        existing.setMandatory(mandatory);
-                        service.upsert(existing);
-                    }
-                }
-            }
+        if (placeholder != null) {
+            q = new Question(code, name, attr, placeholder);
+        } else {
+            q = new Question(code, name, attr);
         }
+        q.setOneshot(oneshot);
+        q.setHtml(html);
+        q.setReadonly(readonly);
+        q.setMandatory(mandatory);
+        q.setRealm(realmName);
+        return q;
+    }
+
+    public void questions(Map<String, Map<String, String>> project, String realmName) {
+        // Get all questions from database
+        List<Question> questionsFromDB = service.queryQuestion(realmName);
+        HashSet<String> codeSet = new HashSet<>();
+        for (Question q : questionsFromDB) {
+            codeSet.add(q.getCode());
+        }
+
+        // Get all Attributes from database
+        List<Attribute> attributesFromDB = service.queryAttributes(realmName);
+        HashSet<String> attrCodeSet = new HashSet<>();
+        HashMap<String, Attribute> attributeHashMap = new HashMap<>();
+
+        for (Attribute attribute : attributesFromDB) {
+            attrCodeSet.add(attribute.getCode());
+            attributeHashMap.put(attribute.getCode(), attribute);
+        }
+
+        ArrayList<Question> questionList = new ArrayList<>();
+        int invalid = 0;
+        int total = 0;
+        int skipped = 0;
+
+        for (Map.Entry<String, Map<String, String>> rawData : project.entrySet()) {
+            total += 1;
+            if (rawData.getKey().isEmpty()) {
+                skipped += 1;
+                continue;
+            }
+
+            Map<String, String> questions = rawData.getValue();
+            String code = questions.get("code");
+
+            if (codeSet.contains(code.toUpperCase())) {
+                // TODO merger and update if needed
+//                log.trace("Question:" + code + ", Realm:" + realmName + " exists in db, skip.");
+                skipped += 1;
+                continue;
+            }
+
+            String attrCode = questions.get("attribute_code".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+            // Check if AttributeCode exist in database
+            if (!attrCodeSet.contains(attrCode.toUpperCase())) {
+                log.error("Attribute:" + attrCode + " not in database!, skip.");
+                skipped += 1;
+                continue;
+            }
+
+            Attribute attr = attributeHashMap.get(attrCode.toUpperCase());
+            Question question = bulidQuestion(questions, code, attr, realmName);
+            questionList.add(question);
+        }
+        service.insertQuestions(questionList);
+        log.debug("Question: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
     }
 
     public void asks(Map<String, Map<String, String>> project, String realmName) {
@@ -888,11 +906,11 @@ public class BatchLoading {
         attributeLinks(rx.getAttributeLinks(), dataTypes, code);
         log.info("Realm:" + code + ", Persisted AttributeLinks.");
 
-        baseEntityAttributes(rx.getEntityAttributes(), code);
-        log.info("Realm:" + code + ", Persisted EntityAttributes.");
+//        baseEntityAttributes(rx.getEntityAttributes(), code);
+//        log.info("Realm:" + code + ", Persisted EntityAttributes.");
 
-        entityEntitys(rx.getEntityEntitys());
-        log.info("Realm:" + code + ", Persisted EntityEntitys.");
+//        entityEntitys(rx.getEntityEntitys());
+//        log.info("Realm:" + code + ", Persisted EntityEntitys.");
 
         questions(rx.getQuestions(), code);
         log.info("Realm:" + code + ", Persisted Questions.");

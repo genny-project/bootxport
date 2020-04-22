@@ -830,6 +830,25 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         return result;
     }
 
+    public void insertQuestions(ArrayList<Question> questionList) {
+        if (questionList.size() == 0) return;
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
+
+        for (Question question: questionList) {
+            em.persist(question);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("Question Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
+    }
+
+
     @Override
     public Long insert(final Question question) {
 
@@ -966,7 +985,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
             query.setParameter("realmStr", realm);
             result = query.getResultList();
         } catch (Exception e) {
-            log.error("Query Validation table Error:" + e.getMessage());
+            log.error("Query Attribute table Error:" + e.getMessage());
         }
         return result;
     }
@@ -980,7 +999,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
             query.setParameter("realmStr", realm);
             result = query.getResultList();
         } catch (Exception e) {
-            log.error("Query Validation table Error:" + e.getMessage());
+            log.error("Query BaseEntity table Error:" + e.getMessage());
         }
         return result;
     }
@@ -994,7 +1013,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
             query.setParameter("realmStr", realm);
             result = query.getResultList();
         } catch (Exception e) {
-            log.error("Query Validation table Error:" + e.getMessage());
+            log.error("Query EntityAttribute table Error:" + e.getMessage());
         }
         return result;
     }
@@ -1007,7 +1026,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
             query.setParameter("realmStr", realm);
             result = query.getResultList();
         } catch (Exception e) {
-            log.error("Query Validation table Error:" + e.getMessage());
+            log.error("Query EntityEntity table Error:" + e.getMessage());
         }
         return result;
     }
@@ -1020,7 +1039,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
             query.setParameter("realmStr", realm);
             result = query.getResultList();
         } catch (Exception e) {
-            log.error("Query Validation table Error:" + e.getMessage());
+            log.error("Query Question table Error:" + e.getMessage());
         }
         return result;
     }
@@ -1033,7 +1052,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
             query.setParameter("realmStr", realm);
             result = query.getResultList();
         } catch (Exception e) {
-            log.error("Query Validation table Error:" + e.getMessage());
+            log.error("Query QuestionQuestion table Error:" + e.getMessage());
         }
         return result;
     }
@@ -1046,7 +1065,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
             query.setParameter("realmStr", realm);
             result = query.getResultList();
         } catch (Exception e) {
-            log.error("Query Validation table Error:" + e.getMessage());
+            log.error("Query Ask table Error:" + e.getMessage());
         }
         return result;
     }
@@ -1059,7 +1078,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
             query.setParameter("realmStr", realm);
             result = query.getResultList();
         } catch (Exception e) {
-            log.error("Query Validation table Error:" + e.getMessage());
+            log.error("Query QBaseMSGMessageTemplate table Error:" + e.getMessage());
         }
         return result;
     }
@@ -1072,7 +1091,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
             query.setParameter("realmStr", realm);
             result = query.getResultList();
         } catch (Exception e) {
-            log.error("Query Validation table Error:" + e.getMessage());
+            log.error("Query QBaseMSGMessageTemplate table Error:" + e.getMessage());
         }
         return result;
     }
