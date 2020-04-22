@@ -62,6 +62,7 @@ public class ImportTest {
                     return Tuple.of(d, bl);
                 }
         ).collect(Collectors.toList());
-        collect.parallelStream().forEach(d -> d._2.persistProject(d._1));
+//        collect.parallelStream().forEach(d -> d._2.persistProject(d._1));
+        collect.stream().forEach(d -> d._2.persistProject(d._1));
     }
 }

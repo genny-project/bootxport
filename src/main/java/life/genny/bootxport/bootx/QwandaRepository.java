@@ -84,7 +84,7 @@ public interface QwandaRepository {
 
     List<Attribute> queryAttributes(@NotNull final String realm);
 
-    List<BaseEntity> queryBaseEntity(@NotNull final String realm);
+    List<BaseEntity> queryBaseEntitys(@NotNull final String realm);
 
     List<AttributeLink> queryAttributeLinks(@NotNull final String realm);
 
@@ -105,6 +105,7 @@ public interface QwandaRepository {
     void insertValidations(ArrayList<Validation> validationList);
 
     void insertAttributes(ArrayList<Attribute> attributeList);
+    void insertBaseEntitys(ArrayList<BaseEntity> baseEntityList);
 
     Long insert(BaseEntity baseEntity);
 }

@@ -126,9 +126,9 @@ public class BatchLoading {
             total += 1;
             String code = validations.get("code").replaceAll("^\"|\"$", "");
 
-            if (codeSet.contains(code)) {
+            if (codeSet.contains(code.toUpperCase())) {
                 // TODO merger and update if needed
-//                log.trace("Validation:" + code + ", Realm:" + realmName + "exists in db, skip.");
+//                log.trace("Validation:" + code + ", Realm:" + realmName + " exists in db, skip.");
                 skipped += 1;
                 continue;
             }
@@ -205,8 +205,8 @@ public class BatchLoading {
 
         List<Attribute> attributesFromDB = service.queryAttributes(realmName);
         HashSet<String> codeSet = new HashSet<>();
-        for (Attribute vld : attributesFromDB) {
-            codeSet.add(vld.getCode());
+        for (Attribute att : attributesFromDB) {
+            codeSet.add(att.getCode());
         }
 
         ArrayList<Attribute> attributeList = new ArrayList<>();
@@ -218,9 +218,9 @@ public class BatchLoading {
             total += 1;
             Map<String, String> attributes = data.getValue();
             String code = attributes.get("code").replaceAll("^\"|\"$", "");
-            if (codeSet.contains(code)) {
+            if (codeSet.contains(code.toUpperCase())) {
                 // TODO merger and update if needed
-//                log.trace("Attributes:" + code + ", Realm:" + realmName + "exists in db, skip.");
+//                log.trace("Attributes:" + code + ", Realm:" + realmName + " exists in db, skip.");
                 skipped += 1;
                 continue;
             }
@@ -276,23 +276,47 @@ public class BatchLoading {
         ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
         Validator validator = factory.getValidator();
 
+        List<BaseEntity> baseEntityFromDB = service.queryBaseEntitys(realmName);
+        HashSet<String> codeSet = new HashSet<>();
+        for (BaseEntity be : baseEntityFromDB) {
+            codeSet.add(be.getCode());
+        }
+
+        ArrayList<BaseEntity> baseEntityList = new ArrayList<>();
+        int invalid = 0;
+        int total = 0;
+        int skipped = 0;
+
         for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
+            total += 1;
             String key = entry.getKey();
             Map<String, String> baseEntitys = entry.getValue();
             String code = baseEntitys.get("code").replaceAll("^\"|\"$", "");
+
+            if (codeSet.contains(code.toUpperCase())) {
+                // TODO merger and update if needed
+//                log.trace("BaseEntity:" + code + ", Realm:" + realmName + " exists in db, skip.");
+                skipped += 1;
+                continue;
+            }
+
             String name = getNameFromMap(baseEntitys, "name", code);
             BaseEntity be = new BaseEntity(code, name);
-
             be.setRealm(realmName);
 
             Set<ConstraintViolation<BaseEntity>> constraints = validator.validate(be);
             for (ConstraintViolation<BaseEntity> constraint : constraints) {
                 log.info(constraint.getPropertyPath() + " " + constraint.getMessage());
             }
+
             if (constraints.isEmpty()) {
-                service.upsert(be);
+                baseEntityList.add(be);
+            } else {
+                invalid += 1;
             }
         }
+        service.insertBaseEntitys(baseEntityList);
+        log.debug("BaseEntity: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
     }
 
     private String getNameFromMap(Map<String, String> baseEntitys, String key, String defaultString) {

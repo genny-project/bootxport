@@ -313,6 +313,42 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         }
     }
 
+    private void saveToDDT(BaseEntity baseEntity) {
+        String realm = getRealm();
+        assert (realm.equals(baseEntity.getRealm()));
+        String code = baseEntity.getCode();
+//        baseEntity.setRealm(realm);
+        try {
+            String json = JsonUtils.toJson(baseEntity);
+            writeToDDT(baseEntity.getCode(), json);
+        } catch (javax.validation.ConstraintViolationException e) {
+            log.error("Cannot save BaseEntity with code " + code + "," + e.getLocalizedMessage());
+        } catch (final ConstraintViolationException e) {
+            log.error("Entity Already exists - cannot insert" + code);
+        }
+    }
+
+    @Override
+    public void insertBaseEntitys(ArrayList<BaseEntity> baseEntityList) {
+        if (baseEntityList.size() == 0) return;
+
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
+
+        for (BaseEntity baseEntity : baseEntityList) {
+            em.persist(baseEntity);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("BaseEntity Batch is full, flush to database.");
+                em.flush();
+            }
+            saveToDDT(baseEntity);
+            index += 1;
+        }
+        transaction.commit();
+    }
+
     @Override
     public BaseEntity upsert(BaseEntity be) {
         EntityTransaction transaction = em.getTransaction();
@@ -919,7 +955,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
 
 
     @Override
-    public List<BaseEntity> queryBaseEntity(@NotNull final String realm) {
+    public List<BaseEntity> queryBaseEntitys(@NotNull final String realm) {
         List<BaseEntity> result = Collections.emptyList();
         try {
             Query query = getEntityManager().createQuery("SELECT temp FROM BaseEntity temp where temp.realm=:realmStr");
@@ -928,6 +964,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         } catch (Exception e) {
             log.error("Query Validation table Error:" + e.getMessage());
         }
+        log.debug("IIIIII" + result.size());
         return result;
     }
 
