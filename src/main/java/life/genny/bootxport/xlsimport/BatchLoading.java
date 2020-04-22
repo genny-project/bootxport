@@ -3,6 +3,7 @@ package life.genny.bootxport.xlsimport;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import life.genny.bootxport.bootx.QwandaRepository;
+import life.genny.bootxport.bootx.QwandaRepositoryImpl;
 import life.genny.bootxport.bootx.RealmUnit;
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
@@ -54,7 +55,19 @@ public class BatchLoading {
         Gson gsonObject = new Gson();
         ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
         Validator validator = factory.getValidator();
+
+        List<Validation> validationsFromDB = service.queryValidation(realmName);
+        HashSet<String> codeSet = new HashSet<>();
+        for (Validation vld : validationsFromDB) {
+            codeSet.add(vld.getCode());
+        }
+
         for (Map<String, String> validations : project.values()) {
+            String code = validations.get("code").replaceAll("^\"|\"$", "");
+            if (codeSet.contains(code)) {
+                log.trace("Validation:" + code + ", Realm:" + realmName + "exists in db, skip.");
+                continue;
+            }
             String optionString = validations.get("options");
             boolean needCheckOptions = false;
             boolean hasValidOptions = false;
@@ -75,7 +88,6 @@ public class BatchLoading {
             if (regex != null) {
                 regex = regex.replaceAll("^\"|\"$", "");
             }
-            String code = validations.get("code").replaceAll("^\"|\"$", "");
             if ("VLD_AU_DRIVER_LICENCE_NO".equalsIgnoreCase(code)) {
                 log.info("detected VLD_AU_DRIVER_LICENCE_NO");
             }
@@ -103,7 +115,7 @@ public class BatchLoading {
                 }
             }
             val.setRealm(realmName);
-            log.info("realm:" + validations.get("realm") + ",code:" + code + ",name:" + name + ",val:" + val + ", grp="
+            log.info("realm:" + realmName + ",code:" + code + ",name:" + name + ",val:" + val + ", grp="
                     + (groupCodesStr != null ? groupCodesStr : "X"));
             Set<ConstraintViolation<Validation>> constraints = validator.validate(val);
             for (ConstraintViolation<Validation> constraint : constraints) {
@@ -763,6 +775,7 @@ public class BatchLoading {
 //		}
         String code = rx.getCode();
         service.setRealm(code);
+        log.info("Processing realm:" + code);
         validations(rx.getValidations(), code);
 
         Map<String, DataType> dataTypes = dataType(rx.getDataTypes());

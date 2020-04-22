@@ -2,6 +2,7 @@ package life.genny.bootxport.bootx;
 
 import javax.persistence.NoResultException;
 import javax.validation.constraints.NotNull;
+
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
@@ -11,66 +12,70 @@ import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
 
+import java.util.List;
+
 public interface QwandaRepository {
 
 
-  public void setRealm(String realm);
-  
-  public <T> void delete(T entity);
+    void setRealm(String realm);
 
-  public Validation upsert(Validation validation);
+    <T> void delete(T entity);
 
-  public Attribute upsert(Attribute attribute);
+    Validation upsert(Validation validation);
 
-  public BaseEntity upsert(BaseEntity baseEntity);
+    Attribute upsert(Attribute attribute);
 
-  public Question upsert(Question q);
+    BaseEntity upsert(BaseEntity baseEntity);
 
-  public Long insert(final Ask ask);
+    Question upsert(Question q);
 
-  public Validation findValidationByCode(@NotNull final String code)
-      throws NoResultException;
+    Long insert(final Ask ask);
 
-  public Attribute findAttributeByCode(@NotNull final String code)
-      throws NoResultException;
+    Validation findValidationByCode(@NotNull final String code)
+            throws NoResultException;
 
-  public BaseEntity findBaseEntityByCode(
-      @NotNull final String baseEntityCode) throws NoResultException;
+    Attribute findAttributeByCode(@NotNull final String code)
+            throws NoResultException;
 
-  public Long updateWithAttributes(BaseEntity entity);
+    BaseEntity findBaseEntityByCode(
+            @NotNull final String baseEntityCode) throws NoResultException;
 
-  public EntityEntity findEntityEntity(final String sourceCode,
-      final String targetCode, final String linkCode);
+    Long updateWithAttributes(BaseEntity entity);
 
-  public Integer updateEntityEntity(final EntityEntity ee);
+    EntityEntity findEntityEntity(final String sourceCode,
+                                  final String targetCode, final String linkCode);
 
-  public EntityEntity insertEntityEntity(final EntityEntity ee);
+    Integer updateEntityEntity(final EntityEntity ee);
 
-  public QuestionQuestion findQuestionQuestionByCode(
-      final String sourceCode, final String targetCode);
+    EntityEntity insertEntityEntity(final EntityEntity ee);
 
-  public Question findQuestionByCode(@NotNull final String code)
-      throws NoResultException;
+    QuestionQuestion findQuestionQuestionByCode(
+            final String sourceCode, final String targetCode);
 
-  public QuestionQuestion upsert(QuestionQuestion qq);
+    Question findQuestionByCode(@NotNull final String code)
+            throws NoResultException;
 
-  public Question findQuestionByCode(@NotNull final String code,
-      @NotNull final String realm) throws NoResultException;
+    QuestionQuestion upsert(QuestionQuestion qq);
 
-  public Long updateRealm(Question que);
+    Question findQuestionByCode(@NotNull final String code,
+                                @NotNull final String realm) throws NoResultException;
 
-  public Long insert(final Question question);
+    Long updateRealm(Question que);
 
-  public QBaseMSGMessageTemplate findTemplateByCode(
-      @NotNull final String templateCode) throws NoResultException;
+    Long insert(final Question question);
 
-  public QBaseMSGMessageTemplate findTemplateByCode(
-      @NotNull final String templateCode,
-      @NotNull final String realm);
+    QBaseMSGMessageTemplate findTemplateByCode(
+            @NotNull final String templateCode) throws NoResultException;
 
-  public Long updateRealm(QBaseMSGMessageTemplate msg);
+    QBaseMSGMessageTemplate findTemplateByCode(
+            @NotNull final String templateCode,
+            @NotNull final String realm);
 
-  public Long insert(final QBaseMSGMessageTemplate template);
+    Long updateRealm(QBaseMSGMessageTemplate msg);
 
-  public Long update(final QBaseMSGMessageTemplate template);
+    Long insert(final QBaseMSGMessageTemplate template);
+
+    Long update(final QBaseMSGMessageTemplate template);
+
+    List<Validation> queryValidation(@NotNull final String realm);
 }

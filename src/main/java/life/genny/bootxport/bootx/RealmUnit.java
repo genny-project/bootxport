@@ -1,6 +1,7 @@
 package life.genny.bootxport.bootx;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -117,8 +118,8 @@ public class RealmUnit extends DataUnit {
             = (weakModule, strongModule) -> {
         strongModule.entrySet().forEach(data -> {
             if (weakModule.containsKey(data.getKey())) {
-//        System.out.println("For Module Name: " + code);
-//        System.out.println(data.getKey() + " This will be overrided ");
+                System.out.println("For Module Name: " + code);
+                System.out.println(data.getKey() + " This will be overrided ");
             }
         });
         weakModule.putAll(strongModule);
@@ -149,31 +150,31 @@ public class RealmUnit extends DataUnit {
             System.out.println("Skipping google doc for realm " + this.name);
         } else {
             module = new Module(mode, xlsxImport, realm.get("sheetID".toLowerCase()));
-            Stream<ModuleUnit> stream = module.getDataUnits().stream();
+            List<ModuleUnit> dataUnits = module.getDataUnits();
 
-            super.baseEntitys = stream.map(moduleUnit -> Maps.newHashMap(moduleUnit.baseEntitys))
+            super.baseEntitys = dataUnits.stream().map(moduleUnit -> Maps.newHashMap(moduleUnit.baseEntitys))
                     .reduce(overrideByPrecedence).get();
-            super.attributes = stream.map(moduleUnit -> Maps.newHashMap(moduleUnit.attributes))
+            super.attributes = dataUnits.stream().map(moduleUnit -> Maps.newHashMap(moduleUnit.attributes))
                     .reduce(overrideByPrecedence).get();
-            super.attributeLinks = stream.map(mm -> Maps.newHashMap(mm.attributeLinks))
+            super.attributeLinks = dataUnits.stream().map(mm -> Maps.newHashMap(mm.attributeLinks))
                     .reduce(overrideByPrecedence).get();
-            super.notifications = stream.map(mm -> Maps.newHashMap(mm.notifications))
+            super.notifications = dataUnits.stream().map(mm -> Maps.newHashMap(mm.notifications))
                     .reduce(overrideByPrecedence).get();
-            super.entityEntitys = stream.map(mm -> Maps.newHashMap(mm.entityEntitys))
+            super.entityEntitys = dataUnits.stream().map(mm -> Maps.newHashMap(mm.entityEntitys))
                     .reduce(overrideByPrecedence).get();
-            super.questions = stream.map(mm -> Maps.newHashMap(mm.questions))
+            super.questions = dataUnits.stream().map(mm -> Maps.newHashMap(mm.questions))
                     .reduce(overrideByPrecedence).get();
-            super.entityAttributes = stream.map(mm -> Maps.newHashMap(mm.entityAttributes))
+            super.entityAttributes = dataUnits.stream().map(mm -> Maps.newHashMap(mm.entityAttributes))
                     .reduce(overrideByPrecedence).get();
-            super.asks = stream.map(mm -> Maps.newHashMap(mm.asks))
+            super.asks = dataUnits.stream().map(mm -> Maps.newHashMap(mm.asks))
                     .reduce(overrideByPrecedence).get();
-            super.questionQuestions = stream.map(mm -> Maps.newHashMap(mm.questionQuestions))
+            super.questionQuestions = dataUnits.stream().map(mm -> Maps.newHashMap(mm.questionQuestions))
                     .reduce(overrideByPrecedence).get();
-            super.validations = stream.map(mm -> Maps.newHashMap(mm.validations))
+            super.validations = dataUnits.stream().map(mm -> Maps.newHashMap(mm.validations))
                     .reduce(overrideByPrecedence).get();
-            super.dataTypes = stream.map(mm -> Maps.newHashMap(mm.dataTypes))
+            super.dataTypes = dataUnits.stream().map(mm -> Maps.newHashMap(mm.dataTypes))
                     .reduce(overrideByPrecedence).get();
-            super.messages = stream.map(mm -> Maps.newHashMap(mm.messages))
+            super.messages = dataUnits.stream().map(mm -> Maps.newHashMap(mm.messages))
                     .reduce(overrideByPrecedence).get();
         }
     }
