@@ -107,6 +107,7 @@ public interface QwandaRepository {
     void insertEntityAttribute(ArrayList<EntityAttribute> entityAttributeList);
 
     void insertBaseEntitys(ArrayList<BaseEntity> baseEntityList);
+    void insertEntityEntitys(ArrayList<EntityEntity> entityEntityist);
 
     void insertAttributeLinks(ArrayList<AttributeLink> attributeLinkList);
 
