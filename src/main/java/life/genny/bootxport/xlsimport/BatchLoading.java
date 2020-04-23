@@ -3,6 +3,7 @@ package life.genny.bootxport.xlsimport;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import life.genny.bootxport.bootx.QwandaRepository;
+import life.genny.bootxport.bootx.QwandaRepositoryImpl;
 import life.genny.bootxport.bootx.RealmUnit;
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
@@ -38,7 +39,7 @@ class Options {
 }
 
 public class BatchLoading {
-    private final QwandaRepository service;
+    private final QwandaRepositoryImpl service;
 
     private String mainRealm = GennySettings.mainrealm;
     private static final String VALIDATIONS = "validations";
@@ -48,7 +49,7 @@ public class BatchLoading {
             .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
     public BatchLoading(QwandaRepository repo) {
-        this.service = repo;
+        this.service = (QwandaRepositoryImpl)repo;
     }
 
     private Validation buildValidation(Map<String, String> validations, String realmName, String code) {
