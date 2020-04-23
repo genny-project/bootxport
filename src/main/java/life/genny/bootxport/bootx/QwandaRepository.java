@@ -103,10 +103,17 @@ public interface QwandaRepository {
     void insertValidations(ArrayList<Validation> validationList);
 
     void insertAttributes(ArrayList<Attribute> attributeList);
+
     void insertBaseEntitys(ArrayList<BaseEntity> baseEntityList);
+
     void insertAttributeLinks(ArrayList<AttributeLink> attributeLinkList);
+
     void insertQuestions(ArrayList<Question> questionList);
+
+    void insertQuestionQuestions(ArrayList<QuestionQuestion> questionQuestionList);
+
     void insertAsks(ArrayList<Ask> askList);
+
     void inserTemplate(ArrayList<QBaseMSGMessageTemplate> messageList);
 
     Long insert(BaseEntity baseEntity);

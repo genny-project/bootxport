@@ -30,6 +30,7 @@ import java.lang.invoke.MethodHandles;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.regex.Pattern;
 
 class Options {
     public String optionCode = null;
@@ -451,96 +452,154 @@ public class BatchLoading {
         }
     }
 
+    private boolean isDouble(String doubleStr) {
+        final String Digits = "(\\p{Digit}+)";
+        final String HexDigits = "(\\p{XDigit}+)";
+        // an exponent is 'e' or 'E' followed by an optionally
+        // signed decimal integer.
+        final String Exp = "[eE][+-]?" + Digits;
+        final String fpRegex =
+                ("[\\x00-\\x20]*" +  // Optional leading "whitespace"
+                        "[+-]?(" + // Optional sign character
+                        "NaN|" +           // "NaN" string
+                        "Infinity|" +      // "Infinity" string
+
+                        // A decimal floating-point string representing a finite positive
+                        // number without a leading sign has at most five basic pieces:
+                        // Digits . Digits ExponentPart FloatTypeSuffix
+                        //
+                        // Since this method allows integer-only strings as input
+                        // in addition to strings of floating-point literals, the
+                        // two sub-patterns below are simplifications of the grammar
+                        // productions from section 3.10.2 of
+                        // The Java Language Specification.
+
+                        // Digits ._opt Digits_opt ExponentPart_opt FloatTypeSuffix_opt
+                        "(((" + Digits + "(\\.)?(" + Digits + "?)(" + Exp + ")?)|" +
+
+                        // . Digits ExponentPart_opt FloatTypeSuffix_opt
+                        "(\\.(" + Digits + ")(" + Exp + ")?)|" +
+
+                        // Hexadecimal strings
+                        "((" +
+                        // 0[xX] HexDigits ._opt BinaryExponent FloatTypeSuffix_opt
+                        "(0[xX]" + HexDigits + "(\\.)?)|" +
+
+                        // 0[xX] HexDigits_opt . HexDigits BinaryExponent FloatTypeSuffix_opt
+                        "(0[xX]" + HexDigits + "?(\\.)" + HexDigits + ")" +
+
+                        ")[pP][+-]?" + Digits + "))" +
+                        "[fFdD]?))" +
+                        "[\\x00-\\x20]*");// Optional trailing "whitespace"
+
+        if (Pattern.matches(fpRegex, doubleStr)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private QuestionQuestion buildQuestionQuestion(Map<String, String> queQues,
+                                                   String realmName,
+                                                   Question sbe, Question tbe) throws BadDataException {
+        String weightStr = queQues.get("weight");
+        String mandatoryStr = queQues.get("mandatory");
+        String readonlyStr = queQues.get("readonly");
+        Boolean readonly = "TRUE".equalsIgnoreCase(readonlyStr);
+        Boolean formTrigger = queQues.get("formtrigger") != null && "TRUE".equalsIgnoreCase(queQues.get("formtrigger"));
+        Boolean createOnTrigger = queQues.get("createontrigger") != null && "TRUE".equalsIgnoreCase(queQues.get("createontrigger"));
+        double weight = 0.0;
+        if (isDouble(weightStr)) {
+            weight = Double.parseDouble(weightStr);
+        }
+
+        Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
+        String oneshotStr = queQues.get("oneshot");
+        Boolean oneshot = false;
+        if (oneshotStr == null) {
+            // Set the oneshot to be that of the targetquestion
+            oneshot = tbe.getOneshot();
+        } else {
+            oneshot = "TRUE".equalsIgnoreCase(oneshotStr);
+        }
+
+        QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
+        qq.setOneshot(oneshot);
+        qq.setReadonly(readonly);
+        qq.setCreateOnTrigger(createOnTrigger);
+        qq.setFormTrigger(formTrigger);
+
+        // qq.setRealm(mainRealm);
+        qq.setRealm(realmName);
+        return qq;
+    }
+
     public void questionQuestions(Map<String, Map<String, String>> project, String realmName) {
+        List<QuestionQuestion> questionQuestionFromDB = service.queryQuestionQuestion(realmName);
+        HashSet<String> codeSet = new HashSet<>();
+        for (QuestionQuestion qq : questionQuestionFromDB) {
+            String sourceCode = qq.getSourceCode();
+            String targetCode = qq.getTarketCode();
+            String uniqCode = sourceCode + "-" + targetCode;
+            codeSet.add(uniqCode);
+        }
+
+        List<Question> questionFromDB = service.queryQuestion(realmName);
+//        HashSet<String> questionCodeSet = new HashSet<>();
+        HashMap<String, Question> questionHashMap = new HashMap<>();
+
+        for (Question question : questionFromDB) {
+//            questionCodeSet.add(question.getCode());
+            questionHashMap.put(question.getCode(), question);
+        }
+
+        ArrayList<QuestionQuestion> questionQuestionList = new ArrayList<>();
+        int invalid = 0;
+        int total = 0;
+        int skipped = 0;
+
         for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
+            total += 1;
             String key = entry.getKey();
             Map<String, String> queQues = entry.getValue();
+
             String parentCode = queQues.get("parentCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
             if (parentCode == null) {
                 parentCode = queQues.get("sourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
             }
-            if (queQues.get("parentcode") != null) {
-                if (queQues.get("parentcode").startsWith("QUE_NEW_USER_PROFILE")) {
-                    log.info("Got to here...");
-                }
-            }
 
             String targetCode = queQues.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-            String weightStr = queQues.get("weight");
-            String mandatoryStr = queQues.get("mandatory");
-            String readonlyStr = queQues.get("readonly");
-            Boolean readonly = "TRUE".equalsIgnoreCase(readonlyStr);
-            Boolean formTrigger = queQues.get("formtrigger") != null && "TRUE".equalsIgnoreCase(queQues.get("formtrigger"));
-            Boolean createOnTrigger = queQues.get("createontrigger") != null && "TRUE".equalsIgnoreCase(queQues.get("createontrigger"));
-            double weight = 0.0;
 
-            try {
-                weight = Double.parseDouble(weightStr);
-            } catch (NumberFormatException e1) {
-                weight = 0.0;
+            String code = parentCode + "-" + targetCode;
+            if (codeSet.contains(code.toUpperCase())) {
+                // TODO merger and update if needed
+                log.trace("QuestionQuestion:" + code + ", Realm:" + realmName + " exists in db, skip.");
+                skipped += 1;
+                continue;
             }
-            Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
 
-            Question sbe = null;
-            Question tbe = null;
+            Question sbe = questionHashMap.get(parentCode);
+            Question tbe = questionHashMap.get(targetCode);
+            if (sbe == null) {
+                log.error("QuestionQuesiton parent code:" + parentCode + " doesn't exist in Question table.");
+                invalid++;
+                continue;
+            } else if (tbe == null) {
+                log.error("QuestionQuesiton target Code:" + targetCode + " doesn't exist in Question table.");
+                invalid++;
+                continue;
+            }
 
             try {
-                sbe = service.findQuestionByCode(parentCode);
-                tbe = service.findQuestionByCode(targetCode);
-                try {
-                    String oneshotStr = queQues.get("oneshot");
-                    Boolean oneshot = false;
-                    if (oneshotStr == null) {
-                        // Set the oneshot to be that of the targetquestion
-                        oneshot = tbe.getOneshot();
-                    } else {
-                        oneshot = "TRUE".equalsIgnoreCase(oneshotStr);
-                    }
-
-                    QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
-                    qq.setOneshot(oneshot);
-                    qq.setReadonly(readonly);
-                    qq.setCreateOnTrigger(createOnTrigger);
-                    qq.setFormTrigger(formTrigger);
-
-                    // qq.setRealm(mainRealm);
-                    qq.setRealm(realmName);
-
-                    QuestionQuestion existing = null;
-                    try {
-                        existing = service.findQuestionQuestionByCode(parentCode, targetCode);
-                        if (existing == null) {
-                            qq = service.upsert(qq);
-                        } else {
-                            service.upsert(qq);
-                        }
-                    } catch (NoResultException e1) {
-                        qq = service.upsert(qq);
-                    } catch (Exception e) {
-                        assert existing != null;
-                        existing.setMandatory(qq.getMandatory());
-                        existing.setOneshot(qq.getOneshot());
-                        existing.setWeight(qq.getWeight());
-                        existing.setReadonly(qq.getReadonly());
-                        existing.setCreateOnTrigger(qq.getCreateOnTrigger());
-                        existing.setFormTrigger(qq.getFormTrigger());
-                        // existing.setRealm(mainRealm);
-                        existing.setRealm(queQues.get("realm"));
-                        qq = service.upsert(existing);
-                    }
-                } catch (NullPointerException e) {
-                    if (sbe == null) {
-                        log.error("Cannot find parentCode:" + parentCode + " from Question.");
-                    } else if (tbe == null) {
-                        log.error("Cannot find targetCode:" + targetCode + " from Question.");
-                    } else {
-                        log.error("Exception:" + e.toString());
-                    }
-                }
-            } catch (final BadDataException e) {
-                e.printStackTrace();
+                QuestionQuestion qq = buildQuestionQuestion(queQues, realmName, sbe, tbe);
+                questionQuestionList.add(qq);
+            } catch (BadDataException bde) {
+                invalid += 1;
+                log.error("Bad Exception occurred when build question, parentCode:" + parentCode + ", TargetCode:" + targetCode);
             }
         }
+        service.insertQuestionQuestions(questionQuestionList);
+        log.debug("QuestionQuestion: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
     }
 
     private AttributeLink buildAttributeLink(Map<String, String> attributeLink, Map<String, DataType> dataTypeMap, String realmName, String code) {
@@ -962,7 +1021,6 @@ public class BatchLoading {
         questions(rx.getQuestions(), code);
         log.info("Realm:" + code + ", Persisted Questions.");
 
-// TODO
         questionQuestions(rx.getQuestionQuestions(), code);
         log.info("Realm:" + code + ", Persisted QuestionQuestions.");
 

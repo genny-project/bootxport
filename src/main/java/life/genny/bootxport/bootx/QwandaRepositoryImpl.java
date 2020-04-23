@@ -781,6 +781,24 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         return result.get(0);
     }
 
+    public void insertQuestionQuestions(ArrayList<QuestionQuestion> questionQuestionList) {
+        if (questionQuestionList.size() == 0) return;
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
+
+        for (QuestionQuestion questionQuestion : questionQuestionList) {
+            em.persist(questionQuestion);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("QuestionQuestion Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
+    }
+
     @Override
     public QuestionQuestion upsert(QuestionQuestion qq) {
         EntityTransaction transaction = em.getTransaction();
