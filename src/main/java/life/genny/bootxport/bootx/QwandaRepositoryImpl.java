@@ -668,6 +668,25 @@ public class QwandaRepositoryImpl implements QwandaRepository {
     }
 
     @Override
+    public void insertEntityAttribute(ArrayList<EntityAttribute> entityAttributeList) {
+        if (entityAttributeList.size() == 0) return;
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
+
+        for (EntityAttribute entityAttribute : entityAttributeList) {
+            em.persist(entityAttribute);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("EntityAttribute Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
+    }
+
+    @Override
     public Long updateWithAttributes(BaseEntity entity) {
         EntityTransaction transaction = em.getTransaction();
         if (!transaction.isActive()) transaction.begin();

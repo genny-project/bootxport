@@ -328,80 +328,127 @@ public class BatchLoading {
         return ret;
     }
 
+    private EntityAttribute buildEntityAttribute(Map<String, String> baseEntityAttr,
+                                                 String realmName,
+                                                 Attribute attribute,
+                                                 BaseEntity baseEntity) {
+        String weight = baseEntityAttr.get("weight");
+        String privacyStr = baseEntityAttr.get("privacy");
+        Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
+        double weightField = 0.0;
+        if (isDouble(weight)) {
+            weightField = Double.parseDouble(weight);
+        }
+
+        List<String> asList = Collections.singletonList("valuestring");
+        Optional<String> valueString = asList.stream().map(baseEntityAttr::get).findFirst();
+        Integer valueInt = null;
+        Optional<String> ofNullable = Optional.ofNullable(baseEntityAttr.get("valueinteger"));
+        if (ofNullable.isPresent() && !baseEntityAttr.get("valueinteger").matches("\\s*")) {
+            System.out.println(baseEntityAttr.get("valueinteger"));
+            BigDecimal big = new BigDecimal(baseEntityAttr.get("valueinteger"));
+            Optional<String[]> nullableVal = Optional.of(big.toPlainString().split("[.]"));
+            valueInt = nullableVal.filter(d -> d.length > 0).map(d -> Integer.valueOf(d[0])).get();
+        }
+        String valueStr = null;
+        valueStr = valueString.get().replaceAll("^\"|\"$", "");
+
+        EntityAttribute ea = null;
+        if (valueInt != null) {
+            ea = new EntityAttribute(baseEntity, attribute, weightField, valueInt);
+        } else {
+            ea = new EntityAttribute(baseEntity, attribute, weightField, valueStr);
+        }
+        if (privacy || attribute.getDefaultPrivacyFlag()) {
+            ea.setPrivacyFlag(true);
+        }
+        ea.setRealm(realmName);
+        return ea;
+    }
+
     public void baseEntityAttributes(Map<String, Map<String, String>> project, String realmName) {
+        List<BaseEntity> baseEntityFromDB = service.queryBaseEntitys(realmName);
+//        HashSet<String> beCodeSet = new HashSet<>();
+        HashMap<String, BaseEntity> beHashMap = new HashMap<>();
+        for (BaseEntity be : baseEntityFromDB) {
+//            beCodeSet.add(be.getCode());
+            beHashMap.put(be.getCode(), be);
+        }
+
+        List<Attribute> attributeFromDB = service.queryAttributes(realmName);
+//        HashSet<String> attrCodeSet = new HashSet<>();
+        HashMap<String, Attribute> attrHashMap = new HashMap<>();
+        for (Attribute attribute : attributeFromDB) {
+//            attrCodeSet.add(attribute.getCode());
+            attrHashMap.put(attribute.getCode(), attribute);
+        }
+
+        List<EntityAttribute> entityAttributeFromDB = service.queryEntityAttribute(realmName);
+        HashSet<String> codeSet = new HashSet<>();
+        for (EntityAttribute entityAttribute : entityAttributeFromDB) {
+            String beCode = entityAttribute.getBaseEntityCode();
+            String attrCode = entityAttribute.getAttributeCode();
+            String uniqueCode = beCode + "-" + attrCode;
+            codeSet.add(uniqueCode);
+        }
+
+        ArrayList<EntityAttribute> entityAttributeList = new ArrayList<>();
+        int invalid = 0;
+        int total = 0;
+        int skipped = 0;
+
         for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
+            total++;
             String key = entry.getKey();
             Map<String, String> baseEntityAttr = entry.getValue();
-            if (baseEntityAttr.get("attributecode").equals("PRI_HASHCODE"))
-                System.out.println();
+
             String attributeCode = null;
-            try {
-                attributeCode = baseEntityAttr
-                        .get("attributeCode".toLowerCase().replaceAll("^\"|\"$|_|-", "")).replaceAll("^\"|\"$", "");
-            } catch (Exception e2) {
+            String searchKey = "attributeCode".toLowerCase().replaceAll("^\"|\"$|_|-", "");
+            if (baseEntityAttr.containsKey(searchKey)) {
+                attributeCode = baseEntityAttr.get(searchKey).replaceAll("^\"|\"$", "");
+            } else {
+                invalid++;
                 log.error("AttributeCode not found [" + baseEntityAttr + "]");
+                continue;
             }
-            List<String> asList = Collections.singletonList("valuestring");
-            Optional<String> valueString = asList.stream().map(baseEntityAttr::get).findFirst();
-            Integer valueInt = null;
-            Optional<String> ofNullable = Optional.ofNullable(baseEntityAttr.get("valueinteger"));
-            if (ofNullable.isPresent() && !baseEntityAttr.get("valueinteger").matches("\\s*")) {
-                System.out.println(baseEntityAttr.get("valueinteger"));
-                BigDecimal big = new BigDecimal(baseEntityAttr.get("valueinteger"));
-                Optional<String[]> nullableVal = Optional.of(big.toPlainString().split("[.]"));
-                valueInt = nullableVal.filter(d -> d.length > 0).map(d -> Integer.valueOf(d[0])).get();
-            }
-            String valueStr = null;
-            valueStr = valueString.get().replaceAll("^\"|\"$", "");
+
             String baseEntityCode = null;
-            try {
-                baseEntityCode = baseEntityAttr
-                        .get("baseEntityCode".toLowerCase().replaceAll("^\"|\"$|_|-", "")).replaceAll("^\"|\"$", "");
-                String weight = baseEntityAttr.get("weight");
-                String privacyStr = baseEntityAttr.get("privacy");
-                Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
-                Attribute attribute = null;
-                BaseEntity be = null;
-                try {
-                    attribute = service.findAttributeByCode(attributeCode);
-//					log.info("BseEntityCode: " + baseEntityCode + " attributeCode: " + attribute.getCode());
-                    if (attribute == null) {
-                        log.error("BASE ENTITY CODE: " + baseEntityCode + " " + attributeCode
-                                + " is not in the Attribute Table!!!");
-                    } else {
-                        be = service.findBaseEntityByCode(baseEntityCode);
-                        Double weightField = null;
-                        try {
-                            weightField = Double.valueOf(weight);
-                        } catch (NumberFormatException ee) {
-                            weightField = 0.0;
-                        }
-                        try {
-                            EntityAttribute ea;
-                            if (valueInt != null) {
-                                ea = be.addAttribute(attribute, weightField, valueInt);
-                            } else {
-                                ea = be.addAttribute(attribute, weightField, valueStr);
-                            }
-                            if (privacy || attribute.getDefaultPrivacyFlag()) {
-                                ea.setPrivacyFlag(true);
-                            }
-                        } catch (final BadDataException e) {
-                            e.printStackTrace();
-                        }
-                        // be.setRealm(mainRealm);
-                        be.setRealm(realmName);
-                        service.updateWithAttributes(be);
-                    }
-                } catch (final NoResultException e) {
-                }
-            } catch (Exception e1) {
-                String beCode = "BAD BE CODE";
-                beCode = baseEntityAttr.get("baseEntityCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-                log.error("Error in getting baseEntityAttr  for AttributeCode " + attributeCode + " and beCode="
-                        + beCode);
+            searchKey = "baseEntityCode".toLowerCase().replaceAll("^\"|\"$|_|-", "");
+            if (baseEntityAttr.containsKey(searchKey)) {
+                baseEntityCode = baseEntityAttr.get(searchKey).replaceAll("^\"|\"$", "");
+            } else {
+                invalid++;
+                log.error("BaseEntityCode not found [" + baseEntityAttr + "]");
+                continue;
             }
+
+            String code = baseEntityCode + "-" + attributeCode;
+            if (codeSet.contains(code.toUpperCase())) {
+                // TODO merger and update if needed
+                log.trace("EntityAttribute:" + code + ", Realm:" + realmName + " exists in db, skip.");
+                skipped += 1;
+                continue;
+            }
+
+            Attribute attribute = attrHashMap.get(attributeCode.toUpperCase());
+            if (attribute == null) {
+                log.error("EntityAttribute Attribute Code:" + attributeCode + " doesn't exit in database, skip.");
+                invalid++;
+                continue;
+            }
+
+
+            BaseEntity baseEntity = beHashMap.get(baseEntityCode.toUpperCase());
+            if (baseEntity == null) {
+                log.error("EntityAttribute BaseEntity Code:" + baseEntityCode + " doesn't exit in database, skip.");
+                invalid++;
+                continue;
+            }
+            EntityAttribute entityAttribute = buildEntityAttribute(baseEntityAttr, realmName, attribute, baseEntity);
+            entityAttributeList.add(entityAttribute);
         }
+        service.insertEntityAttribute(entityAttributeList);
+        log.debug("EntityAttribute: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
     }
 
     public void entityEntitys(Map<String, Map<String, String>> project) {
@@ -578,8 +625,8 @@ public class BatchLoading {
                 continue;
             }
 
-            Question sbe = questionHashMap.get(parentCode);
-            Question tbe = questionHashMap.get(targetCode);
+            Question sbe = questionHashMap.get(parentCode.toUpperCase());
+            Question tbe = questionHashMap.get(targetCode.toUpperCase());
             if (sbe == null) {
                 log.error("QuestionQuesiton parent code:" + parentCode + " doesn't exist in Question table.");
                 invalid++;
@@ -1010,7 +1057,6 @@ public class BatchLoading {
         attributeLinks(rx.getAttributeLinks(), dataTypes, code);
         log.info("Realm:" + code + ", Persisted AttributeLinks.");
 
-// TODO
         baseEntityAttributes(rx.getEntityAttributes(), code);
         log.info("Realm:" + code + ", Persisted EntityAttributes.");
 
