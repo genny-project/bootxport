@@ -573,7 +573,7 @@ public class BatchLoading {
             String code = parentCode + "-" + targetCode;
             if (codeSet.contains(code.toUpperCase())) {
                 // TODO merger and update if needed
-                log.trace("QuestionQuestion:" + code + ", Realm:" + realmName + " exists in db, skip.");
+//                log.trace("QuestionQuestion:" + code + ", Realm:" + realmName + " exists in db, skip.");
                 skipped += 1;
                 continue;
             }
