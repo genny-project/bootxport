@@ -106,6 +106,7 @@ public interface QwandaRepository {
     void insertBaseEntitys(ArrayList<BaseEntity> baseEntityList);
     void insertAttributeLinks(ArrayList<AttributeLink> attributeLinkList);
     void insertQuestions(ArrayList<Question> questionList);
+    void insertAsks(ArrayList<Ask> askList);
 
     Long insert(BaseEntity baseEntity);
 }

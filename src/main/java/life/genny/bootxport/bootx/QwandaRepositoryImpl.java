@@ -580,19 +580,35 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         return result;
     }
 
+    public void insertAsks(ArrayList<Ask> askList) {
+        if (askList.size() == 0) return;
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
+
+        for (Ask ask : askList) {
+            em.persist(ask);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("Ask Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
+    }
+
     @Override
     public Long insert(Ask ask) {
         try {
             Question question = null;
             BaseEntity beSource = findBaseEntityByCode(ask.getSourceCode());
             BaseEntity beTarget = findBaseEntityByCode(ask.getTargetCode());
-            Attribute attribute =
-                    findAttributeByCode(ask.getAttributeCode());
+            Attribute attribute = findAttributeByCode(ask.getAttributeCode());
             Ask newAsk = null;
             if (ask.getQuestionCode() != null) {
                 question = findQuestionByCode(ask.getQuestionCode());
-                newAsk =
-                        new Ask(question, beSource.getCode(), beTarget.getCode());
+                newAsk = new Ask(question, beSource.getCode(), beTarget.getCode());
             } else {
                 newAsk = new Ask(attribute.getCode(), beSource.getCode(),
                         beTarget.getCode(), attribute.getName());
@@ -836,7 +852,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         EntityTransaction transaction = em.getTransaction();
         if (!transaction.isActive()) transaction.begin();
 
-        for (Question question: questionList) {
+        for (Question question : questionList) {
             em.persist(question);
             if (index % BATCHSIZE == 0) {
                 //flush a batch of inserts and release memory:

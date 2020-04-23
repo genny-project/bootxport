@@ -21,6 +21,7 @@ import life.genny.qwanda.validation.ValidationList;
 import life.genny.qwandautils.GennySettings;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
+import org.codehaus.jackson.map.Serializers;
 
 import javax.persistence.NoResultException;
 import javax.validation.ConstraintViolation;
@@ -599,7 +600,7 @@ public class BatchLoading {
         log.debug("AttributeLink: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
     }
 
-    private Question bulidQuestion( Map<String, String> questions, String code, Attribute attr, String realmName) {
+    private Question bulidQuestion(Map<String, String> questions, String code, Attribute attr, String realmName) {
         Question q = null;
         String name = questions.get("name");
         String placeholder = questions.get("placeholder");
@@ -681,40 +682,104 @@ public class BatchLoading {
         log.debug("Question: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
     }
 
+    private Ask buildAsk(Map<String, String> asks, String realmName,
+                         HashMap<String, Question> questionHashMap) {
+        String attributeCode = asks.get("attributeCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+        String sourceCode = asks.get("sourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+        String expired = asks.get("expired");
+        String refused = asks.get("refused");
+        String targetCode = asks.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+        String qCode = asks.get("question_code".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+        String name = asks.get("name");
+        String expectedId = asks.get("expectedId".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+        String weightStr = asks.get("weight");
+        String mandatoryStr = asks.get("mandatory");
+        String readonlyStr = asks.get("readonly");
+        String hiddenStr = asks.get("hidden");
+        final Double weight = Double.valueOf(weightStr);
+        if ("QUE_USER_SELECT_ROLE".equals(targetCode)) {
+            log.info("dummy");
+        }
+        Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
+        Boolean readonly = "TRUE".equalsIgnoreCase(readonlyStr);
+        Boolean hidden = "TRUE".equalsIgnoreCase(hiddenStr);
+
+        Question question = questionHashMap.get(qCode.toUpperCase());
+
+        Ask ask = new Ask(question, sourceCode, targetCode, mandatory, weight);
+        ask.setName(name);
+        ask.setHidden(hidden);
+        ask.setReadonly(readonly);
+        ask.setRealm(realmName);
+        return ask;
+
+    }
+
     public void asks(Map<String, Map<String, String>> project, String realmName) {
+        // Get all asks
+        List<Ask> askFromDB = service.queryAsk(realmName);
+        HashSet<String> codeSet = new HashSet<>();
+        for (Ask ask : askFromDB) {
+            String targetCode = ask.getTargetCode();
+            String sourceCode = ask.getSourceCode();
+            String attributeCode = ask.getAttributeCode();
+            String questionCode = ask.getQuestionCode();
+            String uniqueCode = questionCode + "-" + sourceCode + "-" + targetCode + "-" + attributeCode;
+            codeSet.add(uniqueCode);
+        }
+
+        // Get  all BaseEntity from database
+//        List<BaseEntity> baseEntityFromDB = service.queryBaseEntitys(realmName);
+//        HashMap<String, BaseEntity> beHashMap = new HashMap<>();
+//        for (BaseEntity be : baseEntityFromDB) {
+//            beHashMap.put(be.getCode(), be);
+//        }
+
+        // Get all Attribute from database
+//        List<Attribute> attributeFromDB = service.queryAttributes(realmName);
+//        HashMap<String, Attribute> attrHashMap = new HashMap<>();
+//        for (Attribute be : attributeFromDB) {
+//            attrHashMap.put(be.getCode(), be);
+//        }
+
+        List<Question> questionFromDB = service.queryQuestion(realmName);
+        HashMap<String, Question> questionHashMap = new HashMap<>();
+        for (Question q : questionFromDB) {
+            questionHashMap.put(q.getCode(), q);
+        }
+
+        ArrayList<Ask> askList = new ArrayList<>();
+        int invalid = 0;
+        int total = 0;
+        int skipped = 0;
+
         for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
+            total += 1;
             String key = entry.getKey();
             Map<String, String> asks = entry.getValue();
+            String qCode = asks.get("question_code".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
             String attributeCode = asks.get("attributeCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
             String sourceCode = asks.get("sourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-            String expired = asks.get("expired");
-            String refused = asks.get("refused");
             String targetCode = asks.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-            String qCode = asks.get("question_code".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-            String name = asks.get("name");
-            String expectedId = asks.get("expectedId".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-            String weightStr = asks.get("weight");
-            String mandatoryStr = asks.get("mandatory");
-            String readonlyStr = asks.get("readonly");
-            String hiddenStr = asks.get("hidden");
-            final Double weight = Double.valueOf(weightStr);
-            if ("QUE_USER_SELECT_ROLE".equals(targetCode)) {
-                log.info("dummy");
+            String uniqueCode = qCode + "-" + sourceCode + "-" + targetCode + "-" + attributeCode;
+
+            if (codeSet.contains(uniqueCode.toUpperCase())) {
+                // TODO merger and update if needed
+                log.trace("Ask:" + uniqueCode + ", Realm:" + realmName + " exists in db, skip.");
+                skipped += 1;
+                continue;
             }
-            Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
-            Boolean readonly = "TRUE".equalsIgnoreCase(readonlyStr);
-            Boolean hidden = "TRUE".equalsIgnoreCase(hiddenStr);
-            Question question = service.findQuestionByCode(qCode);
-            final Ask ask = new Ask(question, sourceCode, targetCode, mandatory, weight);
-            ask.setName(name);
-            ask.setHidden(hidden);
-            ask.setReadonly(readonly);
 
-            // ask.setRealm(mainRealm);
-            ask.setRealm(realmName);
-
-            service.insert(ask);
+            if (!questionHashMap.containsKey(qCode)) {
+                log.error("Question code" + qCode + ", Realm:" + realmName + "doesn't exists in db, skip process Ask:" + uniqueCode);
+                skipped += 1;
+                continue;
+            }
+            Ask ask = buildAsk(asks, realmName, questionHashMap);
+            askList.add(ask);
         }
+        service.insertAsks(askList);
+        log.debug("Question: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
     }
 
     public static boolean isSynchronise() {
