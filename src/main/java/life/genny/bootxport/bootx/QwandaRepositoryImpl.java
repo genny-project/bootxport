@@ -946,6 +946,26 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         return result;
     }
 
+
+    @Override
+    public void inserTemplate(ArrayList<QBaseMSGMessageTemplate> messageList) {
+        if (messageList.size() == 0) return;
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
+
+        for (QBaseMSGMessageTemplate message : messageList) {
+            em.persist(message);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("Template(Message/Notification) Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
+    }
+
     @Override
     public Long insert(final QBaseMSGMessageTemplate template) {
         EntityTransaction transaction = em.getTransaction();

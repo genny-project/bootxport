@@ -3,7 +3,6 @@ package life.genny.bootxport.xlsimport;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import life.genny.bootxport.bootx.QwandaRepository;
-import life.genny.bootxport.bootx.QwandaRepositoryImpl;
 import life.genny.bootxport.bootx.RealmUnit;
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
@@ -21,11 +20,9 @@ import life.genny.qwanda.validation.ValidationList;
 import life.genny.qwandautils.GennySettings;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
-import org.codehaus.jackson.map.Serializers;
 
 import javax.persistence.NoResultException;
 import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import javax.ws.rs.NotFoundException;
@@ -765,105 +762,88 @@ public class BatchLoading {
 
             if (codeSet.contains(uniqueCode.toUpperCase())) {
                 // TODO merger and update if needed
-                log.trace("Ask:" + uniqueCode + ", Realm:" + realmName + " exists in db, skip.");
+//                log.trace("Ask:" + uniqueCode + ", Realm:" + realmName + " exists in db, skip.");
                 skipped += 1;
                 continue;
             }
 
             if (!questionHashMap.containsKey(qCode)) {
                 log.error("Question code" + qCode + ", Realm:" + realmName + "doesn't exists in db, skip process Ask:" + uniqueCode);
-                skipped += 1;
+                invalid += 1;
                 continue;
             }
             Ask ask = buildAsk(asks, realmName, questionHashMap);
             askList.add(ask);
         }
         service.insertAsks(askList);
-        log.debug("Question: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
+        log.debug("Ask: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
     }
 
     public static boolean isSynchronise() {
         return isSynchronise;
     }
 
+    private QBaseMSGMessageTemplate buildQBaseMSGMessageTemplate(Map<String, String> template, String code, String realmName) {
+        String name = template.get("name");
+        String description = template.get("description");
+        String subject = template.get("subject");
+        String emailTemplateDocId = template.get("email");
+        if (emailTemplateDocId == null)
+            emailTemplateDocId = template.get("emailtemplateid");
+        String smsTemplate = template.get("sms");
+        if (smsTemplate == null)
+            smsTemplate = template.get("smstemplate");
+        String toastTemplate = template.get("toast");
+        if (toastTemplate == null)
+            toastTemplate = template.get("toasttemplate");
+
+        QBaseMSGMessageTemplate templateObj = new QBaseMSGMessageTemplate();
+        templateObj.setCode(code);
+        templateObj.setName(name);
+        templateObj.setCreated(LocalDateTime.now());
+        templateObj.setDescription(description);
+        templateObj.setEmail_templateId(emailTemplateDocId);
+        templateObj.setSms_template(smsTemplate);
+        templateObj.setSubject(subject);
+        templateObj.setToast_template(toastTemplate);
+        templateObj.setRealm(realmName);
+        return templateObj;
+    }
+
     public void messageTemplates(Map<String, Map<String, String>> project, String realmName) {
+        List<QBaseMSGMessageTemplate> qBaseMSGMessageTemplateFromDB = service.queryMessage(realmName);
+        HashSet<String> codeSet = new HashSet<>();
+        for (QBaseMSGMessageTemplate message : qBaseMSGMessageTemplateFromDB) {
+            codeSet.add(message.getCode());
+        }
+        ArrayList<QBaseMSGMessageTemplate> messageList = new ArrayList<>();
+        int invalid = 0;
+        int total = 0;
+        int skipped = 0;
+
         for (Map.Entry<String, Map<String, String>> data : project.entrySet()) {
-            log.info("messages, data ::" + data);
+            total += 1;
+//            log.trace("messages, data ::" + data);
             Map<String, String> template = data.getValue();
             String code = template.get("code");
             String name = template.get("name");
-            String description = template.get("description");
-            String subject = template.get("subject");
-            String emailTemplateDocId = template.get("email");
-            if (emailTemplateDocId == null)
-                emailTemplateDocId = template.get("emailtemplateid");
-            String smsTemplate = template.get("sms");
-            if (smsTemplate == null)
-                smsTemplate = template.get("smstemplate");
-            String toastTemplate = template.get("toast");
-            if (toastTemplate == null)
-                toastTemplate = template.get("toasttemplate");
-
-            final QBaseMSGMessageTemplate templateObj = new QBaseMSGMessageTemplate();
-            templateObj.setCode(code);
-            templateObj.setName(name);
-            templateObj.setCreated(LocalDateTime.now());
-            templateObj.setDescription(description);
-            templateObj.setEmail_templateId(emailTemplateDocId);
-            templateObj.setSms_template(smsTemplate);
-            templateObj.setSubject(subject);
-            templateObj.setToast_template(toastTemplate);
+            if (codeSet.contains(code.toUpperCase())) {
+                // TODO merger and update if needed
+//                log.trace("Templates:" + code + ", Realm:" + realmName + " exists in db, skip.");
+                skipped += 1;
+                continue;
+            }
 
             if (StringUtils.isBlank(name)) {
-                log.error("Empty Name");
-            } else {
-                try {
-                    QBaseMSGMessageTemplate msg =
-
-                            service.findTemplateByCode(code);
-                    try {
-                        if (msg != null) {
-                            msg.setName(name);
-                            msg.setDescription(description);
-                            msg.setEmail_templateId(emailTemplateDocId);
-                            msg.setSms_template(smsTemplate);
-                            msg.setSubject(subject);
-                            msg.setToast_template(toastTemplate);
-                            Long id = service.update(msg);
-                            log.info("updated message id ::" + id);
-                        } else {
-                            Long id = service.insert(templateObj);
-                            log.info("message id ::" + id);
-                        }
-
-                    } catch (Exception e) {
-                        log.error("Cannot update QDataMSGMessage " + code);
-                    }
-                } catch (NoResultException e1) {
-                    try {
-                        if (isSynchronise()) {
-                            QBaseMSGMessageTemplate val = service.findTemplateByCode(templateObj.getCode(), "hidden");
-                            if (val != null) {
-                                val.setRealm("genny");
-                                service.updateRealm(val);
-                                continue;
-                            }
-                        }
-                        Long id = service.insert(templateObj);
-                        log.info("message id ::" + id);
-                    } catch (ConstraintViolationException ce) {
-                        log.error("Error in saving message due to constraint issue:" + templateObj + " :"
-                                + ce.getLocalizedMessage());
-                        log.info("Trying to update realm from hidden to genny");
-                        templateObj.setRealm("genny");
-                        service.updateRealm(templateObj);
-                    }
-
-                } catch (Exception e) {
-                    log.error("Cannot add MessageTemplate");
-                }
+                log.error("Templates:" + code + "has EMPTY name.");
+                invalid += 1;
+                continue;
             }
+            QBaseMSGMessageTemplate msg = buildQBaseMSGMessageTemplate(template, code, realmName);
+            messageList.add(msg);
         }
+        service.inserTemplate(messageList);
+        log.debug("Templates: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
     }
 
     public void upsertKeycloakJson(String keycloakJson) {
@@ -971,15 +951,18 @@ public class BatchLoading {
         attributeLinks(rx.getAttributeLinks(), dataTypes, code);
         log.info("Realm:" + code + ", Persisted AttributeLinks.");
 
+// TODO
         baseEntityAttributes(rx.getEntityAttributes(), code);
         log.info("Realm:" + code + ", Persisted EntityAttributes.");
 
+// TODO
         entityEntitys(rx.getEntityEntitys());
         log.info("Realm:" + code + ", Persisted EntityEntitys.");
 
         questions(rx.getQuestions(), code);
         log.info("Realm:" + code + ", Persisted Questions.");
 
+// TODO
         questionQuestions(rx.getQuestionQuestions(), code);
         log.info("Realm:" + code + ", Persisted QuestionQuestions.");
 
