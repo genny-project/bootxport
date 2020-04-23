@@ -1056,8 +1056,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
     }
 
     @Override
-    public List<Validation> queryValidation(@NotNull final String realm)
-            throws NoResultException {
+    public List<Validation> queryValidation(@NotNull final String realm) {
         List<Validation> result = Collections.emptyList();
         try {
             Query query = getEntityManager().createQuery("SELECT temp FROM Validation temp where temp.realm=:realmStr");
