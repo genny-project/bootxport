@@ -118,6 +118,4 @@ public interface QwandaRepository {
     void insertAsks(ArrayList<Ask> askList);
 
     void inserTemplate(ArrayList<QBaseMSGMessageTemplate> messageList);
-
-    Long insert(BaseEntity baseEntity);
 }
