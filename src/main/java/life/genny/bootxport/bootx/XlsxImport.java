@@ -12,28 +12,28 @@ import io.vavr.Tuple;
 import io.vavr.Tuple2;
 
 public abstract class XlsxImport {
-	
-	protected static final Logger log = org.apache.logging.log4j.LogManager
-			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+
+    protected static final Logger log = org.apache.logging.log4j.LogManager
+            .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
 
-  public abstract List<Map<String, String>> mappingRawToHeaderAndValuesFmt(String sheetURI, String sheetName);
-  public abstract Map<String,Map<String, String>> mappingRawToHeaderAndValuesFmt(String sheetURI, String sheetName, Set<String> keys);
+    public abstract List<Map<String, String>> mappingRawToHeaderAndValuesFmt(String sheetURI, String sheetName);
 
-  public Tuple2<List<String>,List<List<Object>>> sliceDataToHeaderAndValues(List<List<Object>> data){
-	  Tuple2<List<String>, List<List<Object>>> headerAndValues = null;
-	if (!data.isEmpty()) {
-		List<String> header = data.get(0).stream() 
-				.map(d -> d.toString().toLowerCase().replaceAll("^\"|\"$|_|-", ""))
+    public abstract Map<String, Map<String, String>> mappingRawToHeaderAndValuesFmt(String sheetURI, String sheetName, Set<String> keys);
+
+    public Tuple2<List<String>, List<List<Object>>> sliceDataToHeaderAndValues(List<List<Object>> data) {
+        Tuple2<List<String>, List<List<Object>>> headerAndValues = null;
+        if (!data.isEmpty()) {
+            List<String> header = data.get(0).stream()
+                    .map(d -> d.toString().toLowerCase().replaceAll("^\"|\"$|_|-", ""))
 //				.peek(System.out::println)
-				.collect(Collectors.toList());
-		data.remove(0);
-		 List<List<Object>> values = data;
-		 headerAndValues = Tuple.of(header, values);
-	} else {
-		log.error("Data to be sliced and Diced to HEader and Values is empty");
-	}
-   
-    return headerAndValues;
-  }
+                    .collect(Collectors.toList());
+            data.remove(0);
+            headerAndValues = Tuple.of(header, data);
+        } else {
+            log.error("Data to be sliced and Diced to HEader and Values is empty");
+        }
+
+        return headerAndValues;
+    }
 }

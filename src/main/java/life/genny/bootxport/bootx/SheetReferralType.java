@@ -1,42 +1,39 @@
 package life.genny.bootxport.bootx;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public abstract class SheetReferralType<T> {
 
-  protected List<T> units =  new ArrayList<>();
+    protected List<T> units = new ArrayList<>();
 
-  private ImportService service;
+    private ImportService service;
 
-  
-  public final String sheetURI;
-  
-  public SheetReferralType(BatchLoadMode mode,String sheetURI) {
-   this.sheetURI = sheetURI;
-   setService(new ImportService(mode,SheetState.getState()));
-   init();
-  }
+    public final String sheetURI;
 
-  public abstract void init();
+    public SheetReferralType(BatchLoadMode mode, String sheetURI) {
+        this.sheetURI = sheetURI;
+        setService(new ImportService(mode, SheetState.getState()));
+        init();
+    }
 
-  public List<T> getDataUnits() {
-    return units ; 
-  }
+    public abstract void init();
 
-  public void setDataUnits(List<T> units) {
-    this.units = units;
-  }
+    public List<T> getDataUnits() {
+        return units;
+    }
 
-  public ImportService getService() {
-    return service;
-  }
+    public void setDataUnits(List<T> units) {
+        this.units = units;
+    }
 
-  public void setService(ImportService service) {
-    this.service = service;
-  }
-  
-  
+    public ImportService getService() {
+        return service;
+    }
+
+    public void setService(ImportService service) {
+        this.service = service;
+    }
+
+
 }

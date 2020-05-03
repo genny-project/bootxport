@@ -146,7 +146,7 @@ public class RealmUnit extends DataUnit{
       System.out.println("Skipping google doc for realm " + this.name);
     }
     else {
-        module = new Module(mode,xlsxImport,realm.get("sheetID".toLowerCase()));
+        module = new Module(mode,realm.get("sheetID".toLowerCase()));
       
 
       super.baseEntitys = module.getDataUnits().stream()
