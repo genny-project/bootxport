@@ -47,7 +47,7 @@ public class ImportService {
         for (Map<String, String> rawData : createXlsImport
                 .mappingRawToHeaderAndValuesFmt(sheetURI, projects)) {
             if (!rawData.isEmpty()) {
-                RealmUnit name = new RealmUnit(mode, createXlsImport, rawData.get("name"), rawData);
+                RealmUnit name = new RealmUnit(mode, rawData);
                 list.add(name);
             }
         }

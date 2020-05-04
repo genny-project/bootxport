@@ -1,7 +1,6 @@
 package life.genny.bootxport.bootx;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -24,24 +23,25 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public class XSSFService {
     private final Log log = LogFactory.getLog(XSSFService.class);
 
+    private static List<Object> apply(List<Object> acc, List<Object> first) {
+        return first.stream()
+                .filter(a -> !a.toString().isEmpty()).flatMap(s -> {
+                    acc.set(first.indexOf(s), s);
+                    return acc.stream();
+                }).collect(Collectors.toList());
+    }
+
     public List<List<Object>> offlineService(String sheetId,
                                              String sheetName) {
         Workbook workbook = null;
         List<List<Object>> values = null;
-        FileInputStream excelFile = null;
-        try {
-            excelFile = new FileInputStream(Paths.get(System.getProperty("user.home"), sheetId).toFile());
-        } catch (FileNotFoundException ex) {
-            log.error(ex.getMessage());
-            return Collections.emptyList();
-        }
-
-        try {
+        try (FileInputStream excelFile = new FileInputStream(Paths.get(System.getProperty("user.home"), sheetId).toFile())) {
             workbook = new XSSFWorkbook(excelFile);
         } catch (IOException ex) {
             log.error(ex.getMessage());
             return Collections.emptyList();
         }
+
         Sheet datatypeSheet = workbook.getSheet(sheetName);
 
         Stream<Row> targetStream =
@@ -58,7 +58,7 @@ public class XSSFService {
 
             return targetStream2.map(currentCell -> {
                 List<Object> arrayList1 = new ArrayList<>(
-                        Collections.nCopies(count, new String("")));
+                        Collections.nCopies(count, ""));
 
                 CellType cellType = currentCell.getCellType();
                 int columnIndex = currentCell.getColumnIndex();
@@ -66,23 +66,14 @@ public class XSSFService {
 
                 switch (cellType) {
                     case NUMERIC:
-                        value =
-                                Double.toString(currentCell.getNumericCellValue());
+                        value = Double.toString(currentCell.getNumericCellValue());
                         break;
                     case BOOLEAN:
-                        value =
-                                Boolean.toString(currentCell.getBooleanCellValue());
-                        break;
                     case FORMULA:
-                        value =
-                                Boolean.toString(currentCell.getBooleanCellValue());
+                        value = Boolean.toString(currentCell.getBooleanCellValue());
                         break;
                     case BLANK:
-                        value = " ";
-                        break;
                     case _NONE:
-                        value = " ";
-                        break;
                     case ERROR:
                         value = " ";
                         break;
@@ -90,16 +81,9 @@ public class XSSFService {
                         value = currentCell.getStringCellValue().equals("") ? " " : currentCell.getStringCellValue();
                 }
 
-
                 arrayList1.set(columnIndex, value);
                 return arrayList1;
-            }).reduce((acc, first) -> {
-                return first.stream()
-                        .filter(a -> !a.toString().isEmpty()).flatMap(s -> {
-                            acc.set(first.indexOf(s), s);
-                            return acc.stream();
-                        }).collect(Collectors.toList());
-            }).get();
+            }).reduce(XSSFService::apply).get();
 
         }).collect(Collectors.toList());
         return values;
