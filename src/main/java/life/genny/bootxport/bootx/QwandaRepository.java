@@ -6,10 +6,15 @@ import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.attribute.Attribute;
+import life.genny.qwanda.attribute.AttributeLink;
+import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public interface QwandaRepository {
 
@@ -35,8 +40,7 @@ public interface QwandaRepository {
 
     Long updateWithAttributes(BaseEntity entity);
 
-    EntityEntity findEntityEntity(final String sourceCode,
-                                  final String targetCode, final String linkCode);
+    EntityEntity findEntityEntity(final String sourceCode, final String targetCode, final String linkCode);
 
     Integer updateEntityEntity(final EntityEntity ee);
 
@@ -64,4 +68,44 @@ public interface QwandaRepository {
     Long insert(final QBaseMSGMessageTemplate template);
 
     Long update(final QBaseMSGMessageTemplate template);
+
+    List<Validation> queryValidation(@NotNull final String realm);
+
+    List<Attribute> queryAttributes(@NotNull final String realm);
+
+    List<BaseEntity> queryBaseEntitys(@NotNull final String realm);
+
+    List<EntityAttribute> queryEntityAttribute(@NotNull final String realm);
+
+    List<EntityEntity> queryEntityEntity(@NotNull final String realm);
+
+    List<Question> queryQuestion(@NotNull final String realm);
+
+    List<QuestionQuestion> queryQuestionQuestion(@NotNull final String realm);
+
+    List<Ask> queryAsk(@NotNull final String realm);
+
+    List<QBaseMSGMessageTemplate> queryNotification(@NotNull final String realm);
+
+    List<QBaseMSGMessageTemplate> queryMessage(@NotNull final String realm);
+
+    void insertValidations(ArrayList<Validation> validationList);
+
+    void insertAttributes(ArrayList<Attribute> attributeList);
+
+    void insertEntityAttribute(ArrayList<EntityAttribute> entityAttributeList);
+
+    void insertBaseEntitys(ArrayList<BaseEntity> baseEntityList);
+
+    void insertEntityEntitys(ArrayList<EntityEntity> entityEntityist);
+
+    void insertAttributeLinks(ArrayList<AttributeLink> attributeLinkList);
+
+    void insertQuestions(ArrayList<Question> questionList);
+
+    void insertQuestionQuestions(ArrayList<QuestionQuestion> questionQuestionList);
+
+    void insertAsks(ArrayList<Ask> askList);
+
+    void inserTemplate(ArrayList<QBaseMSGMessageTemplate> messageList);
 }

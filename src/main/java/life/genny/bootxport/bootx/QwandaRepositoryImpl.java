@@ -2,6 +2,7 @@ package life.genny.bootxport.bootx;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,6 +17,8 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 
+import life.genny.qwanda.attribute.AttributeLink;
+import life.genny.qwanda.attribute.EntityAttribute;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.exception.ConstraintViolationException;
@@ -851,5 +854,105 @@ public class QwandaRepositoryImpl implements QwandaRepository {
     @Override
     public <T> void delete(T entity) {
         em.remove(entity);
+    }
+
+    @Override
+    public List<Validation> queryValidation(@NotNull String realm) {
+        return null;
+    }
+
+    @Override
+    public List<Attribute> queryAttributes(@NotNull String realm) {
+        return null;
+    }
+
+    @Override
+    public List<BaseEntity> queryBaseEntitys(@NotNull String realm) {
+        return null;
+    }
+
+    @Override
+    public List<EntityAttribute> queryEntityAttribute(@NotNull String realm) {
+        return null;
+    }
+
+    @Override
+    public List<EntityEntity> queryEntityEntity(@NotNull String realm) {
+        return null;
+    }
+
+    @Override
+    public List<Question> queryQuestion(@NotNull String realm) {
+        return null;
+    }
+
+    @Override
+    public List<QuestionQuestion> queryQuestionQuestion(@NotNull String realm) {
+        return null;
+    }
+
+    @Override
+    public List<Ask> queryAsk(@NotNull String realm) {
+        return null;
+    }
+
+    @Override
+    public List<QBaseMSGMessageTemplate> queryNotification(@NotNull String realm) {
+        return null;
+    }
+
+    @Override
+    public List<QBaseMSGMessageTemplate> queryMessage(@NotNull String realm) {
+        return null;
+    }
+
+    @Override
+    public void insertValidations(ArrayList<Validation> validationList) {
+
+    }
+
+    @Override
+    public void insertAttributes(ArrayList<Attribute> attributeList) {
+
+    }
+
+    @Override
+    public void insertEntityAttribute(ArrayList<EntityAttribute> entityAttributeList) {
+
+    }
+
+    @Override
+    public void insertBaseEntitys(ArrayList<BaseEntity> baseEntityList) {
+
+    }
+
+    @Override
+    public void insertEntityEntitys(ArrayList<EntityEntity> entityEntityist) {
+
+    }
+
+    @Override
+    public void insertAttributeLinks(ArrayList<AttributeLink> attributeLinkList) {
+
+    }
+
+    @Override
+    public void insertQuestions(ArrayList<Question> questionList) {
+
+    }
+
+    @Override
+    public void insertQuestionQuestions(ArrayList<QuestionQuestion> questionQuestionList) {
+
+    }
+
+    @Override
+    public void insertAsks(ArrayList<Ask> askList) {
+
+    }
+
+    @Override
+    public void inserTemplate(ArrayList<QBaseMSGMessageTemplate> messageList) {
+
     }
 }
