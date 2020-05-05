@@ -14,6 +14,7 @@ import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public interface QwandaRepository {
@@ -85,8 +86,6 @@ public interface QwandaRepository {
 
     List<Ask> queryAsk(@NotNull final String realm);
 
-    List<QBaseMSGMessageTemplate> queryNotification(@NotNull final String realm);
-
     List<QBaseMSGMessageTemplate> queryMessage(@NotNull final String realm);
 
     void insertValidations(ArrayList<Validation> validationList);
@@ -97,7 +96,7 @@ public interface QwandaRepository {
 
     void insertBaseEntitys(ArrayList<BaseEntity> baseEntityList);
 
-    void insertEntityEntitys(ArrayList<EntityEntity> entityEntityist);
+    void insertEntityEntitys(ArrayList<EntityEntity> entityEntityList);
 
     void insertAttributeLinks(ArrayList<AttributeLink> attributeLinkList);
 
@@ -108,4 +107,6 @@ public interface QwandaRepository {
     void insertAsks(ArrayList<Ask> askList);
 
     void inserTemplate(ArrayList<QBaseMSGMessageTemplate> messageList);
+
+    void updateValidations(ArrayList<Validation> validationList, HashMap<String, Validation> codeValidationMapping);
 }

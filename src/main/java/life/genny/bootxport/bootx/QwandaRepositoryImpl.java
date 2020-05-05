@@ -2,16 +2,10 @@ package life.genny.bootxport.bootx;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.persistence.EntityExistsException;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceException;
+import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -38,6 +32,7 @@ import life.genny.qwandautils.JsonUtils;
 public class QwandaRepositoryImpl implements QwandaRepository {
     protected static final Logger log = LogManager.getLogger(
             MethodHandles.lookup().lookupClass().getCanonicalName());
+    private static final int BATCHSIZE = 500;
 
     EntityManager em;
 
@@ -67,7 +62,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
 
     @Override
     public Validation upsert(Validation validation) {
-        String realm = validation.getRealm();
+        String validationRealm = validation.getRealm();
         EntityTransaction transaction = em.getTransaction();
         if (!transaction.isActive()) transaction.begin();
         try {
@@ -77,7 +72,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
             if (val != null) {
                 BeanNotNullFields copyFields = new BeanNotNullFields();
                 copyFields.copyProperties(val, validation);
-                val.setRealm(realm);
+                val.setRealm(validationRealm);
                 val = getEntityManager().merge(val);
             } else {
                 throw new NoResultException();
@@ -86,7 +81,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         } catch (NoResultException | IllegalAccessException
                 | InvocationTargetException e) {
             try {
-                validation.setRealm(realm);
+                validation.setRealm(validationRealm);
                 if (BatchLoading.isSynchronise()) {
                     Validation val = findValidationByCode(validation.getCode(),
                             REALM_HIDDEN);
@@ -98,14 +93,12 @@ public class QwandaRepositoryImpl implements QwandaRepository {
                 }
                 em.persist(validation);
             } catch (javax.validation.ConstraintViolationException ce) {
-                log.error("Error in saving attribute due to constraint issue:"
-                        + validation + " :" + ce.getLocalizedMessage());
+                log.error(String.format("Error in saving attribute due to constraint issue:%s, Error:%s.", validation, ce.getLocalizedMessage()));
                 log.info("Trying to update realm from hidden to genny");
                 validation.setRealm("genny");
                 updateRealm(validation);
             } catch (javax.persistence.PersistenceException pe) {
-                log.error("Error in saving validation :" + validation + " :"
-                        + pe.getLocalizedMessage());
+                log.error(String.format("Error in saving validation:%s, Error:%s.", validation, pe.getLocalizedMessage()));
             }
             Validation id = validation;
             transaction.commit();
@@ -115,53 +108,35 @@ public class QwandaRepositoryImpl implements QwandaRepository {
     }
 
 
-    public Validation findValidationByCode(@NotNull final String code,
-                                           @NotNull final String realm) throws NoResultException {
-        Validation result = null;
-        try {
-            result = (Validation) getEntityManager().createQuery(
-                    "SELECT a FROM Validation a where a.code=:code and a.realm=:realmStr")
-                    .setParameter("realmStr", realm).setParameter("code", code)
-                    .getSingleResult();
-        } catch (Exception e) {
+    public Validation findValidationByCode(@NotNull final String code, @NotNull final String realm) {
+        ArrayList<Validation> valList = (ArrayList<Validation>) getEntityManager().createQuery(
+                "SELECT a FROM Validation a where a.code=:code and a.realm=:realmStr")
+                .setParameter("realmStr", realm).setParameter("code", code).getResultList();
+        if (valList.isEmpty()) {
             return null;
+        } else {
+            return valList.get(0);
         }
-        return result;
     }
 
     public Long update(BaseEntity entity) {
-        try {
-            getEntityManager().createQuery(
-                    "update BaseEntity be set be.name =:name where be.code=:sourceCode and be.realm=:realmStr")
-                    .setParameter("sourceCode", entity.getCode())
-                    .setParameter("name", entity.getName())
-                    .setParameter("realmStr", getRealm()).executeUpdate();
+        getEntityManager().createQuery(
+                "update BaseEntity be set be.name =:name where be.code=:sourceCode and be.realm=:realmStr")
+                .setParameter("sourceCode", entity.getCode())
+                .setParameter("name", entity.getName())
+                .setParameter("realmStr", getRealm()).executeUpdate();
 
-            BaseEntity updated =
-                    this.findBaseEntityByCode(entity.getCode());
-            String json = JsonUtils.toJson(updated);
-            writeToDDT(entity.getCode(), json);
-
-        } catch (Exception e) {
-
-        }
-
+        BaseEntity updated = this.findBaseEntityByCode(entity.getCode());
+        String json = JsonUtils.toJson(updated);
+        writeToDDT(entity.getCode(), json);
         return entity.getId();
     }
 
-    public Long updateRealm(BaseEntity entity) {
-        Long result = 0L;
-        try {
-            result = (long) getEntityManager().createQuery(
-                    "update BaseEntity be set be.realm =:realm where be.code=:sourceCode")
-                    .setParameter("sourceCode", entity.getCode())
-                    .setParameter("realm", entity.getRealm()).executeUpdate();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return result;
+    public long updateRealm(BaseEntity entity) {
+        return getEntityManager().createQuery(
+                "update BaseEntity be set be.realm =:realm where be.code=:sourceCode")
+                .setParameter("sourceCode", entity.getCode())
+                .setParameter("realm", entity.getRealm()).executeUpdate();
     }
 
     public Long updateRealm(Attribute attr) {
@@ -251,29 +226,18 @@ public class QwandaRepositoryImpl implements QwandaRepository {
             val = getEntityManager().merge(val);
             transaction.commit();
             return val;
-        } catch (NoResultException | IllegalAccessException
-                | InvocationTargetException e) {
-            try {
-
-                attr.setRealm(getRealm());
-                if (BatchLoading.isSynchronise()) {
-                    Attribute val =
-                            findAttributeByCode(attr.getCode(), REALM_HIDDEN);
-                    if (val != null) {
-                        val.setRealm(getRealm());
-                        updateRealm(val);
-                        return val;
-                    }
+        } catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
+            attr.setRealm(getRealm());
+            if (BatchLoading.isSynchronise()) {
+                Attribute val =
+                        findAttributeByCode(attr.getCode(), REALM_HIDDEN);
+                if (val != null) {
+                    val.setRealm(getRealm());
+                    updateRealm(val);
+                    return val;
                 }
-
-                getEntityManager().persist(attr);
-            } catch (javax.validation.ConstraintViolationException ce) {
-                log.error("Error in saving attribute due to constraint issue:"
-                        + attr + " :" + ce.getLocalizedMessage());
-            } catch (javax.persistence.PersistenceException pe) {
-                log.error("Error in saving attribute :" + attr + " :"
-                        + pe.getLocalizedMessage());
             }
+            getEntityManager().persist(attr);
             transaction.commit();
             return attr;
         }
@@ -283,7 +247,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
     public BaseEntity upsert(BaseEntity be) {
         EntityTransaction transaction = em.getTransaction();
         if (!transaction.isActive()) transaction.begin();
-        String realm = getRealm();
+        String s = getRealm();
         try {
             String code = be.getCode();
             BaseEntity val = findBaseEntityByCode(code);
@@ -293,7 +257,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
             }
             BeanNotNullFields copyFields = new BeanNotNullFields();
             copyFields.copyProperties(val, be);
-            val.setRealm(realm);
+            val.setRealm(s);
             val = getEntityManager().merge(val);
             transaction.commit();
             return val;
@@ -320,30 +284,22 @@ public class QwandaRepositoryImpl implements QwandaRepository {
     public Long insert(BaseEntity entity) {
         EntityTransaction transaction = em.getTransaction();
         if (!transaction.isActive()) transaction.begin();
-//    transaction.begin();
         try {
             entity.setRealm(getRealm());
             getEntityManager().persist(entity);
             String json = JsonUtils.toJson(entity);
             writeToDDT(entity.getCode(), json);
         } catch (javax.validation.ConstraintViolationException e) {
-            log.error("Cannot save BaseEntity with code " + entity.getCode()
-                    + "! " + e.getLocalizedMessage());
-//      transaction.commit();
+            log.error(String.format("Cannot save BaseEntity with code:%s, Error:%s.", entity.getCode(), e.getLocalizedMessage()));
             return -1L;
         } catch (final ConstraintViolationException e) {
-            log.error(
-                    "Entity Already exists - cannot insert" + entity.getCode());
-//      transaction.commit();
+            log.error(String.format("Entity:%s already exists - cannot insert.", entity.getCode()));
             return entity.getId();
         } catch (final PersistenceException e) {
-//      transaction.commit();
             return entity.getId();
         } catch (final IllegalStateException e) {
-//      transaction.commit();
             return entity.getId();
         }
-//    transaction.commit();
         return entity.getId();
     }
 
@@ -382,31 +338,18 @@ public class QwandaRepositoryImpl implements QwandaRepository {
             val = getEntityManager().merge(val);
             transaction.commit();
             return val;
-        } catch (NoResultException | IllegalAccessException
-                | InvocationTargetException e) {
-            try {
-
-                q.setRealm(getRealm());
-                if (BatchLoading.isSynchronise()) {
-                    Question val =
-                            findQuestionByCode(q.getCode(), REALM_HIDDEN);
-                    if (val != null) {
-                        val.setRealm(getRealm());
-                        updateRealm(val);
-                        return val;
-                    }
+        } catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
+            q.setRealm(getRealm());
+            if (BatchLoading.isSynchronise()) {
+                Question val =
+                        findQuestionByCode(q.getCode(), REALM_HIDDEN);
+                if (val != null) {
+                    val.setRealm(getRealm());
+                    updateRealm(val);
+                    return val;
                 }
-
-                getEntityManager().persist(q);
-            } catch (javax.validation.ConstraintViolationException ce) {
-                log.error("Error in saving question due to constraint issue:"
-                        + q + " :" + ce.getLocalizedMessage());
-            } catch (javax.persistence.PersistenceException pe) {
-                log.error("Error in saving question :" + q + " :"
-                        + pe.getLocalizedMessage());
-            } catch (Exception ex) {
-                ex.printStackTrace();
             }
+            getEntityManager().persist(q);
             transaction.commit();
             return q;
         }
@@ -435,8 +378,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         return ret;
     }
 
-    public void sendQEventLinkChangeMessage(
-            final QEventLinkChangeMessage event) {
+    public void sendQEventLinkChangeMessage(final QEventLinkChangeMessage event) {
         log.info("Send Link Change:" + event);
     }
 
@@ -623,22 +565,16 @@ public class QwandaRepositoryImpl implements QwandaRepository {
     public EntityEntity insertEntityEntity(final EntityEntity ee) {
         EntityTransaction transaction = em.getTransaction();
         transaction.begin();
-        try {
-            getEntityManager().persist(ee);
-            QEventLinkChangeMessage msg = new QEventLinkChangeMessage(
-                    ee.getLink(), null, getCurrentToken());
-            sendQEventLinkChangeMessage(msg);
-            log.debug("Sent Event Link Change Msg " + msg);
-        } catch (Exception e) {
-        }
+        getEntityManager().persist(ee);
+        QEventLinkChangeMessage msg = new QEventLinkChangeMessage(ee.getLink(), null, getCurrentToken());
+        sendQEventLinkChangeMessage(msg);
         transaction.commit();
+        log.info(String.format("Sent Event Link Change Msg:%s.", msg));
         return ee;
     }
 
     @Override
-    public QuestionQuestion findQuestionQuestionByCode(
-            final String sourceCode, final String targetCode)
-            throws NoResultException {
+    public QuestionQuestion findQuestionQuestionByCode(final String sourceCode, final String targetCode) {
         QuestionQuestion result = null;
         try {
             result = (QuestionQuestion) getEntityManager().createQuery(
@@ -646,31 +582,21 @@ public class QwandaRepositoryImpl implements QwandaRepository {
                     .setParameter("realmStr", getRealm())
                     .setParameter("sourceCode", sourceCode)
                     .setParameter("targetCode", targetCode).getSingleResult();
-
         } catch (Exception e) {
-            throw new NoResultException(
-                    "Cannot find QQ " + sourceCode + ":" + targetCode);
+            throw new NoResultException("Cannot find QQ " + sourceCode + ":" + targetCode);
         }
         return result;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public Question findQuestionByCode(@NotNull final String code)
-            throws NoResultException {
+    public Question findQuestionByCode(@NotNull final String code) {
         List<Question> result = null;
-        // final String userRealmStr = getRealm();
-        try {
+        result = getEntityManager().createQuery(
+                "SELECT a FROM Question a where a.code=:code and a.realm=:realmStr")
+                .setParameter("realmStr", getRealm())
+                .setParameter("code", code.toUpperCase()).getResultList();
 
-            result = getEntityManager().createQuery(
-                    "SELECT a FROM Question a where a.code=:code and a.realm=:realmStr")
-
-                    .setParameter("realmStr", getRealm())
-                    .setParameter("code", code.toUpperCase()).getResultList();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         if (result == null || result.isEmpty()) {
             return null;
         }
@@ -706,119 +632,71 @@ public class QwandaRepositoryImpl implements QwandaRepository {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Question findQuestionByCode(@NotNull final String code,
-                                       @NotNull final String realm) throws NoResultException {
-        List<Question> result = null;
-        try {
-            result = getEntityManager().createQuery(
-                    "SELECT a FROM Question a where a.code=:code and a.realm=:realmStr")
-                    .setParameter("realmStr", realm)
-                    .setParameter("code", code.toUpperCase()).getResultList();
-
-        } catch (Exception e) {
-            return null;
-        }
+    public Question findQuestionByCode(@NotNull final String code, @NotNull final String realm) {
+        List<Question> result = getEntityManager().createQuery(
+                "SELECT a FROM Question a where a.code=:code and a.realm=:realmStr")
+                .setParameter("realmStr", realm)
+                .setParameter("code", code.toUpperCase()).getResultList();
         return result.get(0);
     }
 
     @Override
     public Long updateRealm(Question que) {
-        Long result = 0L;
         EntityTransaction transaction = em.getTransaction();
         if (!transaction.isActive()) transaction.begin();
-
-        try {
-            result = (long) getEntityManager().createQuery(
-                    "update Question que set que.realm =:realm where que.code=:code")
-                    .setParameter("code", que.getCode())
-                    .setParameter("realm", que.getRealm()).executeUpdate();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        long result = getEntityManager().createQuery(
+                "update Question que set que.realm =:realm where que.code=:code")
+                .setParameter("code", que.getCode())
+                .setParameter("realm", que.getRealm()).executeUpdate();
         transaction.commit();
-
         return result;
     }
 
     @Override
     public Long insert(final Question question) {
-
         EntityTransaction transaction = em.getTransaction();
         if (!transaction.isActive()) transaction.begin();
         try {
             question.setRealm(getRealm());
             getEntityManager().persist(question);
-            log.debug("Loaded " + question.getCode());
+            log.info(String.format("Saved question:%s. ", question.getCode()));
             transaction.commit();
-        } catch (final ConstraintViolationException e) {
-            Question existing = findQuestionByCode(question.getCode());
-            existing.setRealm(getRealm());
-            existing = getEntityManager().merge(existing);
-            transaction.commit();
-            return existing.getId();
-        } catch (final PersistenceException e) {
-            Question existing = findQuestionByCode(question.getCode());
-            existing.setRealm(getRealm());
-            existing = getEntityManager().merge(existing);
-            transaction.commit();
-            return existing.getId();
-        } catch (final IllegalStateException e) {
+        } catch (PersistenceException | IllegalStateException e) {
             Question existing = findQuestionByCode(question.getCode());
             existing.setRealm(getRealm());
             existing = getEntityManager().merge(existing);
             transaction.commit();
             return existing.getId();
         }
-//    transaction.commit();
         return question.getId();
     }
 
     @Override
-    public QBaseMSGMessageTemplate findTemplateByCode(
-            @NotNull final String templateCode) throws NoResultException {
-        QBaseMSGMessageTemplate result = null;
-        result = (QBaseMSGMessageTemplate) getEntityManager().createQuery(
+    public QBaseMSGMessageTemplate findTemplateByCode(@NotNull final String templateCode) {
+        return (QBaseMSGMessageTemplate) getEntityManager().createQuery(
                 "SELECT temp FROM QBaseMSGMessageTemplate temp where temp.code=:templateCode and temp.realm=:realmStr")
                 .setParameter("realmStr", getRealm())
                 .setParameter("templateCode", templateCode.toUpperCase())
                 .getSingleResult();
-        return result;
     }
 
     @Override
-    public QBaseMSGMessageTemplate findTemplateByCode(
-            @NotNull final String templateCode, @NotNull final String realm)
-            throws NoResultException {
-        QBaseMSGMessageTemplate result = null;
-        try {
-            result = (QBaseMSGMessageTemplate) getEntityManager()
-                    .createQuery(
-                            "SELECT temp FROM QBaseMSGMessageTemplate temp where temp.code=:templateCode and temp.realm=:realmStr")
-                    .setParameter("realmStr", realm)
-                    .setParameter("templateCode", templateCode.toUpperCase())
-                    .getSingleResult();
-        } catch (Exception e) {
-            return null;
-        }
-        return result;
+    public QBaseMSGMessageTemplate findTemplateByCode(@NotNull final String templateCode, @NotNull final String realm) {
+        return (QBaseMSGMessageTemplate) getEntityManager()
+                .createQuery("SELECT temp FROM QBaseMSGMessageTemplate temp where temp.code=:templateCode and temp.realm=:realmStr")
+                .setParameter("realmStr", realm)
+                .setParameter("templateCode", templateCode.toUpperCase())
+                .getSingleResult();
     }
 
     @Override
     public Long updateRealm(QBaseMSGMessageTemplate msg) {
         EntityTransaction transaction = em.getTransaction();
         if (!transaction.isActive()) transaction.begin();
-        Long result = 0L;
-        try {
-            result = (long) getEntityManager().createQuery(
-                    "update QBaseMSGMessageTemplate msg set msg.realm =:realm where msg.code=:code")
-                    .setParameter("code", msg.getCode())
-                    .setParameter("realm", msg.getRealm()).executeUpdate();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        long result = getEntityManager().createQuery(
+                "update QBaseMSGMessageTemplate msg set msg.realm =:realm where msg.code=:code")
+                .setParameter("code", msg.getCode())
+                .setParameter("realm", msg.getRealm()).executeUpdate();
         transaction.commit();
         return result;
     }
@@ -828,11 +706,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         EntityTransaction transaction = em.getTransaction();
         if (!transaction.isActive()) transaction.begin();
         template.setRealm(getRealm());
-        try {
-            getEntityManager().persist(template);
-        } catch (final EntityExistsException e) {
-            e.printStackTrace();
-        }
+        getEntityManager().persist(template);
         transaction.commit();
         return template.getId();
     }
@@ -858,101 +732,346 @@ public class QwandaRepositoryImpl implements QwandaRepository {
 
     @Override
     public List<Validation> queryValidation(@NotNull String realm) {
-        return null;
+        List<Validation> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM Validation temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error(String.format("Query Validation table Error:%s.", e.getMessage()));
+        }
+        return result;
     }
 
     @Override
     public List<Attribute> queryAttributes(@NotNull String realm) {
-        return null;
+        List<Attribute> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM Attribute temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error(String.format("Query Attribute table Error:%s.", e.getMessage()));
+        }
+        return result;
     }
 
     @Override
     public List<BaseEntity> queryBaseEntitys(@NotNull String realm) {
-        return null;
+        List<BaseEntity> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM BaseEntity temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error(String.format("Query BaseEntity table Error:%s.", e.getMessage()));
+        }
+        return result;
     }
 
     @Override
     public List<EntityAttribute> queryEntityAttribute(@NotNull String realm) {
-        return null;
+        List<EntityAttribute> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM EntityAttribute temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error(String.format("Query EntityAttribute table Error:%s.", e.getMessage()));
+        }
+        return result;
     }
 
     @Override
     public List<EntityEntity> queryEntityEntity(@NotNull String realm) {
-        return null;
+        List<EntityEntity> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM EntityEntity temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error(String.format("Query EntityEntity table Error:%s.", e.getMessage()));
+        }
+        return result;
     }
 
     @Override
     public List<Question> queryQuestion(@NotNull String realm) {
-        return null;
+        List<Question> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM Question temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error(String.format("Query Question table Error:%s.", e.getMessage()));
+        }
+        return result;
     }
 
     @Override
     public List<QuestionQuestion> queryQuestionQuestion(@NotNull String realm) {
-        return null;
+        List<QuestionQuestion> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM QuestionQuestion temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error(String.format("Query QuestionQuestion table Error:%s", e.getMessage()));
+        }
+        return result;
     }
 
     @Override
     public List<Ask> queryAsk(@NotNull String realm) {
-        return null;
-    }
-
-    @Override
-    public List<QBaseMSGMessageTemplate> queryNotification(@NotNull String realm) {
-        return null;
+        List<Ask> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM Ask temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error(String.format("Query Ask table Error:%s.", e.getMessage()));
+        }
+        return result;
     }
 
     @Override
     public List<QBaseMSGMessageTemplate> queryMessage(@NotNull String realm) {
-        return null;
+        List<QBaseMSGMessageTemplate> result = Collections.emptyList();
+        try {
+            Query query = getEntityManager().createQuery("SELECT temp FROM QBaseMSGMessageTemplate temp where temp.realm=:realmStr");
+            query.setParameter("realmStr", realm);
+            result = query.getResultList();
+        } catch (Exception e) {
+            log.error(String.format("Query QBaseMSGMessageTemplate table Error:%s.", e.getMessage()));
+        }
+        return result;
     }
 
     @Override
     public void insertValidations(ArrayList<Validation> validationList) {
+        if (validationList.isEmpty()) return;
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
 
+        for (Validation validation : validationList) {
+            em.persist(validation);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("Validation Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
     }
 
     @Override
     public void insertAttributes(ArrayList<Attribute> attributeList) {
+        if (attributeList.isEmpty()) return;
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
 
+        for (Attribute attribute : attributeList) {
+            em.persist(attribute);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("Attribute Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
     }
 
     @Override
     public void insertEntityAttribute(ArrayList<EntityAttribute> entityAttributeList) {
+        if (entityAttributeList.isEmpty()) return;
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
 
+        for (EntityAttribute entityAttribute : entityAttributeList) {
+            em.persist(entityAttribute);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("EntityAttribute Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
+    }
+
+    private void saveToDDT(BaseEntity baseEntity) {
+        String realmStr = getRealm();
+        assert (realmStr.equals(baseEntity.getRealm()));
+        String code = baseEntity.getCode();
+        baseEntity.setRealm(realmStr);
+        try {
+            String json = JsonUtils.toJson(baseEntity);
+            writeToDDT(baseEntity.getCode(), json);
+        } catch (javax.validation.ConstraintViolationException e) {
+            log.error(String.format("Cannot save BaseEntity with code:%s, Error:%s.", code, e.getLocalizedMessage()));
+        } catch (final ConstraintViolationException e) {
+            log.error(String.format("Entity Already exists - cannot insert:%s.", code));
+        }
     }
 
     @Override
     public void insertBaseEntitys(ArrayList<BaseEntity> baseEntityList) {
+        if (baseEntityList.isEmpty()) return;
 
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
+
+        for (BaseEntity baseEntity : baseEntityList) {
+            em.persist(baseEntity);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("BaseEntity Batch is full, flush to database.");
+                em.flush();
+            }
+            saveToDDT(baseEntity);
+            index += 1;
+        }
+        transaction.commit();
     }
 
     @Override
-    public void insertEntityEntitys(ArrayList<EntityEntity> entityEntityist) {
+    public void insertEntityEntitys(ArrayList<EntityEntity> entityEntityList) {
+        if (entityEntityList.isEmpty()) return;
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
 
+        for (EntityEntity entityEntity : entityEntityList) {
+            em.persist(entityEntity);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("EntityEntity Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
     }
 
     @Override
     public void insertAttributeLinks(ArrayList<AttributeLink> attributeLinkList) {
+        if (attributeLinkList.isEmpty()) return;
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
 
+        for (AttributeLink attributeLink : attributeLinkList) {
+            em.persist(attributeLink);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("AttributeLink Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
     }
 
     @Override
     public void insertQuestions(ArrayList<Question> questionList) {
+        if (questionList.isEmpty()) return;
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
 
+        for (Question question : questionList) {
+            em.persist(question);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("Question Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
     }
 
     @Override
     public void insertQuestionQuestions(ArrayList<QuestionQuestion> questionQuestionList) {
+        if (questionQuestionList.isEmpty()) return;
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
 
+        for (QuestionQuestion questionQuestion : questionQuestionList) {
+            em.persist(questionQuestion);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("QuestionQuestion Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
     }
 
     @Override
     public void insertAsks(ArrayList<Ask> askList) {
+        if (askList.isEmpty()) return;
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
 
+        for (Ask ask : askList) {
+            em.persist(ask);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("Ask Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
     }
 
     @Override
     public void inserTemplate(ArrayList<QBaseMSGMessageTemplate> messageList) {
+        if (messageList.isEmpty()) return;
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
 
+        for (QBaseMSGMessageTemplate message : messageList) {
+            em.persist(message);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("Template(Message/Notification) Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
+    }
+
+    @Override
+    public void updateValidations(ArrayList<Validation> validationList, HashMap<String, Validation> codeValidationMapping) {
+        if (validationList.isEmpty()) return;
+        BeanNotNullFields copyFields = new BeanNotNullFields();
+        for (Validation validation : validationList) {
+            Validation val = codeValidationMapping.get(validation.getCode());
+            if (val == null) {
+                // Should never raise this exception
+                throw new NoResultException(String.format("Can't find validation:%s from database.", validation.getCode()));
+            }
+            try {
+                copyFields.copyProperties(val, validation);
+            } catch (IllegalAccessException | InvocationTargetException ex) {
+                log.error(String.format("Failed to copy Properties for validation:%s", val.getCode()));
+            }
+
+            val.setRealm(getRealm());
+            getEntityManager().merge(val);
+        }
     }
 }
