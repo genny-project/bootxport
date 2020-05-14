@@ -782,20 +782,32 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         if (objectList.isEmpty()) return;
         BeanNotNullFields copyFields = new BeanNotNullFields();
         for (CodedEntity codedEntity : objectList) {
-            CodedEntity val = mapping.get(codedEntity.getCode());
-            if (val == null) {
-                // Should never raise this exception
-                throw new NoResultException(String.format("Can't find validation:%s from database.", codedEntity.getCode()));
-            }
-            try {
-                copyFields.copyProperties(val, codedEntity);
-            } catch (IllegalAccessException | InvocationTargetException ex) {
-                log.error(String.format("Failed to copy Properties for validation:%s", val.getCode()));
-            }
+            if (codedEntity instanceof QuestionQuestion) {
+                QuestionQuestion qq= (QuestionQuestion) codedEntity;
+                String uniqCode = qq.getSourceCode() + "-" + qq.getTarketCode();
+                QuestionQuestion existing = (QuestionQuestion)mapping.get(uniqCode.toUpperCase());
+                existing.setMandatory(qq.getMandatory());
+                existing.setWeight(qq.getWeight());
+                existing.setReadonly(qq.getReadonly());
+                getEntityManager().merge(existing);
+            } else if (codedEntity instanceof QBaseMSGMessageTemplate) {
+                codedEntity.setRealm(getRealm());
+                getEntityManager().merge((QBaseMSGMessageTemplate) codedEntity);
+            } else {
+                CodedEntity val = mapping.get(codedEntity.getCode());
+                if (val == null) {
+                    // Should never raise this exception
+                    throw new NoResultException(String.format("Can't find %s from database.", codedEntity.getCode()));
+                }
+                try {
+                    copyFields.copyProperties(val, codedEntity);
+                } catch (IllegalAccessException | InvocationTargetException ex) {
+                    log.error(String.format("Failed to copy Properties for %s", val.getCode()));
+                }
 
-            val.setRealm(getRealm());
-            getEntityManager().merge(val);
-
+                val.setRealm(getRealm());
+                getEntityManager().merge(val);
+            }
         }
     }
 

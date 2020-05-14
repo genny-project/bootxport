@@ -68,7 +68,7 @@ public interface QwandaRepository {
 
     <T> List<T> queryTableByRealm(@NotNull String tableName, @NotNull String realm);
 
-    // For Validation, Attribute, AttributeLink
+    // For Validation, Attribute, AttributeLink, QuestionQuestion, QBaseMSGMessageTemplate
     void bulkUpdate(ArrayList<CodedEntity> objectList, HashMap<String, CodedEntity> mapping);
     void bulkInsert(ArrayList<CodedEntity> objectList);
 

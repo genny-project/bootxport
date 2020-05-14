@@ -94,27 +94,30 @@ public class Optimization {
                 invalid++;
                 continue;
             }
-
-            String qCode = asks.get("question_code".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-            String attributeCode = asks.get("attributeCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-            String sourceCode = asks.get("sourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-            String targetCode = asks.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-            String uniqueCode = qCode + "-" + sourceCode + "-" + targetCode + "-" + attributeCode;
-            if (codeAskMapping.containsKey(uniqueCode.toUpperCase())) {
-                if (isChanged(ask, codeAskMapping.get(uniqueCode.toUpperCase()))) {
-                    askUpdateList.add(ask);
-                    updated++;
-                }
-                skipped++;
-            } else {
-                // insert new item
-                askInsertList.add(ask);
-                newItem++;
-            }
+            service.insert(ask);
         }
-        service.bulkInsertAsk(askInsertList);
-        service.bulkUpdateAsk(askUpdateList, codeAskMapping);
-        printSummary(tableName, total, invalid, skipped, updated, newItem);
+
+
+//            String qCode = asks.get("question_code".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+//            String attributeCode = asks.get("attributeCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+//            String sourceCode = asks.get("sourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+//            String targetCode = asks.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+//            String uniqueCode = qCode + "-" + sourceCode + "-" + targetCode + "-" + attributeCode;
+//            if (codeAskMapping.containsKey(uniqueCode.toUpperCase())) {
+//                if (isChanged(ask, codeAskMapping.get(uniqueCode.toUpperCase()))) {
+//                    askUpdateList.add(ask);
+//                    updated++;
+//                }
+//                skipped++;
+//            } else {
+//                 insert new item
+//                askInsertList.add(ask);
+//                newItem++;
+//            }
+//        }
+//        service.bulkInsertAsk(askInsertList);
+//        service.bulkUpdateAsk(askUpdateList, codeAskMapping);
+//        printSummary(tableName, total, invalid, skipped, updated, newItem);
     }
 
     public void attributeLinksOptimization
@@ -232,18 +235,6 @@ public class Optimization {
             attrHashMap.put(attribute.getCode(), attribute);
         }
 
-        // Get all entityAttribute
-//        tableName = "EntityAttribute";
-//        List<EntityAttribute> entityAttributeFromDB = service.queryTableByRealm(tableName, realmName);
-
-//        HashMap<String, CodedEntity> codeBaseEntityAttributeMapping = new HashMap<>();
-//        for (EntityAttribute entityAttribute : entityAttributeFromDB) {
-//            String beCode = entityAttribute.getBaseEntityCode();
-//            String attrCode = entityAttribute.getAttributeCode();
-//            String uniqueCode = beCode + "-" + attrCode;
-//            codeBaseEntityAttributeMapping.put(uniqueCode, entityAttribute);
-//        }
-
         int invalid = 0;
         int total = 0;
         int skipped = 0;
@@ -334,15 +325,12 @@ public class Optimization {
         tableName = "EntityEntity";
         List<EntityEntity> entityEntityFromDB = service.queryTableByRealm(tableName, realmName);
 
-        HashSet<String> codeSet = new HashSet<>();
         HashMap<String, CodedEntity> codeBaseEntityEntityMapping = new HashMap<>();
         for (EntityEntity entityEntity : entityEntityFromDB) {
             String beCode = entityEntity.getPk().getSource().getCode();
             String attrCode = entityEntity.getPk().getAttribute().getCode();
             String targetCode = entityEntity.getPk().getTargetCode();
             String uniqueCode = beCode + "-" + attrCode + "-" + targetCode;
-
-            codeSet.add(uniqueCode);
             codeBaseEntityEntityMapping.put(uniqueCode, entityEntity);
         }
 
@@ -390,8 +378,7 @@ public class Optimization {
 
             String code = parentCode + "-" + linkCode + "-" + targetCode;
             if (isSynchronise) {
-                if (codeSet.contains(code.toUpperCase())) {
-                    // TODO check if ok
+                if (codeBaseEntityEntityMapping.containsKey(code.toUpperCase())) {
                     EntityEntity ee = (EntityEntity) codeBaseEntityEntityMapping.get(code.toUpperCase());
                     ee.setWeight(weight);
                     ee.setValueString(valueString);
@@ -475,20 +462,18 @@ public class Optimization {
         tableName = "QuestionQuestion";
         List<QuestionQuestion> questionQuestionFromDB = service.queryTableByRealm(tableName, realmName);
 
-        HashSet<String> codeSet = new HashSet<>();
         HashMap<String, CodedEntity> codeQuestionMapping = new HashMap<>();
 
         for (QuestionQuestion qq : questionQuestionFromDB) {
             String sourceCode = qq.getSourceCode();
             String targetCode = qq.getTarketCode();
             String uniqCode = sourceCode + "-" + targetCode;
-            codeSet.add(uniqCode);
             codeQuestionMapping.put(uniqCode, qq);
         }
 
 
-        ArrayList<CodedEntity> uestionQuestionInsertList = new ArrayList<>();
-        ArrayList<CodedEntity> uestionQuestionUpdateList = new ArrayList<>();
+        ArrayList<CodedEntity> questionQuestionInsertList = new ArrayList<>();
+        ArrayList<CodedEntity> questionQuestionUpdateList = new ArrayList<>();
         int invalid = 0;
         int total = 0;
         int skipped = 0;
@@ -513,20 +498,20 @@ public class Optimization {
             String targetCode = queQues.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
 
             String uniqueCode = parentCode + "-" + targetCode;
-            if (codeSet.contains(uniqueCode.toUpperCase())) {
+            if (codeQuestionMapping.containsKey(uniqueCode.toUpperCase())) {
                 if (isChanged(qq, codeQuestionMapping.get(uniqueCode.toUpperCase()))) {
-                    uestionQuestionUpdateList.add(qq);
+                    questionQuestionUpdateList.add(qq);
                     updated++;
                 }
                 skipped++;
             } else {
                 // insert new item
-                uestionQuestionInsertList.add(qq);
+                questionQuestionInsertList.add(qq);
                 newItem++;
             }
         }
-        service.bulkInsert(uestionQuestionInsertList);
-        service.bulkUpdate(uestionQuestionUpdateList, codeQuestionMapping);
+        service.bulkInsert(questionQuestionInsertList);
+        service.bulkUpdate(questionQuestionUpdateList, codeQuestionMapping);
         printSummary(tableName, total, invalid, skipped, updated, newItem);
     }
 
@@ -590,7 +575,7 @@ public class Optimization {
                         val.setRealm(realmName);
                         service.updateRealm(val);
                         updated++;
-                        return;
+                        continue;
                     }
                 }
                 service.insert(question);
