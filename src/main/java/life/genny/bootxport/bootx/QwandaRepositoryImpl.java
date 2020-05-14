@@ -733,16 +733,16 @@ public class QwandaRepositoryImpl implements QwandaRepository {
 
 
     @Override
-    public <T> List<T> queryTableByRealm(@NotNull String tableName, @NotNull String realm) {
-        List<Validation> result = Collections.emptyList();
+    public <T> List<T> queryTableByRealm(String tableName, String realm) {
+        List<T> result = Collections.emptyList();
         try {
             Query query = getEntityManager().createQuery(String.format("SELECT temp FROM %s temp where temp.realm=:realmStr", tableName));
             query.setParameter("realmStr", realm);
             result = query.getResultList();
         } catch (Exception e) {
-            log.error("Query Validation table Error:" + e.getMessage());
+            log.error(String.format("Query table %s Error:%s".format(realm, e.getMessage())));
         }
-        return (List<T>) result;
+        return result;
     }
 
     @Override
@@ -783,9 +783,9 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         BeanNotNullFields copyFields = new BeanNotNullFields();
         for (CodedEntity codedEntity : objectList) {
             if (codedEntity instanceof QuestionQuestion) {
-                QuestionQuestion qq= (QuestionQuestion) codedEntity;
+                QuestionQuestion qq = (QuestionQuestion) codedEntity;
                 String uniqCode = qq.getSourceCode() + "-" + qq.getTarketCode();
-                QuestionQuestion existing = (QuestionQuestion)mapping.get(uniqCode.toUpperCase());
+                QuestionQuestion existing = (QuestionQuestion) mapping.get(uniqCode.toUpperCase());
                 existing.setMandatory(qq.getMandatory());
                 existing.setWeight(qq.getWeight());
                 existing.setReadonly(qq.getReadonly());

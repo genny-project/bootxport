@@ -66,13 +66,15 @@ public interface QwandaRepository {
 
     Long update(final QBaseMSGMessageTemplate template);
 
-    <T> List<T> queryTableByRealm(@NotNull String tableName, @NotNull String realm);
+    <T> List<T> queryTableByRealm(String tableName, String realm);
 
     // For Validation, Attribute, AttributeLink, QuestionQuestion, QBaseMSGMessageTemplate
     void bulkUpdate(ArrayList<CodedEntity> objectList, HashMap<String, CodedEntity> mapping);
+
     void bulkInsert(ArrayList<CodedEntity> objectList);
 
     // For Ask
     void bulkInsertAsk(ArrayList<Ask> objectList);
+
     void bulkUpdateAsk(ArrayList<Ask> objectList, HashMap<String, Ask> mapping);
 }
