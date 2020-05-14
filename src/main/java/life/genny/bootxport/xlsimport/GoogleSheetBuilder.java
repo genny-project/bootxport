@@ -3,6 +3,7 @@ package life.genny.bootxport.xlsimport;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import life.genny.qwanda.Ask;
+import life.genny.qwanda.CodedEntity;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.attribute.Attribute;
@@ -19,10 +20,7 @@ import org.apache.commons.logging.LogFactory;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 import javax.ws.rs.NotFoundException;
 
@@ -33,8 +31,8 @@ public class GoogleSheetBuilder {
     private static final String REGEX_2 = "^\"|\"$|_|-";
     private static final String PRIVACY = "privacy";
     private static final String VALUEINTEGER = "valueinteger";
-    private static final String MANDATORY = "mandatory";
-    private static final String READONLY = "readonly";
+    public static final String MANDATORY = "mandatory";
+    public static final String READONLY = "readonly";
 
     private GoogleSheetBuilder() {
     }
@@ -82,7 +80,7 @@ public class GoogleSheetBuilder {
         return Pattern.matches(fpRegex, doubleStr);
     }
 
-    private static boolean getBooleanFromString(final String booleanString) {
+    public static boolean getBooleanFromString(final String booleanString) {
         if (booleanString == null) {
             return false;
         }
@@ -198,7 +196,15 @@ public class GoogleSheetBuilder {
 
     public static QuestionQuestion buildQuestionQuestion(Map<String, String> queQues,
                                                          String realmName,
-                                                         Question sbe, Question tbe) throws BadDataException {
+                                                         Map<String, Question> questionHashMap) {
+
+        String parentCode = queQues.get("parentCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+        if (parentCode == null) {
+            parentCode = queQues.get("sourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+        }
+
+        String targetCode = queQues.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+
         String weightStr = queQues.get(WEIGHT);
         String mandatoryStr = queQues.get(MANDATORY);
         String readonlyStr = queQues.get(READONLY);
@@ -211,6 +217,17 @@ public class GoogleSheetBuilder {
         }
 
         Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
+
+        Question sbe = questionHashMap.get(parentCode.toUpperCase());
+        Question tbe = questionHashMap.get(targetCode.toUpperCase());
+        if (sbe == null) {
+            log.error("QuestionQuesiton parent code:" + parentCode + " doesn't exist in Question table.");
+            return null;
+        } else if (tbe == null) {
+            log.error("QuestionQuesiton target Code:" + targetCode + " doesn't exist in Question table.");
+            return null;
+        }
+
         String oneshotStr = queQues.get("oneshot");
         Boolean oneshot = false;
         if (oneshotStr == null) {
@@ -220,27 +237,18 @@ public class GoogleSheetBuilder {
             oneshot = "TRUE".equalsIgnoreCase(oneshotStr);
         }
 
-        QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
-        qq.setOneshot(oneshot);
-        qq.setReadonly(readonly);
-        qq.setCreateOnTrigger(createOnTrigger);
-        qq.setFormTrigger(formTrigger);
-        qq.setRealm(realmName);
-        return qq;
-    }
-
-    public static EntityEntity buildEntityEntity(Map<String, String> entEnts,
-                                                 String realmName,
-                                                 Attribute linkAttribute,
-                                                 BaseEntity sbe, BaseEntity tbe) {
-        String weightStr = entEnts.get(WEIGHT);
-        String valueString = entEnts.get("valueString".toLowerCase().replaceAll(REGEX_2, ""));
-        Optional<String> weightStrOpt = Optional.ofNullable(weightStr);
-        final Double weight = weightStrOpt.filter(d -> !d.equals(" ")).map(Double::valueOf).orElse(0.0);
-        EntityEntity ee = new EntityEntity(sbe, tbe, linkAttribute, weight);
-        ee.setValueString(valueString);
-        ee.setRealm(realmName);
-        return ee;
+        try {
+            QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
+            qq.setOneshot(oneshot);
+            qq.setReadonly(readonly);
+            qq.setCreateOnTrigger(createOnTrigger);
+            qq.setFormTrigger(formTrigger);
+            qq.setRealm(realmName);
+            return qq;
+        } catch (BadDataException be) {
+            log.error("Should never reach here!");
+        }
+        return null;
     }
 
     public static Ask buildAsk(Map<String, String> asks, String realmName,
@@ -262,6 +270,7 @@ public class GoogleSheetBuilder {
         Boolean hidden = "TRUE".equalsIgnoreCase(hiddenStr);
 
         Question question = questionHashMap.get(qCode.toUpperCase());
+        if (question == null) return null;
 
         Ask ask = new Ask(question, sourceCode, targetCode, mandatory, weight);
         ask.setName(name);
@@ -271,7 +280,8 @@ public class GoogleSheetBuilder {
         return ask;
     }
 
-    public static QBaseMSGMessageTemplate buildQBaseMSGMessageTemplate(Map<String, String> template, String code, String realmName) {
+    public static QBaseMSGMessageTemplate buildQBaseMSGMessageTemplate(Map<String, String> template, String realmName) {
+        String code = template.get("code");
         String name = template.get("name");
         String description = template.get("description");
         String subject = template.get("subject");
@@ -298,18 +308,29 @@ public class GoogleSheetBuilder {
         return templateObj;
     }
 
-    public static Question bulidQuestion(Map<String, String> questions, String code, Attribute attr, String realmName) {
-        Question q = null;
+    public static Question buildQuestion(Map<String, String> questions,
+                                         Map<String, Attribute> attributeHashMap,
+                                         String realmName) {
+        String code = questions.get("code");
         String name = questions.get("name");
         String placeholder = questions.get("placeholder");
+        String attrCode = questions.get("attribute_code".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
         String html = questions.get("html");
         String oneshotStr = questions.get("oneshot");
         String readonlyStr = questions.get(READONLY);
         String mandatoryStr = questions.get(MANDATORY);
+
         Boolean oneshot = getBooleanFromString(oneshotStr);
         Boolean readonly = getBooleanFromString(readonlyStr);
         Boolean mandatory = getBooleanFromString(mandatoryStr);
 
+        Attribute attr = attributeHashMap.get(attrCode.toUpperCase());
+        if (attr == null) {
+            log.error(String.format("Question: %s can not find Attribute:%s in database!", code, attrCode.toUpperCase()));
+            return null;
+        }
+
+        Question q = null;
         if (placeholder != null) {
             q = new Question(code, name, attr, placeholder);
         } else {
@@ -323,17 +344,36 @@ public class GoogleSheetBuilder {
         return q;
     }
 
-    public static EntityAttribute buildEntityAttribute(Map<String, String> baseEntityAttr,
-                                                       String realmName,
-                                                       Attribute attribute,
-                                                       BaseEntity baseEntity) {
-        String weight = baseEntityAttr.get(WEIGHT);
-        String privacyStr = baseEntityAttr.get(PRIVACY);
-        Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
-        double weightField = 0.0;
-        if (isDouble(weight)) {
-            weightField = Double.parseDouble(weight);
+
+    public static String getAttributeCodeFromBaseEntityAttribute(Map<String, String> baseEntityAttr) {
+        String attributeCode = null;
+        String searchKey = "attributeCode".toLowerCase();
+        if (baseEntityAttr.containsKey(searchKey)) {
+            attributeCode = baseEntityAttr.get(searchKey).replaceAll("^\"|\"$", "");
+        } else {
+            log.error("Invalid record, AttributeCode not found [" + baseEntityAttr + "]");
         }
+        return attributeCode;
+    }
+
+
+    public static String getBaseEntityCodeFromBaseEntityAttribute(Map<String, String> baseEntityAttr) {
+        String baseEntityCode = null;
+        String searchKey = "baseEntityCode".toLowerCase();
+        if (baseEntityAttr.containsKey(searchKey)) {
+            baseEntityCode = baseEntityAttr.get(searchKey).replaceAll("^\"|\"$", "");
+        } else {
+            log.error("Invalid record, BaseEntityCode not found [" + baseEntityAttr + "]");
+        }
+        return baseEntityCode;
+    }
+
+    public static BaseEntity buildEntityAttribute(Map<String, String> baseEntityAttr,
+                                                       String realmName,
+                                                       Map<String, Attribute> attrHashMap,
+                                                       Map<String, BaseEntity> beHashMap) {
+        String attributeCode = getAttributeCodeFromBaseEntityAttribute(baseEntityAttr);
+        if (attributeCode == null) return null;
 
         List<String> asList = Collections.singletonList("valuestring");
         Optional<String> valueString = asList.stream().map(baseEntityAttr::get).findFirst();
@@ -345,20 +385,79 @@ public class GoogleSheetBuilder {
             valueInt = nullableVal.filter(d -> d.length > 0).map(d -> Integer.valueOf(d[0])).get();
         }
         String valueStr = null;
+        if (valueString.isPresent()) {
+            valueStr = valueString.get().replaceAll(REGEX_1, "");
+        }
 
-        valueStr = valueString.get().replaceAll(REGEX_1, "");
+        String baseEntityCode = getBaseEntityCodeFromBaseEntityAttribute(baseEntityAttr);
+        if (baseEntityCode == null) return null;
+
+        String weight = baseEntityAttr.get(WEIGHT);
+        String privacyStr = baseEntityAttr.get(PRIVACY);
+        Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
+
+        // Check if attribute code exist in Attribute table, foreign key restriction
+        Attribute attribute = attrHashMap.get(attributeCode.toUpperCase());
+        if (attribute == null) {
+            log.error(String.format("Invalid record, BASE ENTITY CODE:%s, AttributeCode:%s is not in the Attribute Table!!!", baseEntityCode, attributeCode));
+            return null;
+        }
+
+        // Check if baseEntity code exist in BaseEntity table, foreign key restriction
+        BaseEntity baseEntity = beHashMap.get(baseEntityCode.toUpperCase());
+        if (baseEntity == null) {
+            log.error(String.format("Invalid record, BASE ENTITY CODE:%s, BaseEntityCode:%s is not in the BaseEntity Table!!!", baseEntityCode, attributeCode));
+            return null;
+        }
+
+        double weightField = 0.0;
+        if (isDouble(weight)) {
+            weightField = Double.parseDouble(weight);
+        }
 
         EntityAttribute ea = null;
         if (valueInt != null) {
-            ea = new EntityAttribute(baseEntity, attribute, weightField, valueInt);
+            try {
+                ea = baseEntity.addAttribute(attribute, weightField, valueInt);
+            } catch (BadDataException be) {
+                log.error(String.format("Should never reach here!, Error:%s", be.getMessage()));
+            }
         } else {
-            ea = new EntityAttribute(baseEntity, attribute, weightField, valueStr);
+            try {
+                ea = baseEntity.addAttribute(attribute, weightField, valueStr);
+            } catch (BadDataException be) {
+                log.error(String.format("Should never reach here!, Error:%s", be.getMessage()));
+            }
         }
-        if (privacy || attribute.getDefaultPrivacyFlag()) {
-            ea.setPrivacyFlag(true);
+
+        if (ea != null) {
+            if (privacy || attribute.getDefaultPrivacyFlag()) {
+                ea.setPrivacyFlag(true);
+            }
+            ea.setRealm(realmName);
         }
-        ea.setRealm(realmName);
-        return ea;
+
+        baseEntity.setRealm(realmName);
+        return baseEntity;
     }
 
+    private static String getNameFromMap(Map<String, String> baseEntitys, String defaultString) {
+        String key = "name";
+        String ret = defaultString;
+        if (baseEntitys.containsKey(key)) {
+            if (baseEntitys.get(key) != null) {
+                ret = baseEntitys.get(key).replaceAll("^\"|\"$", "");
+            }
+        }
+        return ret;
+    }
+
+    public static BaseEntity buildBaseEntity(Map<String, String> baseEntitys, String realmName) {
+
+        String code = baseEntitys.get("code").replaceAll("^\"|\"$", "");
+        String name = getNameFromMap(baseEntitys, code);
+        BaseEntity be = new BaseEntity(code, name);
+        be.setRealm(realmName);
+        return be;
+    }
 }

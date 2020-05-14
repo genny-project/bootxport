@@ -768,6 +768,16 @@ public class QwandaRepositoryImpl implements QwandaRepository {
     }
 
     @Override
+    public void bulkInsertAsk(ArrayList<Ask> objectList) {
+
+    }
+
+    @Override
+    public void bulkUpdateAsk(ArrayList<Ask> objectList, HashMap<String, Ask> mapping) {
+
+    }
+
+    @Override
     public void bulkUpdate(ArrayList<CodedEntity> objectList, HashMap<String, CodedEntity> mapping) {
         if (objectList.isEmpty()) return;
         BeanNotNullFields copyFields = new BeanNotNullFields();

@@ -5,7 +5,6 @@ import com.google.gson.JsonSyntaxException;
 import life.genny.bootxport.bootx.QwandaRepository;
 import life.genny.bootxport.bootx.RealmUnit;
 import life.genny.qwanda.Ask;
-import life.genny.qwanda.CodedEntity;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.attribute.Attribute;
@@ -47,11 +46,6 @@ public class BatchLoading {
 
     public BatchLoading(QwandaRepository repo) {
         this.service = repo;
-    }
-
-    private void printSummary(String tableName, int total, int invalid, int skipped, int updated, int newItem) {
-        log.info(String.format("Table:%s: Total:%d, invalid:%d, skipped:%d, updated:%d, new item:%d.",
-                tableName, total, invalid, skipped, updated, newItem));
     }
 
     public void validations(Map<String, Map<String, String>> project, String realmName) {
@@ -131,73 +125,6 @@ public class BatchLoading {
         });
     }
 
-    private boolean isValid(CodedEntity t) {
-        ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
-        Validator validator = factory.getValidator();
-        Set<ConstraintViolation<CodedEntity>> constraints = validator.validate(t);
-        for (ConstraintViolation<CodedEntity> constraint : constraints) {
-            log.error(String.format("Validates constraints failure, PropertyPath:%s,Error:%s.",
-                    constraint.getPropertyPath(), constraint.getMessage()));
-        }
-        return constraints.isEmpty();
-    }
-
-    // Check if sheet data changed
-    //TODO
-    private <T> boolean isChanged(T orgItem, T newItem) {
-        return false;
-    }
-
-
-    public void validationsOptimization(Map<String, Map<String, String>> project, String realmName) {
-        String tableName = "Validation";
-        // Get existing validation by realm from database
-        List<Validation> validationsFromDB = service.queryTableByRealm(tableName, realmName);
-
-        // Unique code set
-        HashSet<String> codeSet = new HashSet<>();
-        // Code to validation object mapping
-        HashMap<String, CodedEntity> codeValidationMapping = new HashMap<>();
-
-        for (Validation vld : validationsFromDB) {
-            codeSet.add(vld.getCode());
-            codeValidationMapping.put(vld.getCode(), vld);
-        }
-
-        ArrayList<CodedEntity> validationInsertList = new ArrayList<>();
-        ArrayList<CodedEntity> validationUpdateList = new ArrayList<>();
-        int invalid = 0;
-        int total = 0;
-        int skipped = 0;
-        int newItem = 0;
-        int updated = 0;
-
-        for (Map<String, String> validations : project.values()) {
-            total += 1;
-            String code = validations.get("code").replaceAll("^\"|\"$", "");
-            Validation val = GoogleSheetBuilder.buildValidation(validations, realmName, code);
-
-            // validation check
-            if (isValid(val)) {
-                if (codeSet.contains(code.toUpperCase())) {
-                    if (isChanged(val, codeValidationMapping.get(code.toUpperCase()))) {
-                        validationUpdateList.add(val);
-                        updated++;
-                    }
-                    skipped++;
-                } else {
-                    validationInsertList.add(val);
-                    newItem++;
-                }
-            } else {
-                invalid += 1;
-            }
-        }
-        service.bulkInsert(validationInsertList);
-        service.bulkUpdate(validationUpdateList, codeValidationMapping);
-        printSummary(tableName, total, invalid, skipped, updated, newItem);
-    }
-
     private Boolean getBooleanFromString(final String booleanString) {
         if (booleanString == null) {
             return false;
@@ -260,59 +187,6 @@ public class BatchLoading {
         });
     }
 
-    public void attributesOptimization(Map<String, Map<String, String>> project,
-                                       Map<String, DataType> dataTypeMap, String realmName) {
-        String tableName = "Attribute";
-        List<Attribute> attributesFromDB = service.queryTableByRealm(tableName, realmName);
-
-        // Unique code set
-        HashSet<String> codeSet = new HashSet<>();
-        // Code to validation object mapping
-        HashMap<String, CodedEntity> codeAttributeMapping = new HashMap<>();
-
-        for (Attribute attr : attributesFromDB) {
-            codeSet.add(attr.getCode());
-            codeAttributeMapping.put(attr.getCode(), attr);
-        }
-
-        ArrayList<CodedEntity> attributeInsertList = new ArrayList<>();
-        ArrayList<CodedEntity> attributeUpdateList = new ArrayList<>();
-        int invalid = 0;
-        int total = 0;
-        int skipped = 0;
-        int newItem = 0;
-        int updated = 0;
-
-        for (Map.Entry<String, Map<String, String>> data : project.entrySet()) {
-            total += 1;
-            Map<String, String> attributes = data.getValue();
-            String code = attributes.get("code").replaceAll("^\"|\"$", "");
-
-            Attribute attr = GoogleSheetBuilder.buildAttrribute(attributes, dataTypeMap, realmName, code);
-
-            // validation check
-            if (isValid(attr)) {
-                if (codeSet.contains(code.toUpperCase())) {
-                    if (isChanged(attr, codeAttributeMapping.get(code.toUpperCase()))) {
-                        attributeUpdateList.add(attr);
-                        updated++;
-                    }
-                    skipped++;
-                } else {
-                    // insert new item
-                    attributeInsertList.add(attr);
-                    newItem++;
-                }
-            } else {
-                invalid++;
-            }
-        }
-
-        service.bulkInsert(attributeInsertList);
-        service.bulkUpdate(attributeUpdateList, codeAttributeMapping);
-        printSummary(tableName, total, invalid, skipped, updated, newItem);
-    }
-
 
     public Map<String, DataType> dataType(Map<String, Map<String, String>> project) {
         final Map<String, DataType> dataTypeMap = new HashMap<>();
@@ -367,56 +241,6 @@ public class BatchLoading {
         });
     }
 
-    public void baseEntitysOptimization(Map<String, Map<String, String>> project, String realmName) {
-        String tableName = "BaseEntity";
-        List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
-
-        HashSet<String> codeSet = new HashSet<>();
-        HashMap<String, CodedEntity> codeAttributeMapping = new HashMap<>();
-
-        for (BaseEntity be : baseEntityFromDB) {
-            codeSet.add(be.getCode());
-            codeAttributeMapping.put(be.getCode(), be);
-        }
-
-        ArrayList<CodedEntity> baseEntityList = new ArrayList<>();
-        int invalid = 0;
-        int total = 0;
-        int skipped = 0;
-        int newItem = 0;
-        int updated = 0;
-
-
-        for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
-            total += 1;
-            Map<String, String> baseEntitys = entry.getValue();
-            String code = baseEntitys.get("code").replaceAll("^\"|\"$", "");
-
-            if (codeSet.contains(code.toUpperCase())) {
-                // TODO merger and update if needed
-//                log.trace("BaseEntity:" + code + ", Realm:" + realmName + " exists in db, skip.");
-                skipped += 1;
-                continue;
-            }
-
-            String name = getNameFromMap(baseEntitys, "name", code);
-            BaseEntity be = new BaseEntity(code, name);
-            be.setRealm(realmName);
-
-            Set<ConstraintViolation<BaseEntity>> constraints = validator.validate(be);
-            for (ConstraintViolation<BaseEntity> constraint : constraints) {
-                log.info(constraint.getPropertyPath() + " " + constraint.getMessage());
-            }
-
-            if (constraints.isEmpty()) {
-                baseEntityList.add(be);
-            } else {
-                invalid += 1;
-            }
-        }
-        service.insertBaseEntitys(baseEntityList);
-        log.debug("BaseEntity: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
-    }
 
     private String getNameFromMap(Map<String, String> baseEntitys, String key, String defaultString) {
         String ret = defaultString;
@@ -508,89 +332,6 @@ public class BatchLoading {
         });
     }
 
-    public void baseEntityAttributesOptimization(Map<String, Map<String, String>> project, String realmName) {
-        List<BaseEntity> baseEntityFromDB = service.queryBaseEntitys(realmName);
-//        HashSet<String> beCodeSet = new HashSet<>();
-        HashMap<String, BaseEntity> beHashMap = new HashMap<>();
-        for (BaseEntity be : baseEntityFromDB) {
-//            beCodeSet.add(be.getCode());
-            beHashMap.put(be.getCode(), be);
-        }
-
-        List<Attribute> attributeFromDB = service.queryAttributes(realmName);
-//        HashSet<String> attrCodeSet = new HashSet<>();
-        HashMap<String, Attribute> attrHashMap = new HashMap<>();
-        for (Attribute attribute : attributeFromDB) {
-//            attrCodeSet.add(attribute.getCode());
-            attrHashMap.put(attribute.getCode(), attribute);
-        }
-
-        List<EntityAttribute> entityAttributeFromDB = service.queryTableByRealm("EntityAttribute", realmName);
-        HashSet<String> codeSet = new HashSet<>();
-        for (EntityAttribute entityAttribute : entityAttributeFromDB) {
-            String beCode = entityAttribute.getBaseEntityCode();
-            String attrCode = entityAttribute.getAttributeCode();
-            String uniqueCode = beCode + "-" + attrCode;
-            codeSet.add(uniqueCode);
-        }
-
-        ArrayList<EntityAttribute> entityAttributeList = new ArrayList<>();
-        int invalid = 0;
-        int total = 0;
-        int skipped = 0;
-        for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
-            total++;
-            String key = entry.getKey();
-            Map<String, String> baseEntityAttr = entry.getValue();
-
-            String attributeCode = null;
-            String searchKey = "attributeCode".toLowerCase().replaceAll("^\"|\"$|_|-", "");
-            if (baseEntityAttr.containsKey(searchKey)) {
-                attributeCode = baseEntityAttr.get(searchKey).replaceAll("^\"|\"$", "");
-            } else {
-                invalid++;
-                log.error("AttributeCode not found [" + baseEntityAttr + "]");
-                continue;
-            }
-
-            String baseEntityCode = null;
-            searchKey = "baseEntityCode".toLowerCase().replaceAll("^\"|\"$|_|-", "");
-            if (baseEntityAttr.containsKey(searchKey)) {
-                baseEntityCode = baseEntityAttr.get(searchKey).replaceAll("^\"|\"$", "");
-            } else {
-                invalid++;
-                log.error("BaseEntityCode not found [" + baseEntityAttr + "]");
-                continue;
-            }
-
-            String code = baseEntityCode + "-" + attributeCode;
-            if (codeSet.contains(code.toUpperCase())) {
-                // TODO merger and update if needed
-//                log.trace("EntityAttribute:" + code + ", Realm:" + realmName + " exists in db, skip.");
-                skipped += 1;
-                continue;
-            }
-
-            Attribute attribute = attrHashMap.get(attributeCode.toUpperCase());
-            if (attribute == null) {
-                log.error("EntityAttribute Attribute Code:" + attributeCode + " doesn't exit in database, skip.");
-                invalid++;
-                continue;
-            }
-
-
-            BaseEntity baseEntity = beHashMap.get(baseEntityCode.toUpperCase());
-            if (baseEntity == null) {
-                log.error("EntityAttribute BaseEntity Code:" + baseEntityCode + " doesn't exit in database, skip.");
-                invalid++;
-                continue;
-            }
-            EntityAttribute entityAttribute = GoogleSheetBuilder.buildEntityAttribute(baseEntityAttr, realmName, attribute, baseEntity);
-            entityAttributeList.add(entityAttribute);
-        }
-        service.insertEntityAttribute(entityAttributeList);
-        log.debug("EntityAttribute: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
-    }
 
     public void entityEntitys(Map<String, Map<String, String>> project) {
         project.entrySet().stream().forEach(data -> {
@@ -641,85 +382,6 @@ public class BatchLoading {
         });
     }
 
-    public void entityEntitysOptimization(Map<String, Map<String, String>> project, String realmName) {
-        List<BaseEntity> baseEntityFromDB = service.queryBaseEntitys(realmName);
-//        HashSet<String> beCodeSet = new HashSet<>();
-        HashMap<String, BaseEntity> beHashMap = new HashMap<>();
-        for (BaseEntity be : baseEntityFromDB) {
-//            beCodeSet.add(be.getCode());
-            beHashMap.put(be.getCode(), be);
-        }
-
-        List<Attribute> attributeFromDB = service.queryAttributes(realmName);
-//        HashSet<String> attrCodeSet = new HashSet<>();
-        HashMap<String, Attribute> attrHashMap = new HashMap<>();
-        for (Attribute attribute : attributeFromDB) {
-//            attrCodeSet.add(attribute.getCode());
-            attrHashMap.put(attribute.getCode(), attribute);
-        }
-
-        List<EntityEntity> entityEntityFromDB = service.queryTableByRealm("EntityEntity", realmName);
-        HashSet<String> codeSet = new HashSet<>();
-        for (EntityEntity entityEntity : entityEntityFromDB) {
-            String beCode = entityEntity.getPk().getSource().getCode();
-            String attrCode = entityEntity.getPk().getAttribute().getCode();
-            String targetCode = entityEntity.getPk().getTargetCode();
-            String uniqueCode = beCode + "-" + attrCode + "-" + targetCode;
-            codeSet.add(uniqueCode);
-        }
-
-        ArrayList<EntityEntity> entityEntityList = new ArrayList<>();
-        int invalid = 0;
-        int total = 0;
-        int skipped = 0;
-
-        for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
-            total++;
-            String key = entry.getKey();
-            Map<String, String> entEnts = entry.getValue();
-
-            String linkCode = entEnts.get("linkCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-            if (linkCode == null)
-                linkCode = entEnts.get("code".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-
-            String parentCode = entEnts.get("parentCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-            if (parentCode == null)
-                parentCode = entEnts.get("sourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-
-            String targetCode = entEnts.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-
-            String code = parentCode + "-" + linkCode + "-" + targetCode;
-            if (codeSet.contains(code.toUpperCase())) {
-                // TODO merger and update if needed
-//                log.trace("EntityEntity:" + code + ", Realm:" + realmName + " exists in db, skip.");
-                skipped += 1;
-                continue;
-            }
-
-            Attribute linkAttribute = attrHashMap.get(linkCode.toUpperCase());
-            BaseEntity sbe = beHashMap.get(parentCode.toUpperCase());
-            BaseEntity tbe = beHashMap.get(targetCode.toUpperCase());
-
-            if (linkAttribute == null) {
-                log.error("EntityEntity Link code:" + linkCode + " doesn't exist in Attribute table.");
-                invalid++;
-                continue;
-            } else if (sbe == null) {
-                log.error("EntityEntity parent code:" + parentCode + " doesn't exist in Baseentity table.");
-                invalid++;
-                continue;
-            } else if (tbe == null) {
-                log.error("EntityEntity target Code:" + targetCode + " doesn't exist in Baseentity table.");
-                invalid++;
-                continue;
-            }
-
-            EntityEntity entityEntity = GoogleSheetBuilder.buildEntityEntity(entEnts, realmName, linkAttribute, sbe, tbe);
-            entityEntityList.add(entityEntity);
-        }
-        service.insertEntityEntitys(entityEntityList);
-        log.debug("EntityEntity: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
-    }
 
     public void questionQuestions(Map<String, Map<String, String>> project, String realmName) {
         project.entrySet().stream().forEach(data -> {
@@ -811,75 +473,8 @@ public class BatchLoading {
         });
     }
 
-    public void questionQuestionsOptimization(Map<String, Map<String, String>> project, String realmName) {
-        List<QuestionQuestion> questionQuestionFromDB = service.queryTableByRealm("Question", realmName);
-        HashSet<String> codeSet = new HashSet<>();
-        for (QuestionQuestion qq : questionQuestionFromDB) {
-            String sourceCode = qq.getSourceCode();
-            String targetCode = qq.getTarketCode();
-            String uniqCode = sourceCode + "-" + targetCode;
-            codeSet.add(uniqCode);
-        }
 
-        List<Question> questionFromDB = service.queryQuestion(realmName);
-//        HashSet<String> questionCodeSet = new HashSet<>();
-        HashMap<String, Question> questionHashMap = new HashMap<>();
-
-        for (Question question : questionFromDB) {
-//            questionCodeSet.add(question.getCode());
-            questionHashMap.put(question.getCode(), question);
-        }
-
-        ArrayList<QuestionQuestion> questionQuestionList = new ArrayList<>();
-        int invalid = 0;
-        int total = 0;
-        int skipped = 0;
-        for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
-            total += 1;
-            String key = entry.getKey();
-            Map<String, String> queQues = entry.getValue();
-
-            String parentCode = queQues.get("parentCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-            if (parentCode == null) {
-                parentCode = queQues.get("sourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-            }
-
-            String targetCode = queQues.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-
-            String code = parentCode + "-" + targetCode;
-            if (codeSet.contains(code.toUpperCase())) {
-                // TODO merger and update if needed
-//                log.trace("QuestionQuestion:" + code + ", Realm:" + realmName + " exists in db, skip.");
-                skipped += 1;
-                continue;
-            }
-
-            Question sbe = questionHashMap.get(parentCode.toUpperCase());
-            Question tbe = questionHashMap.get(targetCode.toUpperCase());
-            if (sbe == null) {
-                log.error("QuestionQuesiton parent code:" + parentCode + " doesn't exist in Question table.");
-                invalid++;
-                continue;
-            } else if (tbe == null) {
-                log.error("QuestionQuesiton target Code:" + targetCode + " doesn't exist in Question table.");
-                invalid++;
-                continue;
-            }
-
-            try {
-                QuestionQuestion qq = GoogleSheetBuilder.buildQuestionQuestion(queQues, realmName, sbe, tbe);
-                questionQuestionList.add(qq);
-            } catch (BadDataException bde) {
-                invalid += 1;
-                log.error("Bad Exception occurred when build question, parentCode:" + parentCode + ", TargetCode:" + targetCode);
-            }
-        }
-        service.insertQuestionQuestions(questionQuestionList);
-        log.debug("QuestionQuestion: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
-    }
-
-    public void attributeLinks
-            (Map<String, Map<String, String>> project, Map<String, DataType> dataTypeMap, String realmName) {
+    public void attributeLinks(Map<String, Map<String, String>> project, Map<String, DataType> dataTypeMap, String realmName) {
         project.entrySet().stream().forEach(data -> {
             Map<String, String> attributeLink = data.getValue();
 
@@ -913,54 +508,6 @@ public class BatchLoading {
         });
     }
 
-    public void attributeLinksOptimization
-            (Map<String, Map<String, String>> project, Map<String, DataType> dataTypeMap, String realmName) {
-        String tableName = "Attribute";
-        List<Attribute> attributeLinksFromDB = service.queryTableByRealm(tableName, realmName);
-
-        HashSet<String> codeSet = new HashSet<>();
-        HashMap<String, CodedEntity> codeAttributeMapping = new HashMap<>();
-
-        for (Attribute attr : attributeLinksFromDB) {
-            codeSet.add(attr.getCode());
-            codeAttributeMapping.put(attr.getCode(), attr);
-        }
-
-        ArrayList<CodedEntity> attributeLinkInsertList = new ArrayList<>();
-        ArrayList<CodedEntity> attributeLinkUpdateList = new ArrayList<>();
-        int invalid = 0;
-        int total = 0;
-        int skipped = 0;
-        int newItem = 0;
-        int updated = 0;
-
-        for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
-            total += 1;
-            Map<String, String> attributeLink = entry.getValue();
-            String code = attributeLink.get("code").replaceAll("^\"|\"$", "");
-            AttributeLink attrlink = GoogleSheetBuilder.buildAttributeLink(attributeLink, dataTypeMap, realmName, code);
-            // validation check
-            if (isValid(attrlink)) {
-                if (codeSet.contains(code.toUpperCase())) {
-                    if (isChanged(attrlink, codeAttributeMapping.get(code.toUpperCase()))) {
-                        attributeLinkUpdateList.add(attrlink);
-                        updated++;
-                    }
-                    skipped++;
-                } else {
-                    // insert new item
-                    attributeLinkInsertList.add(attrlink);
-                    newItem++;
-                }
-            } else {
-                invalid++;
-            }
-        }
-
-        service.bulkInsert(attributeLinkInsertList);
-        service.bulkUpdate(attributeLinkUpdateList);
-        log.debug("AttributeLink: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
-    }
 
     public void questions(Map<String, Map<String, String>> project, String realmName) {
         project.entrySet().stream().filter(rawData -> !rawData.getKey().isEmpty()).forEach(data -> {
@@ -1018,61 +565,6 @@ public class BatchLoading {
         });
     }
 
-    public void questionsOptimization(Map<String, Map<String, String>> project, String realmName) {
-        // Get all questions from database
-        List<Question> questionsFromDB = service.queryQuestion(realmName);
-        HashSet<String> codeSet = new HashSet<>();
-        for (Question q : questionsFromDB) {
-            codeSet.add(q.getCode());
-        }
-
-        // Get all Attributes from database
-        List<Attribute> attributesFromDB = service.queryAttributes(realmName);
-        HashSet<String> attrCodeSet = new HashSet<>();
-        HashMap<String, Attribute> attributeHashMap = new HashMap<>();
-
-        for (Attribute attribute : attributesFromDB) {
-            attrCodeSet.add(attribute.getCode());
-            attributeHashMap.put(attribute.getCode(), attribute);
-        }
-
-        ArrayList<Question> questionList = new ArrayList<>();
-        int invalid = 0;
-        int total = 0;
-        int skipped = 0;
-
-        for (Map.Entry<String, Map<String, String>> rawData : project.entrySet()) {
-            total += 1;
-            if (rawData.getKey().isEmpty()) {
-                skipped += 1;
-                continue;
-            }
-
-            Map<String, String> questions = rawData.getValue();
-            String code = questions.get("code");
-
-            if (codeSet.contains(code.toUpperCase())) {
-                // TODO merger and update if needed
-//                log.trace("Question:" + code + ", Realm:" + realmName + " exists in db, skip.");
-                skipped += 1;
-                continue;
-            }
-
-            String attrCode = questions.get("attribute_code".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-            // Check if AttributeCode exist in database
-            if (!attrCodeSet.contains(attrCode.toUpperCase())) {
-                log.error("Attribute:" + attrCode + " not in database!, skip.");
-                skipped += 1;
-                continue;
-            }
-
-            Attribute attr = attributeHashMap.get(attrCode.toUpperCase());
-            Question question = GoogleSheetBuilder.bulidQuestion(questions, code, attr, realmName);
-            questionList.add(question);
-        }
-        service.insertQuestions(questionList);
-        log.debug("Question: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
-    }
 
     public void asks(Map<String, Map<String, String>> project, String realmName) {
         project.entrySet().stream().forEach(data -> {
@@ -1101,73 +593,6 @@ public class BatchLoading {
 
             service.insert(ask);
         });
-    }
-
-    public void asksOptimization(Map<String, Map<String, String>> project, String realmName) {
-        // Get all asks
-        List<Ask> askFromDB = service.queryTableByRealm("Ask", realmName);
-        HashSet<String> codeSet = new HashSet<>();
-        for (Ask ask : askFromDB) {
-            String targetCode = ask.getTargetCode();
-            String sourceCode = ask.getSourceCode();
-            String attributeCode = ask.getAttributeCode();
-            String questionCode = ask.getQuestionCode();
-            String uniqueCode = questionCode + "-" + sourceCode + "-" + targetCode + "-" + attributeCode;
-            codeSet.add(uniqueCode);
-        }
-
-        // Get  all BaseEntity from database
-//        List<BaseEntity> baseEntityFromDB = service.queryBaseEntitys(realmName);
-//        HashMap<String, BaseEntity> beHashMap = new HashMap<>();
-//        for (BaseEntity be : baseEntityFromDB) {
-//            beHashMap.put(be.getCode(), be);
-//        }
-
-        // Get all Attribute from database
-//        List<Attribute> attributeFromDB = service.queryAttributes(realmName);
-//        HashMap<String, Attribute> attrHashMap = new HashMap<>();
-//        for (Attribute be : attributeFromDB) {
-//            attrHashMap.put(be.getCode(), be);
-//        }
-
-        List<Question> questionFromDB = service.queryQuestion(realmName);
-        HashMap<String, Question> questionHashMap = new HashMap<>();
-        for (Question q : questionFromDB) {
-            questionHashMap.put(q.getCode(), q);
-        }
-
-        ArrayList<Ask> askList = new ArrayList<>();
-        int invalid = 0;
-        int total = 0;
-        int skipped = 0;
-
-        for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
-            total += 1;
-            String key = entry.getKey();
-            Map<String, String> asks = entry.getValue();
-            String qCode = asks.get("question_code".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-            String attributeCode = asks.get("attributeCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-            String sourceCode = asks.get("sourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-            String targetCode = asks.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
-            String uniqueCode = qCode + "-" + sourceCode + "-" + targetCode + "-" + attributeCode;
-
-            if (codeSet.contains(uniqueCode.toUpperCase())) {
-                // TODO merger and update if needed
-//                log.trace("Ask:" + uniqueCode + ", Realm:" + realmName + " exists in db, skip.");
-                skipped += 1;
-                continue;
-            }
-
-            if (!questionHashMap.containsKey(qCode)) {
-                log.error("Question code" + qCode + ", Realm:" + realmName + "doesn't exists in db, skip process Ask:" + uniqueCode);
-                invalid += 1;
-                continue;
-            }
-            Ask ask = GoogleSheetBuilder.buildAsk(asks, realmName, questionHashMap);
-            askList.add(ask);
-        }
-        service.insertAsks(askList);
-        log.debug("Ask: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
     }
 
     public static boolean isSynchronise() {
@@ -1254,42 +679,6 @@ public class BatchLoading {
         });
     }
 
-    public void messageTemplatesOptimization(Map<String, Map<String, String>> project, String realmName) {
-        List<QBaseMSGMessageTemplate> qBaseMSGMessageTemplateFromDB = service.queryTableByRealm("QBaseMSGMessageTemplate", realmName);
-        HashSet<String> codeSet = new HashSet<>();
-        for (QBaseMSGMessageTemplate message : qBaseMSGMessageTemplateFromDB) {
-            codeSet.add(message.getCode());
-        }
-        ArrayList<QBaseMSGMessageTemplate> messageList = new ArrayList<>();
-        int invalid = 0;
-        int total = 0;
-        int skipped = 0;
-
-        for (Map.Entry<String, Map<String, String>> data : project.entrySet()) {
-            total += 1;
-//            log.trace("messages, data ::" + data);
-            Map<String, String> template = data.getValue();
-            String code = template.get("code");
-            String name = template.get("name");
-            if (codeSet.contains(code.toUpperCase())) {
-                // TODO merger and update if needed
-//                log.trace("Templates:" + code + ", Realm:" + realmName + " exists in db, skip.");
-                skipped += 1;
-                continue;
-            }
-
-            if (StringUtils.isBlank(name)) {
-                log.error("Templates:" + code + "has EMPTY name.");
-                invalid += 1;
-                continue;
-            }
-            QBaseMSGMessageTemplate msg = GoogleSheetBuilder.buildQBaseMSGMessageTemplate(template, code, realmName);
-            messageList.add(msg);
-        }
-        service.inserTemplate(messageList);
-        log.debug("Templates: Total:" + total + ", invalid:" + invalid + ", skipped:" + skipped);
-
-    }
 
     public void upsertKeycloakJson(String keycloakJson) {
         final String PROJECT_CODE = "PRJ_" + this.mainRealm.toUpperCase();
@@ -1387,27 +776,28 @@ public class BatchLoading {
 
     public void persistProjectOptimization(life.genny.bootxport.bootx.RealmUnit rx) {
         service.setRealm(rx.getCode());
-        validationsOptimization(rx.getValidations(), rx.getCode());
+        Optimization optimization = new Optimization(service);
+        optimization.validationsOptimization(rx.getValidations(), rx.getCode());
 
         Map<String, DataType> dataTypes = dataType(rx.getDataTypes());
-        attributesOptimization(rx.getAttributes(), dataTypes, rx.getCode());
+        optimization.attributesOptimization(rx.getAttributes(), dataTypes, rx.getCode());
 
-        baseEntitysOptimization(rx.getBaseEntitys(), rx.getCode());
+        optimization.baseEntitysOptimization(rx.getBaseEntitys(), rx.getCode());
 
-        attributeLinksOptimization(rx.getAttributeLinks(), dataTypes, rx.getCode());
+        optimization.attributeLinksOptimization(rx.getAttributeLinks(), dataTypes, rx.getCode());
 
-        baseEntityAttributesOptimization(rx.getEntityAttributes(), rx.getCode());
+        optimization.baseEntityAttributesOptimization(rx.getEntityAttributes(), rx.getCode());
 
-        entityEntitysOptimization(rx.getEntityEntitys(), rx.getCode());
+        optimization.entityEntitysOptimization(rx.getEntityEntitys(), rx.getCode(), isSynchronise);
 
-        questionsOptimization(rx.getQuestions(), rx.getCode());
+        optimization.questionsOptimization(rx.getQuestions(), rx.getCode(), isSynchronise);
 
-        questionQuestionsOptimization(rx.getQuestionQuestions(), rx.getCode());
+        optimization.questionQuestionsOptimization(rx.getQuestionQuestions(), rx.getCode());
 
-        asksOptimization(rx.getAsks(), rx.getCode());
+        optimization.asksOptimization(rx.getAsks(), rx.getCode());
 
-        messageTemplatesOptimization(rx.getNotifications(), rx.getCode());
-        messageTemplatesOptimization(rx.getMessages(), rx.getCode());
+        optimization.messageTemplatesOptimization(rx.getNotifications(), rx.getCode());
+        optimization.messageTemplatesOptimization(rx.getMessages(), rx.getCode());
     }
 
     public void deleteFromProject(life.genny.bootxport.bootx.RealmUnit rx) {
@@ -1485,7 +875,6 @@ public class BatchLoading {
             QBaseMSGMessageTemplate template = service.findTemplateByCode(d.getKey());
             service.delete(template);
         });
-
     }
 
 }

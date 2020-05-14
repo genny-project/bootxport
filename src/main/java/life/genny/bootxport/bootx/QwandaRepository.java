@@ -2,10 +2,7 @@ package life.genny.bootxport.bootx;
 
 import javax.validation.constraints.NotNull;
 
-import life.genny.qwanda.Ask;
-import life.genny.qwanda.CodedEntity;
-import life.genny.qwanda.Question;
-import life.genny.qwanda.QuestionQuestion;
+import life.genny.qwanda.*;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
@@ -71,7 +68,11 @@ public interface QwandaRepository {
 
     <T> List<T> queryTableByRealm(@NotNull String tableName, @NotNull String realm);
 
+    // For Validation, Attribute, AttributeLink
     void bulkUpdate(ArrayList<CodedEntity> objectList, HashMap<String, CodedEntity> mapping);
-
     void bulkInsert(ArrayList<CodedEntity> objectList);
+
+    // For Ask
+    void bulkInsertAsk(ArrayList<Ask> objectList);
+    void bulkUpdateAsk(ArrayList<Ask> objectList, HashMap<String, Ask> mapping);
 }
