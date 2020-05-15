@@ -757,40 +757,21 @@ public class QwandaRepositoryImpl implements QwandaRepository {
             em.persist(codedEntity);
             if (index % BATCHSIZE == 0) {
                 //flush a batch of inserts and release memory:
-                log.debug("BaseEntity Batch is full, flush to database.");
+                log.debug("Batch is full, flush to database.");
                 em.flush();
             }
-//            saveToDDT(baseEntity);
             index += 1;
         }
         transaction.commit();
-
     }
 
-    @Override
-    public void bulkInsertAsk(ArrayList<Ask> objectList) {
-
-    }
-
-    @Override
-    public void bulkUpdateAsk(ArrayList<Ask> objectList, HashMap<String, Ask> mapping) {
-
-    }
 
     @Override
     public void bulkUpdate(ArrayList<CodedEntity> objectList, HashMap<String, CodedEntity> mapping) {
         if (objectList.isEmpty()) return;
         BeanNotNullFields copyFields = new BeanNotNullFields();
         for (CodedEntity codedEntity : objectList) {
-            if (codedEntity instanceof QuestionQuestion) {
-                QuestionQuestion qq = (QuestionQuestion) codedEntity;
-                String uniqCode = qq.getSourceCode() + "-" + qq.getTarketCode();
-                QuestionQuestion existing = (QuestionQuestion) mapping.get(uniqCode.toUpperCase());
-                existing.setMandatory(qq.getMandatory());
-                existing.setWeight(qq.getWeight());
-                existing.setReadonly(qq.getReadonly());
-                getEntityManager().merge(existing);
-            } else if (codedEntity instanceof QBaseMSGMessageTemplate) {
+            if (codedEntity instanceof QBaseMSGMessageTemplate) {
                 codedEntity.setRealm(getRealm());
                 getEntityManager().merge((QBaseMSGMessageTemplate) codedEntity);
             } else {
@@ -823,6 +804,63 @@ public class QwandaRepositoryImpl implements QwandaRepository {
             log.error(String.format("Cannot save BaseEntity with code:%s, Error:%s.", code, e.getLocalizedMessage()));
         } catch (final ConstraintViolationException e) {
             log.error(String.format("Entity Already exists - cannot insert:%s.", code));
+        }
+    }
+
+    @Override
+    public void bulkInsertAsk(ArrayList<Ask> objectList) {
+        if (objectList.isEmpty()) return;
+
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
+
+        for (Ask Ask : objectList) {
+            em.persist(Ask);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("BaseEntity Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
+    }
+
+    @Override
+    public void bulkUpdateAsk(ArrayList<Ask> objectList, HashMap<String, Ask> mapping) {
+
+    }
+
+    @Override
+    public void bulkInsertQuestionQuestion(ArrayList<QuestionQuestion> objectList) {
+        if (objectList.isEmpty()) return;
+
+        int index = 1;
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
+
+        for (QuestionQuestion qq : objectList) {
+            em.persist(qq);
+            if (index % BATCHSIZE == 0) {
+                //flush a batch of inserts and release memory:
+                log.debug("BaseEntity Batch is full, flush to database.");
+                em.flush();
+            }
+            index += 1;
+        }
+        transaction.commit();
+    }
+
+    @Override
+    public void bulkUpdateQuestionQuestion(ArrayList<QuestionQuestion> objectList, HashMap<String, QuestionQuestion> mapping) {
+        for (QuestionQuestion qq : objectList) {
+            String uniqCode = qq.getSourceCode() + "-" + qq.getTarketCode();
+            QuestionQuestion existing = mapping.get(uniqCode.toUpperCase());
+            existing.setMandatory(qq.getMandatory());
+            existing.setWeight(qq.getWeight());
+            existing.setReadonly(qq.getReadonly());
+            getEntityManager().merge(existing);
         }
     }
 }

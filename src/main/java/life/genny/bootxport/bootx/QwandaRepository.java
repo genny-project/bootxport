@@ -4,6 +4,7 @@ import javax.validation.constraints.NotNull;
 
 import life.genny.qwanda.*;
 import life.genny.qwanda.attribute.Attribute;
+import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
@@ -73,8 +74,12 @@ public interface QwandaRepository {
 
     void bulkInsert(ArrayList<CodedEntity> objectList);
 
-    // For Ask
     void bulkInsertAsk(ArrayList<Ask> objectList);
 
     void bulkUpdateAsk(ArrayList<Ask> objectList, HashMap<String, Ask> mapping);
+
+    void bulkInsertQuestionQuestion(ArrayList<QuestionQuestion> objectList);
+
+    void bulkUpdateQuestionQuestion(ArrayList<QuestionQuestion> objectList, HashMap<String, QuestionQuestion> mapping);
+
 }

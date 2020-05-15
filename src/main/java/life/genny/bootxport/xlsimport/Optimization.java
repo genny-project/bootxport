@@ -325,7 +325,7 @@ public class Optimization {
         tableName = "EntityEntity";
         List<EntityEntity> entityEntityFromDB = service.queryTableByRealm(tableName, realmName);
 
-        HashMap<String, CodedEntity> codeBaseEntityEntityMapping = new HashMap<>();
+        HashMap<String, EntityEntity> codeBaseEntityEntityMapping = new HashMap<>();
         for (EntityEntity entityEntity : entityEntityFromDB) {
             String beCode = entityEntity.getPk().getSource().getCode();
             String attrCode = entityEntity.getPk().getAttribute().getCode();
@@ -379,7 +379,7 @@ public class Optimization {
             String code = parentCode + "-" + linkCode + "-" + targetCode;
             if (isSynchronise) {
                 if (codeBaseEntityEntityMapping.containsKey(code.toUpperCase())) {
-                    EntityEntity ee = (EntityEntity) codeBaseEntityEntityMapping.get(code.toUpperCase());
+                    EntityEntity ee = codeBaseEntityEntityMapping.get(code.toUpperCase());
                     ee.setWeight(weight);
                     ee.setValueString(valueString);
                     service.updateEntityEntity(ee);
@@ -462,7 +462,7 @@ public class Optimization {
         tableName = "QuestionQuestion";
         List<QuestionQuestion> questionQuestionFromDB = service.queryTableByRealm(tableName, realmName);
 
-        HashMap<String, CodedEntity> codeQuestionMapping = new HashMap<>();
+        HashMap<String, QuestionQuestion> codeQuestionMapping = new HashMap<>();
 
         for (QuestionQuestion qq : questionQuestionFromDB) {
             String sourceCode = qq.getSourceCode();
@@ -471,9 +471,8 @@ public class Optimization {
             codeQuestionMapping.put(uniqCode, qq);
         }
 
-
-        ArrayList<CodedEntity> questionQuestionInsertList = new ArrayList<>();
-        ArrayList<CodedEntity> questionQuestionUpdateList = new ArrayList<>();
+        ArrayList<QuestionQuestion> questionQuestionInsertList = new ArrayList<>();
+        ArrayList<QuestionQuestion> questionQuestionUpdateList = new ArrayList<>();
         int invalid = 0;
         int total = 0;
         int skipped = 0;
@@ -510,8 +509,8 @@ public class Optimization {
                 newItem++;
             }
         }
-        service.bulkInsert(questionQuestionInsertList);
-        service.bulkUpdate(questionQuestionUpdateList, codeQuestionMapping);
+        service.bulkInsertQuestionQuestion(questionQuestionInsertList);
+        service.bulkUpdateQuestionQuestion(questionQuestionUpdateList, codeQuestionMapping);
         printSummary(tableName, total, invalid, skipped, updated, newItem);
     }
 
