@@ -255,7 +255,7 @@ public class Optimization {
             }
 
             BaseEntity be = GoogleSheetBuilder.buildEntityAttribute(baseEntityAttr, realmName, attrHashMap, beHashMap);
-            service.updateWithAttributes(be);
+            if (be != null) service.updateWithAttributes(be);
         }
     }
 
