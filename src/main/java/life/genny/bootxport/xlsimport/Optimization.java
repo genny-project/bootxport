@@ -398,8 +398,8 @@ public class Optimization {
                     log.error(String.format("Should never reach here!, BaseEntity:%s, Attribute:%s ", tbe.getCode(), linkAttribute.getCode()));
                 }
             }
-            printSummary(tableName, total, invalid, skipped, updated, newItem);
         }
+        printSummary(tableName, total, invalid, skipped, updated, newItem);
     }
 
     public void messageTemplatesOptimization(Map<String, Map<String, String>> project, String realmName) {
