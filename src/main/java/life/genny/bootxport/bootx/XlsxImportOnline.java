@@ -7,146 +7,106 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import com.google.common.collect.Lists;
-import io.vavr.Function1;
 import io.vavr.Function2;
 import io.vavr.Function3;
 import io.vavr.Tuple2;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class XlsxImportOnline extends XlsxImport {
+    private final Log log = LogFactory.getLog(XlsxImportOnline.class);
 
-  private final String RANGE = "!A1:Z";
+    private static final String RANGE = "!A1:Z";
 
-  private Sheets service;
+    private Sheets service;
 
-  private Function2<String, String, List<Map<String, String>>> mappingAndCacheHeaderToValues = 
-     (sheetName,sheetId) -> {
-      System.out.println("not memoized for "+ sheetName + " " + sheetId);
-      List<List<Object>> data;
-      try {
-        data = Lists.newArrayList(fetchSpreadSheet(sheetName, sheetId));
-      } catch (IOException e) {
-        // TODO Auto-generated catch block
-        System.out.println("There was a Error " + " in " + sheetId + " and " + sheetName);
-        data = new ArrayList<>();
-      }
-      if(data.isEmpty()) {
-        System.out.println("It is empty");
-        return new ArrayList<>();
-      }
-      else
-      return mappingHeaderToValues(data);
-    };
-  private Function3<String, String, Set<String>, Map<String, Map<String, String>>> mappingAndCacheKeyHeaderToHeaderValues = 
-      (sheetName,sheetId,keys) -> {
-      System.out.println("not memoized for "+ sheetName + " " + sheetId );
-      List<List<Object>> data;
-      try {
-        data = Lists.newArrayList(fetchSpreadSheet(sheetName, sheetId));
-      } catch (IOException e) {
-        System.out.println("There was a Error " + " in " + sheetId + " and " + sheetName);
-        data = new ArrayList<>();
-      }
-    
-      if(data.isEmpty()) {
-        System.out.println("It is empty");
-        return new HashMap<>();
-      }
-      else {
-        Map<String, Map<String, String>> headerAndValues =  mappingKeyHeaderToHeaderValues(data,keys);
-        return  headerAndValues;
-      }
-    };
+    private Function2<String, String, List<Map<String, String>>> mappingAndCacheHeaderToValues =
+            (sheetName, sheetId) -> {
+                log.info("Function2: not memoized for sheetName: " + sheetName + ",SheetID: " + sheetId);
+                List<List<Object>> data;
+                try {
+                    data = Lists.newArrayList(fetchSpreadSheet(sheetName, sheetId));
+                } catch (IOException e) {
+                    log.error("Function2: There was a Error " + " in SheetID: " + sheetId + " and SheetName:" + sheetName);
+                    return new ArrayList<>();
+                }
+                return mappingHeaderToValues(data);
+            };
 
-  public XlsxImportOnline(Sheets service) {
-     this.service = service;
-     memoized();
-  }
+    private Function3<String, String, Set<String>, Map<String, Map<String, String>>> mappingAndCacheKeyHeaderToHeaderValues =
+            (sheetName, sheetId, keys) -> {
+                log.info("Function3: not memoized for sheetName: " + sheetName + ",SheetID: " + sheetId);
+                List<List<Object>> data;
+                try {
+                    data = Lists.newArrayList(fetchSpreadSheet(sheetName, sheetId));
+                } catch (IOException e) {
+                    log.error("Function3: There was a Error " + " in SheetID: " + sheetId + " and SheetName:" + sheetName);
+                    return new HashMap<>();
+                }
+                return mappingKeyHeaderToHeaderValues(data, keys);
+            };
 
-  @Override
-  public List<Map<String, String>> mappingRawToHeaderAndValuesFmt(String sheetURI, String sheetName) {
-    long timeBefore, timeAfter= 0;
-    timeBefore = System.currentTimeMillis();
-    List<Map<String, String>> result = mappingAndCacheHeaderToValues.apply(sheetURI, sheetName);
-    timeAfter = System.currentTimeMillis();
-    return result;
-  }
-
-  @Override
-  public Map<String, Map<String, String>> mappingRawToHeaderAndValuesFmt(
-      String sheetURI, String sheetName, Set<String> keys) {
-    Map<String, Map<String, String>> result = new HashMap<>();
-    long timeBefore, timeAfter = 0;
-    timeBefore = System.currentTimeMillis();
-    result = mappingAndCacheKeyHeaderToHeaderValues.apply(sheetURI, sheetName, keys);
-    timeAfter = System.currentTimeMillis();
-    return result;
-  }
-
-  public List<Map<String, String>> mappingHeaderToValues(
-      final List<List<Object>> values) {
-    final List<Map<String, String>> k = new ArrayList<>();
-    Tuple2<List<String>, List<List<Object>>> headerAndValues = sliceDataToHeaderAndValues(values);
-    for (final List<Object> row : headerAndValues._2) {
-      final Map<String, String> mapper = new HashMap<String, String>();
-      for (int counter = 0; counter < row.size(); counter++) {
-        mapper.put(headerAndValues._1.get(counter), row.get(counter).toString());
-      }
-      k.add(mapper);
+    public XlsxImportOnline(Sheets service) {
+        this.service = service;
+        memoized();
     }
-    return k;
-  }
 
-  public Map<String, Map<String, String>> mappingKeyHeaderToHeaderValues(
-      final List<List<Object>> values, Set<String> keyColumns) {
-    final Map<String, Map<String, String>> k = new HashMap<>();
-    Tuple2<List<String>, List<List<Object>>> headerAndValues = sliceDataToHeaderAndValues(values);
-    for (final List<Object> row : headerAndValues._2) {
-      final Map<String, String> mapper = new HashMap<String, String>();
-      for (int counter = 0; counter < row.size(); counter++) {
-        mapper.put(headerAndValues._1.get(counter), row.get(counter).toString());
-      }
-      String join = mapper.keySet().stream()
-          .filter(keyColumns::contains).map(mapper::get).collect(Collectors.joining());
-      k.put(join, mapper);
+    @Override
+    public List<Map<String, String>> mappingRawToHeaderAndValuesFmt(String sheetURI, String sheetName) {
+        return mappingAndCacheHeaderToValues.apply(sheetURI, sheetName);
     }
-    return k;
-  }
-  
-  public List<List<Object>> fetchSpreadSheet(String sheetId,String sheetName) throws IOException {
-    final String absoluteRange = sheetName + RANGE;
-    ValueRange response = null;
-    List<List<Object>> data = new ArrayList<>();
-      response = service.spreadsheets().values().get(sheetId, absoluteRange).execute();
-      data = response.getValues();
-    return data;
-  }
-  
+
+    @Override
+    public Map<String, Map<String, String>> mappingRawToHeaderAndValuesFmt(
+            String sheetURI, String sheetName, Set<String> keys) {
+        return mappingAndCacheKeyHeaderToHeaderValues.apply(sheetURI, sheetName, keys);
+    }
+
+    public List<Map<String, String>> mappingHeaderToValues(
+            final List<List<Object>> values) {
+        final List<Map<String, String>> k = new ArrayList<>();
+        Tuple2<List<String>, List<List<Object>>> headerAndValues = sliceDataToHeaderAndValues(values);
+        for (final List<Object> row : headerAndValues._2) {
+            final Map<String, String> mapper = new HashMap<>();
+            for (int counter = 0; counter < row.size(); counter++) {
+                mapper.put(headerAndValues._1.get(counter), row.get(counter).toString());
+            }
+            k.add(mapper);
+        }
+        return k;
+    }
+
+    public Map<String, Map<String, String>> mappingKeyHeaderToHeaderValues(
+            final List<List<Object>> values, Set<String> keyColumns) {
+        final Map<String, Map<String, String>> k = new HashMap<>();
+        Tuple2<List<String>, List<List<Object>>> headerAndValues = sliceDataToHeaderAndValues(values);
+        for (final List<Object> row : headerAndValues._2) {
+            final Map<String, String> mapper = new HashMap<>();
+            for (int counter = 0; counter < row.size(); counter++) {
+                mapper.put(headerAndValues._1.get(counter), row.get(counter).toString());
+            }
+            String join = mapper.keySet().stream()
+                    .filter(keyColumns::contains).map(mapper::get).collect(Collectors.joining());
+            k.put(join, mapper);
+        }
+        return k;
+    }
+
+    public List<List<Object>> fetchSpreadSheet(String sheetId, String sheetName) throws IOException {
+        final String absoluteRange = sheetName + RANGE;
+        ValueRange response = service.spreadsheets().values().get(sheetId, absoluteRange).execute();
+        return response.getValues();
+    }
 
 
-  Map<String,List<List<Object>>> responseState = new HashMap<>();
+    Map<String, List<List<Object>>> responseState = new HashMap<>();
 
-  public void memoized() {
-    mappingAndCacheHeaderToValues = mappingAndCacheHeaderToValues.memoized();
-    mappingAndCacheKeyHeaderToHeaderValues = mappingAndCacheKeyHeaderToHeaderValues.memoized();
-  }
-//  public static void main(String...args) {
-//
-//  Function1<String, String> mappingAndCacheKeyHeaderToHeaderValuess = 
-//      (sheetName) -> {
-//        System.out.println("it has been called");
-//        if(sheetName.equals("hello"))
-//          return null;
-//        else if(sheetName.equals("bye"))
-//          return null;
-//      return sheetName;
-//    };
-//    mappingAndCacheKeyHeaderToHeaderValuess = mappingAndCacheKeyHeaderToHeaderValuess.memoized();
-//    mappingAndCacheKeyHeaderToHeaderValuess.apply("hello");
-//    mappingAndCacheKeyHeaderToHeaderValuess.apply("hello");
-//    mappingAndCacheKeyHeaderToHeaderValuess.apply("bye");
-//    mappingAndCacheKeyHeaderToHeaderValuess.apply("bye");
-//  }
+    public void memoized() {
+        mappingAndCacheHeaderToValues = mappingAndCacheHeaderToValues.memoized();
+        mappingAndCacheKeyHeaderToHeaderValues = mappingAndCacheKeyHeaderToHeaderValues.memoized();
+    }
 }

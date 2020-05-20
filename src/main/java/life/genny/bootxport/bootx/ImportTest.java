@@ -1,19 +1,11 @@
 package life.genny.bootxport.bootx;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import com.google.common.collect.Maps;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import life.genny.bootxport.utils.HibernateUtil;
@@ -22,93 +14,48 @@ import life.genny.bootxport.xlsimport.BatchLoading;
 
 public class ImportTest {
 
-  public static void main(String... args) {
+    public static void main(String[] args) throws InterruptedException {
 
-    Realm realm = new Realm(BatchLoadMode.ONLINE,
-        "1BhLyxJr7HglCOH1NwZeay0Pzje2VMJsiAVWEeHoSmnk");
+        Realm realm = new Realm(BatchLoadMode.ONLINE,
+                "1BhLyxJr7HglCOH1NwZeay0Pzje2VMJsiAVWEeHoSmnk");
 
-    
-    try {
-      Thread.sleep(10000);
-    } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+        Thread.sleep(10000);
+        StateManagement.initStateManagement(realm);
+
+        List<Tuple2<RealmUnit, BatchLoading>> collect = realm.getDataUnits().stream().map(d -> {
+                    SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+                    Session openSession = sessionFactory.openSession();
+                    EntityManager createEntityManager =
+                            openSession.getEntityManagerFactory().createEntityManager();
+                    QwandaRepository repo =
+                            new QwandaRepositoryImpl(createEntityManager);
+                    BatchLoading bl = new BatchLoading(repo);
+                    return Tuple.of(d, bl);
+                }
+        ).collect(Collectors.toList());
+
+        collect.parallelStream().forEach(d -> d._2.persistProject(d._1));
     }
-    StateManagement.initStateManagement(realm);
 
-//    realm.getDataUnits().stream().filter(d -> d.getCode().equals("internmatch")).map(d ->d.)
-//        .forEach(data -> System.out.println(data.baseEntitys.size()));
+    public static void mains(String[] args) {
 
-//    realm.getDataUnits().stream().forEach(d -> System.out.println(d.getQuestions()));
-//    realm.getDataUnits().stream().forEach(data-> 
-//      data.getModule()
-//      .getDataUnits()
-//      .forEach(module -> {
-//        System.out.println(module.getName() + " " + module.questions.size());
-//        System.out.println(module.getName() + " " + module.baseEntitys.size());
-//        
-//      })
-//    );
-//    realm.getDataUnits().stream().forEach(data-> 
-//      System.out.println(data.getQuestions().size())
-//    );
-//    SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-//    Session openSession = sessionFactory.openSession(); //    EntityManager createEntityManager =
-//        openSession.getEntityManagerFactory().createEntityManager();
-//    QwandaRepository repo =
-//        new QwandaRepositoryImpl(createEntityManager);
-//    BatchLoading bl = new BatchLoading(repo);
-//    realm.getDataUnits().stream().forEach(bl::persistProject);
-    List<Tuple2<RealmUnit, BatchLoading>> collect = realm.getDataUnits().stream().map(d -> {
-      SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-      Session openSession = sessionFactory.openSession();
-      EntityManager createEntityManager =
-          openSession.getEntityManagerFactory().createEntityManager();
-      QwandaRepository repo =
-          new QwandaRepositoryImpl(createEntityManager);
-      BatchLoading bl = new BatchLoading(repo);
-      return Tuple.of(d,bl);
-      }
-    ).collect(Collectors.toList());
-    
-    collect.parallelStream().forEach(d -> d._2.persistProject(d._1));
-  }
+        String fileName = ".genny/multitenancy/multitenancy.xlsx";
 
-  public static void mains(String... args) {
+        Realm realm = new Realm(BatchLoadMode.OFFLINE,
+                fileName);
 
-    String FILE_NAME =
-      ".genny/multitenancy/multitenancy.xlsx";
+        List<Tuple2<RealmUnit, BatchLoading>> collect = realm.getDataUnits().stream().map(d -> {
+                    SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+                    Session openSession = sessionFactory.openSession();
+                    EntityManager createEntityManager =
+                            openSession.getEntityManagerFactory().createEntityManager();
+                    QwandaRepository repo =
+                            new QwandaRepositoryImpl(createEntityManager);
+                    BatchLoading bl = new BatchLoading(repo);
+                    return Tuple.of(d, bl);
+                }
+        ).collect(Collectors.toList());
 
-    XSSFService xssService = new XSSFService();
-    XlsxImport xlsImport = new XlsxImportOffline(xssService);
-    
-    Realm realm = new Realm(BatchLoadMode.OFFLINE,
-        FILE_NAME);
-//    realm.getDataUnits().stream()
-//        .forEach(data -> System.out.println(data.questions.size()));
-
-//    SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-//    Session openSession = sessionFactory.openSession();
-//    EntityManager createEntityManager =
-//        openSession.getEntityManagerFactory().createEntityManager();
-//    QwandaRepository repo =
-//        new QwandaRepositoryImpl(createEntityManager);
-//    BatchLoading bl = new BatchLoading(repo);
-//    realm.getDataUnits().parallelStream().forEach(bl::persistProject);
-    
-    List<Tuple2<RealmUnit, BatchLoading>> collect = realm.getDataUnits().stream().map(d -> {
-      SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-      Session openSession = sessionFactory.openSession();
-      EntityManager createEntityManager =
-          openSession.getEntityManagerFactory().createEntityManager();
-      QwandaRepository repo =
-          new QwandaRepositoryImpl(createEntityManager);
-      BatchLoading bl = new BatchLoading(repo);
-      return Tuple.of(d,bl);
-      }
-    ).collect(Collectors.toList());
-    
-    collect.parallelStream().forEach(d -> d._2.persistProject(d._1));
-  }
-
+        collect.parallelStream().forEach(d -> d._2.persistProject(d._1));
+    }
 }
