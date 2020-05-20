@@ -772,8 +772,14 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         BeanNotNullFields copyFields = new BeanNotNullFields();
         for (CodedEntity codedEntity : objectList) {
             if (codedEntity instanceof QBaseMSGMessageTemplate) {
-                codedEntity.setRealm(getRealm());
-                getEntityManager().merge((QBaseMSGMessageTemplate) codedEntity);
+                QBaseMSGMessageTemplate msg = (QBaseMSGMessageTemplate) mapping.get(codedEntity.getCode());
+                msg.setName(codedEntity.getName());
+                msg.setDescription(((QBaseMSGMessageTemplate) codedEntity).getDescription());
+                msg.setEmail_templateId(((QBaseMSGMessageTemplate) codedEntity).getEmail_templateId());
+                msg.setSms_template(((QBaseMSGMessageTemplate) codedEntity).getSms_template());
+                msg.setSubject(((QBaseMSGMessageTemplate) codedEntity).getSubject());
+                msg.setToast_template(((QBaseMSGMessageTemplate) codedEntity).getToast_template());
+                getEntityManager().merge(msg);
             } else {
                 CodedEntity val = mapping.get(codedEntity.getCode());
                 if (val == null) {

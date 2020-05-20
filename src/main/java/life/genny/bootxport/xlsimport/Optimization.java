@@ -52,7 +52,7 @@ public class Optimization {
     // Check if sheet data changed
     //TODO
     private <T> boolean isChanged(T orgItem, T newItem) {
-        return false;
+        return true;
     }
 
     public void asksOptimization(Map<String, Map<String, String>> project, String realmName) {
@@ -152,8 +152,9 @@ public class Optimization {
                     if (isChanged(attrlink, codeAttributeMapping.get(code.toUpperCase()))) {
                         attributeLinkUpdateList.add(attrlink);
                         updated++;
+                    } else {
+                        skipped++;
                     }
-                    skipped++;
                 } else {
                     // insert new item
                     attributeLinkInsertList.add(attrlink);
@@ -166,7 +167,7 @@ public class Optimization {
 
         service.bulkInsert(attributeLinkInsertList);
         service.bulkUpdate(attributeLinkUpdateList, codeAttributeMapping);
-        printSummary(tableName, total, invalid, skipped, updated, newItem);
+        printSummary("AttributeLink", total, invalid, skipped, updated, newItem);
     }
 
     public void attributesOptimization(Map<String, Map<String, String>> project,
@@ -201,8 +202,9 @@ public class Optimization {
                     if (isChanged(attr, codeAttributeMapping.get(code.toUpperCase()))) {
                         attributeUpdateList.add(attr);
                         updated++;
+                    } else {
+                        skipped++;
                     }
-                    skipped++;
                 } else {
                     // insert new item
                     attributeInsertList.add(attr);
@@ -289,8 +291,9 @@ public class Optimization {
                     if (isChanged(baseEntity, codeBaseEntityMapping.get(code.toUpperCase()))) {
                         baseEntityUpdateList.add(baseEntity);
                         updated++;
+                    } else {
+                        skipped++;
                     }
-                    skipped++;
                 } else {
                     // insert new item
                     baseEntityInsertList.add(baseEntity);
@@ -399,7 +402,7 @@ public class Optimization {
                 }
             }
         }
-        printSummary(tableName, total, invalid, skipped, updated, newItem);
+        printSummary("EntityEntity", total, invalid, skipped, updated, newItem);
     }
 
     public void messageTemplatesOptimization(Map<String, Map<String, String>> project, String realmName) {
@@ -435,8 +438,9 @@ public class Optimization {
                 if (isChanged(msg, codeMsgMapping.get(code.toUpperCase()))) {
                     messageUpdateList.add(msg);
                     updated++;
+                } else {
+                    skipped++;
                 }
-                skipped++;
             } else {
                 // insert new item
                 messageInsertList.add(msg);
@@ -501,8 +505,9 @@ public class Optimization {
                 if (isChanged(qq, codeQuestionMapping.get(uniqueCode.toUpperCase()))) {
                     questionQuestionUpdateList.add(qq);
                     updated++;
+                } else {
+                    skipped++;
                 }
-                skipped++;
             } else {
                 // insert new item
                 questionQuestionInsertList.add(qq);
@@ -511,7 +516,7 @@ public class Optimization {
         }
         service.bulkInsertQuestionQuestion(questionQuestionInsertList);
         service.bulkUpdateQuestionQuestion(questionQuestionUpdateList, codeQuestionMapping);
-        printSummary(tableName, total, invalid, skipped, updated, newItem);
+        printSummary("QuestionQuestion", total, invalid, skipped, updated, newItem);
     }
 
     public void questionsOptimization(Map<String, Map<String, String>> project, String realmName, boolean isSynchronise) {
@@ -635,8 +640,9 @@ public class Optimization {
                     if (isChanged(val, codeValidationMapping.get(code.toUpperCase()))) {
                         validationUpdateList.add(val);
                         updated++;
+                    } else {
+                        skipped++;
                     }
-                    skipped++;
                 } else {
                     validationInsertList.add(val);
                     newItem++;
