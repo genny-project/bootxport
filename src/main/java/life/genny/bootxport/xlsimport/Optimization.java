@@ -95,7 +95,9 @@ public class Optimization {
                 continue;
             }
             service.insert(ask);
+            newItem++;
         }
+        printSummary("Ask", total, invalid, skipped, updated, newItem);
 
 
 //            String qCode = asks.get("question_code".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
@@ -250,15 +252,23 @@ public class Optimization {
             String baseEntityCode = GoogleSheetBuilder.getBaseEntityCodeFromBaseEntityAttribute(baseEntityAttr);
             if (baseEntityCode == null) {
                 invalid++;
+                continue;
             }
             String attributeCode = GoogleSheetBuilder.getAttributeCodeFromBaseEntityAttribute(baseEntityAttr);
             if (attributeCode == null) {
                 invalid++;
+                continue;
             }
 
             BaseEntity be = GoogleSheetBuilder.buildEntityAttribute(baseEntityAttr, realmName, attrHashMap, beHashMap);
-            if (be != null) service.updateWithAttributes(be);
+            if (be != null) {
+                service.updateWithAttributes(be);
+                newItem++;
+            } else {
+                invalid++;
+            }
         }
+        printSummary("BaseEntityAttributes", total, invalid, skipped, updated, newItem);
     }
 
 
@@ -397,6 +407,7 @@ public class Optimization {
                 try {
                     sbe.addTarget(tbe, linkAttribute, weight, valueString);
                     service.updateWithAttributes(sbe);
+                    newItem++;
                 } catch (BadDataException be) {
                     log.error(String.format("Should never reach here!, BaseEntity:%s, Attribute:%s ", tbe.getCode(), linkAttribute.getCode()));
                 }
@@ -603,7 +614,7 @@ public class Optimization {
                 updated++;
             }
         }
-        printSummary(tableName, total, invalid, skipped, updated, newItem);
+        printSummary("Question", total, invalid, skipped, updated, newItem);
     }
 
     public void validationsOptimization(Map<String, Map<String, String>> project, String realmName) {

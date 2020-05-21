@@ -97,7 +97,7 @@ public class GoogleSheetBuilder {
         if (optionString != null && (!optionString.equals(" "))) {
             try {
                 gsonObject.fromJson(optionString, Options[].class);
-                log.info("FOUND VALID OPTIONS STRING:" + optionString);
+                log.trace("FOUND VALID OPTIONS STRING:" + optionString);
                 hasValidOptions = true;
             } catch (JsonSyntaxException ex) {
                 log.error("FOUND INVALID OPTIONS STRING:" + optionString);
@@ -110,7 +110,7 @@ public class GoogleSheetBuilder {
             regex = regex.replaceAll(REGEX_1, "");
         }
         if ("VLD_AU_DRIVER_LICENCE_NO".equalsIgnoreCase(code)) {
-            log.info("detected VLD_AU_DRIVER_LICENCE_NO");
+            log.trace("detected VLD_AU_DRIVER_LICENCE_NO");
         }
         String name = validations.get("name").replaceAll(REGEX_1, "");
         String recursiveStr = validations.get("recursive");
@@ -121,21 +121,21 @@ public class GoogleSheetBuilder {
         Validation val = null;
         if (code.startsWith(Validation.getDefaultCodePrefix() + "SELECT_")) {
             if (hasValidOptions) {
-                log.info("Case 1, build Validation with OPTIONS String");
+                log.trace("Case 1, build Validation with OPTIONS String");
                 val = new Validation(code, name, groupCodesStr, recursive, multiAllowed, optionString);
             } else {
                 val = new Validation(code, name, groupCodesStr, recursive, multiAllowed);
             }
         } else {
             if (hasValidOptions) {
-                log.info("Case 2, build Validation with OPTIONS String");
+                log.trace("Case 2, build Validation with OPTIONS String");
                 val = new Validation(code, name, regex, optionString);
             } else {
                 val = new Validation(code, name, regex);
             }
         }
         val.setRealm(realmName);
-        log.info("realm:" + realmName + ",code:" + code + ",name:" + name + ",val:" + val + ", grp="
+        log.trace("realm:" + realmName + ",code:" + code + ",name:" + name + ",val:" + val + ", grp="
                 + (groupCodesStr != null ? groupCodesStr : "X"));
         return val;
     }
@@ -159,7 +159,7 @@ public class GoogleSheetBuilder {
 
         boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
         if (privacy) {
-            log.info("Realm:" + realmName + ", Attribute " + code + " has default privacy");
+            log.trace("Realm:" + realmName + ", Attribute " + code + " has default privacy");
         }
         String descriptionStr = attributes.get("description");
         String helpStr = attributes.get("help");
@@ -263,7 +263,7 @@ public class GoogleSheetBuilder {
         String hiddenStr = asks.get("hidden");
         final Double weight = Double.valueOf(weightStr);
         if ("QUE_USER_SELECT_ROLE".equals(targetCode)) {
-            log.info("dummy");
+            log.trace("dummy");
         }
         Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
         Boolean readonly = "TRUE".equalsIgnoreCase(readonlyStr);
