@@ -159,7 +159,7 @@ public class GoogleSheetBuilder {
 
         boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
         if (privacy) {
-            log.info("Realm:" + realmName + ", Attribute " + code + " has default privacy");
+            log.trace("Realm:" + realmName + ", Attribute " + code + " has default privacy");
         }
         String descriptionStr = attributes.get("description");
         String helpStr = attributes.get("help");
@@ -263,7 +263,7 @@ public class GoogleSheetBuilder {
         String hiddenStr = asks.get("hidden");
         final Double weight = Double.valueOf(weightStr);
         if ("QUE_USER_SELECT_ROLE".equals(targetCode)) {
-            log.info("dummy");
+            log.trace("dummy");
         }
         Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
         Boolean readonly = "TRUE".equalsIgnoreCase(readonlyStr);
