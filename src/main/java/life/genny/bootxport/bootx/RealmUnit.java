@@ -20,6 +20,9 @@ public class RealmUnit extends DataUnit {
     private String securityKey;
     private String servicePassword;
     private String uri;
+    private String githubRepoUrls;
+    private String githubUserName;
+    private String githubPassword;
 
 
     public String getName() {
@@ -140,6 +143,9 @@ public class RealmUnit extends DataUnit {
         setSkipGoogleDoc(skipgoogledoc);
         setSecurityKey(realm.get("ENV_SECURITY_KEY".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
         setServicePassword(realm.get("ENV_SERVICE_PASSWORD".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
+        setGithubRepoUrls(realm.get("githubRepoUrls".toLowerCase()));
+        setGithubUserName(realm.get("githubUserName".toLowerCase()));
+        setGithubPassword(realm.get("githubPassword".toLowerCase()));
 
         if (skipgoogledoc) {
             System.out.println("Skipping google doc for realm " + this.name);
@@ -225,4 +231,27 @@ public class RealmUnit extends DataUnit {
         validations.clear();
     }
 
+    public String getGithubRepoUrls() {
+        return githubRepoUrls;
+    }
+
+    public void setGithubRepoUrls(String githubRepoUrls) {
+        this.githubRepoUrls = githubRepoUrls;
+    }
+
+    public String getGithubUserName() {
+        return githubUserName;
+    }
+
+    public void setGithubUserName(String githubUserName) {
+        this.githubUserName = githubUserName;
+    }
+
+    public String getGithubPassword() {
+        return githubPassword;
+    }
+
+    public void setGithubPassword(String githubPassword) {
+        this.githubPassword = githubPassword;
+    }
 }
