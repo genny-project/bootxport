@@ -369,9 +369,9 @@ public class GoogleSheetBuilder {
     }
 
     public static BaseEntity buildEntityAttribute(Map<String, String> baseEntityAttr,
-                                                       String realmName,
-                                                       Map<String, Attribute> attrHashMap,
-                                                       Map<String, BaseEntity> beHashMap) {
+                                                  String realmName,
+                                                  Map<String, Attribute> attrHashMap,
+                                                  Map<String, BaseEntity> beHashMap) {
         String attributeCode = getAttributeCodeFromBaseEntityAttribute(baseEntityAttr);
         if (attributeCode == null) return null;
 
@@ -399,14 +399,14 @@ public class GoogleSheetBuilder {
         // Check if attribute code exist in Attribute table, foreign key restriction
         Attribute attribute = attrHashMap.get(attributeCode.toUpperCase());
         if (attribute == null) {
-            log.error(String.format("Invalid record, BASE ENTITY CODE:%s, AttributeCode:%s is not in the Attribute Table!!!", baseEntityCode, attributeCode));
+            log.error(String.format("Invalid EntityAttribute record, AttributeCode:%s is not in the Attribute Table!!!", attributeCode));
             return null;
         }
 
         // Check if baseEntity code exist in BaseEntity table, foreign key restriction
         BaseEntity baseEntity = beHashMap.get(baseEntityCode.toUpperCase());
         if (baseEntity == null) {
-            log.error(String.format("Invalid record, BASE ENTITY CODE:%s, BaseEntityCode:%s is not in the BaseEntity Table!!!", baseEntityCode, attributeCode));
+            log.error(String.format("Invalid EntityAttribute record, BaseEntityCode:%s is not in the BaseEntity Table!!!", baseEntityCode));
             return null;
         }
 

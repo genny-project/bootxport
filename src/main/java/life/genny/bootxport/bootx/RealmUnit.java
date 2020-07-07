@@ -6,8 +6,12 @@ import java.util.Optional;
 import java.util.function.BinaryOperator;
 
 import com.google.common.collect.Maps;
+import life.genny.bootxport.xlsimport.Optimization;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RealmUnit extends DataUnit {
+    private static final Logger log = LoggerFactory.getLogger(RealmUnit.class);
 
     private String code;
     private String name;
@@ -115,8 +119,9 @@ public class RealmUnit extends DataUnit {
             = (weakModule, strongModule) -> {
         strongModule.entrySet().forEach(data -> {
             if (weakModule.containsKey(data.getKey())) {
-                System.out.println("For Module Name: " + code);
-                System.out.println(data.getKey() + " This will be overrided ");
+                log.debug("For Module Name: " + code + ", Key:" + data.getKey() + " This will be overrided ");
+//                System.out.println("For Module Name: " + code);
+//                System.out.println(data.getKey() + " This will be overrided ");
             }
         });
         weakModule.putAll(strongModule);
