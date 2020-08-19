@@ -314,6 +314,7 @@ public class GoogleSheetBuilder {
         String code = questions.get("code");
         String name = questions.get("name");
         String placeholder = questions.get("placeholder");
+        String directions= questions.get("directions");
         String attrCode = questions.get("attribute_code".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
         String html = questions.get("html");
         String oneshotStr = questions.get("oneshot");
@@ -341,6 +342,7 @@ public class GoogleSheetBuilder {
         q.setReadonly(readonly);
         q.setMandatory(mandatory);
         q.setRealm(realmName);
+        q.setDirections(directions);
         return q;
     }
 
