@@ -598,8 +598,10 @@ public class Optimization {
             } else {
                 String name = questions.get("name");
                 String html = questions.get("html");
+                String directions = questions.get("directions");
                 existing.setName(name);
                 existing.setHtml(html);
+                existing.setDirections(directions);
 
                 String oneshotStr = questions.get("oneshot");
                 String readonlyStr = questions.get(GoogleSheetBuilder.READONLY);
