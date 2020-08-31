@@ -211,6 +211,8 @@ public class GoogleSheetBuilder {
         Boolean readonly = "TRUE".equalsIgnoreCase(readonlyStr);
         Boolean formTrigger = queQues.get("formtrigger") != null && "TRUE".equalsIgnoreCase(queQues.get("formtrigger"));
         Boolean createOnTrigger = queQues.get("createontrigger") != null && "TRUE".equalsIgnoreCase(queQues.get("createontrigger"));
+        String dependency = queQues.get("dependency");
+
         double weight = 0.0;
         if (isDouble(weightStr)) {
             weight = Double.parseDouble(weightStr);
@@ -244,6 +246,7 @@ public class GoogleSheetBuilder {
             qq.setCreateOnTrigger(createOnTrigger);
             qq.setFormTrigger(formTrigger);
             qq.setRealm(realmName);
+            qq.setDependency(dependency);
             return qq;
         } catch (BadDataException be) {
             log.error("Should never reach here!");
