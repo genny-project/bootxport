@@ -194,7 +194,7 @@ public class BatchLoading {
             Map<String, String> dataType = data.getValue();
             String validations = dataType.get("validations");
             String code = (dataType.get("code")).trim().replaceAll("^\"|\"$", "");
-            String className = (dataType.get("classname")).replaceAll("^\"|\"$", "");
+//            String className = (dataType.get("classname")).replaceAll("^\"|\"$", "");
             String name = (dataType.get("name")).replaceAll("^\"|\"$", "");
             String inputmask = dataType.get("inputmask");
             String component = dataType.get("component");
