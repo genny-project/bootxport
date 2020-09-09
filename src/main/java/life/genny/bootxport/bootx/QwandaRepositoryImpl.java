@@ -620,6 +620,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
             existing.setDisabled(qq.getDisabled());
             existing.setHidden(qq.getHidden());
             existing.setOneshot(qq.getOneshot());
+            existing.setDependency(qq.getDependency());
             existing = getEntityManager().merge(existing);
             return existing;
         } catch (NoResultException e) {
@@ -867,6 +868,11 @@ public class QwandaRepositoryImpl implements QwandaRepository {
             existing.setWeight(qq.getWeight());
             existing.setReadonly(qq.getReadonly());
             existing.setDependency(qq.getDependency());
+            existing.setCreateOnTrigger(qq.getCreateOnTrigger());
+            existing.setFormTrigger(qq.getFormTrigger());
+            existing.setDisabled(qq.getDisabled());
+            existing.setHidden(qq.getHidden());
+            existing.setOneshot(qq.getOneshot());
             getEntityManager().merge(existing);
         }
     }
