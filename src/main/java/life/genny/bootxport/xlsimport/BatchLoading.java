@@ -18,6 +18,7 @@ import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
 import life.genny.qwandautils.GennySettings;
+import life.genny.qwandautils.KeycloakUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 
@@ -783,17 +784,18 @@ public class BatchLoading {
 
     public void persistProjectOptimization(life.genny.bootxport.bootx.RealmUnit rx) {
         service.setRealm(rx.getCode());
+        HashMap<String, String> userCodeUUIDMapping = KeycloakUtils.getUsersByRealm(rx.getKeycloakUrl(), rx.getCode());
         Optimization optimization = new Optimization(service);
         optimization.validationsOptimization(rx.getValidations(), rx.getCode());
 
         Map<String, DataType> dataTypes = dataType(rx.getDataTypes());
         optimization.attributesOptimization(rx.getAttributes(), dataTypes, rx.getCode());
 
-        optimization.baseEntitysOptimization(rx.getBaseEntitys(), rx.getCode());
+        optimization.baseEntitysOptimization(rx.getBaseEntitys(), rx.getCode(), userCodeUUIDMapping);
 
         optimization.attributeLinksOptimization(rx.getAttributeLinks(), dataTypes, rx.getCode());
 
-        optimization.baseEntityAttributesOptimization(rx.getEntityAttributes(), rx.getCode());
+        optimization.baseEntityAttributesOptimization(rx.getEntityAttributes(), rx.getCode(), userCodeUUIDMapping);
 
         optimization.entityEntitysOptimization(rx.getEntityEntitys(), rx.getCode(), isSynchronise);
 

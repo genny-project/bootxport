@@ -15,6 +15,7 @@ import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
+import life.genny.qwandautils.KeycloakUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -362,11 +363,16 @@ public class GoogleSheetBuilder {
     }
 
 
-    public static String getBaseEntityCodeFromBaseEntityAttribute(Map<String, String> baseEntityAttr) {
+    public static String getBaseEntityCodeFromBaseEntityAttribute(Map<String, String> baseEntityAttr,
+                                                                  HashMap<String, String> userCodeUUIDMapping) {
         String baseEntityCode = null;
         String searchKey = "baseEntityCode".toLowerCase();
         if (baseEntityAttr.containsKey(searchKey)) {
             baseEntityCode = baseEntityAttr.get(searchKey).replaceAll("^\"|\"$", "");
+            if (baseEntityCode.startsWith("PER_")) {
+                String keycloakUUID = KeycloakUtils.getKeycloakUUIDByUserCode(baseEntityCode, userCodeUUIDMapping);
+                baseEntityCode = keycloakUUID;
+            }
         } else {
             log.error("Invalid record, BaseEntityCode not found [" + baseEntityAttr + "]");
         }
@@ -376,7 +382,8 @@ public class GoogleSheetBuilder {
     public static BaseEntity buildEntityAttribute(Map<String, String> baseEntityAttr,
                                                   String realmName,
                                                   Map<String, Attribute> attrHashMap,
-                                                  Map<String, BaseEntity> beHashMap) {
+                                                  Map<String, BaseEntity> beHashMap,
+                                                  HashMap<String, String> userCodeUUIDMapping) {
         String attributeCode = getAttributeCodeFromBaseEntityAttribute(baseEntityAttr);
         if (attributeCode == null) return null;
 
@@ -394,7 +401,7 @@ public class GoogleSheetBuilder {
             valueStr = valueString.get().replaceAll(REGEX_1, "");
         }
 
-        String baseEntityCode = getBaseEntityCodeFromBaseEntityAttribute(baseEntityAttr);
+        String baseEntityCode = getBaseEntityCodeFromBaseEntityAttribute(baseEntityAttr, userCodeUUIDMapping);
         if (baseEntityCode == null) return null;
 
         String weight = baseEntityAttr.get(WEIGHT);
