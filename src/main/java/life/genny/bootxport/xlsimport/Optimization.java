@@ -328,7 +328,8 @@ public class Optimization {
         printSummary(tableName, total, invalid, skipped, updated, newItem);
     }
 
-    public void entityEntitysOptimization(Map<String, Map<String, String>> project, String realmName, boolean isSynchronise) {
+    public void entityEntitysOptimization(Map<String, Map<String, String>> project, String realmName,
+                                          boolean isSynchronise, HashMap<String, String> userCodeUUIDMapping) {
         // Get all BaseEntity
         String tableName = "BaseEntity";
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
@@ -353,6 +354,9 @@ public class Optimization {
             String beCode = entityEntity.getPk().getSource().getCode();
             String attrCode = entityEntity.getPk().getAttribute().getCode();
             String targetCode = entityEntity.getPk().getTargetCode();
+            if (targetCode.toUpperCase().startsWith("PER_")) {
+               targetCode = KeycloakUtils.getKeycloakUUIDByUserCode(targetCode.toUpperCase(), userCodeUUIDMapping);
+            }
             String uniqueCode = beCode + "-" + attrCode + "-" + targetCode;
             codeBaseEntityEntityMapping.put(uniqueCode, entityEntity);
         }
@@ -376,6 +380,9 @@ public class Optimization {
                 parentCode = entEnts.get("sourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
 
             String targetCode = entEnts.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+            if (targetCode.toUpperCase().startsWith("PER_")) {
+                targetCode = KeycloakUtils.getKeycloakUUIDByUserCode(targetCode.toUpperCase(), userCodeUUIDMapping);
+            }
 
             String weightStr = entEnts.get("weight");
             String valueString = entEnts.get("valueString".toLowerCase().replaceAll("^\"|\"$|_|-", ""));

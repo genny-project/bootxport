@@ -797,7 +797,7 @@ public class BatchLoading {
 
         optimization.baseEntityAttributesOptimization(rx.getEntityAttributes(), rx.getCode(), userCodeUUIDMapping);
 
-        optimization.entityEntitysOptimization(rx.getEntityEntitys(), rx.getCode(), isSynchronise);
+        optimization.entityEntitysOptimization(rx.getEntityEntitys(), rx.getCode(), isSynchronise, userCodeUUIDMapping);
 
         optimization.questionsOptimization(rx.getQuestions(), rx.getCode(), isSynchronise);
 
