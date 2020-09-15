@@ -12,6 +12,7 @@ import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwandautils.GennySettings;
+import life.genny.qwandautils.KeycloakUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -222,7 +223,8 @@ public class Optimization {
         printSummary(tableName, total, invalid, skipped, updated, newItem);
     }
 
-    public void baseEntityAttributesOptimization(Map<String, Map<String, String>> project, String realmName) {
+    public void baseEntityAttributesOptimization(Map<String, Map<String, String>> project, String realmName,
+                                                 HashMap<String, String> userCodeUUIDMapping) {
         // Get all BaseEntity
         String tableName = "BaseEntity";
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
@@ -249,7 +251,8 @@ public class Optimization {
             total++;
             Map<String, String> baseEntityAttr = entry.getValue();
 
-            String baseEntityCode = GoogleSheetBuilder.getBaseEntityCodeFromBaseEntityAttribute(baseEntityAttr);
+            String baseEntityCode = GoogleSheetBuilder.getBaseEntityCodeFromBaseEntityAttribute(baseEntityAttr,
+                    userCodeUUIDMapping);
             if (baseEntityCode == null) {
                 invalid++;
                 continue;
@@ -260,7 +263,8 @@ public class Optimization {
                 continue;
             }
 
-            BaseEntity be = GoogleSheetBuilder.buildEntityAttribute(baseEntityAttr, realmName, attrHashMap, beHashMap);
+            BaseEntity be = GoogleSheetBuilder.buildEntityAttribute(baseEntityAttr, realmName, attrHashMap, beHashMap,
+                    userCodeUUIDMapping);
             if (be != null) {
                 service.updateWithAttributes(be);
                 newItem++;
@@ -271,8 +275,8 @@ public class Optimization {
         printSummary("BaseEntityAttributes", total, invalid, skipped, updated, newItem);
     }
 
-
-    public void baseEntitysOptimization(Map<String, Map<String, String>> project, String realmName) {
+    public void baseEntitysOptimization(Map<String, Map<String, String>> project, String realmName,
+                                        HashMap<String, String> userCodeUUIDMapping) {
         String tableName = "BaseEntity";
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
 
@@ -297,8 +301,14 @@ public class Optimization {
             BaseEntity baseEntity = GoogleSheetBuilder.buildBaseEntity(baseEntitys, realmName);
             // validation check
             if (isValid(baseEntity)) {
-                if (codeBaseEntityMapping.containsKey(code.toUpperCase())) {
-                    if (isChanged(baseEntity, codeBaseEntityMapping.get(code.toUpperCase()))) {
+                // get keycloak uuid from keycloak, replace code and beasentity
+                if (baseEntity.getCode().startsWith("PER_")) {
+                    String keycloakUUID = KeycloakUtils.getKeycloakUUIDByUserCode(baseEntity.getCode(), userCodeUUIDMapping);
+                    baseEntity.setCode(keycloakUUID);
+                }
+
+                if (codeBaseEntityMapping.containsKey(baseEntity.getCode())) {
+                    if (isChanged(baseEntity, codeBaseEntityMapping.get(baseEntity.getCode()))) {
                         baseEntityUpdateList.add(baseEntity);
                         updated++;
                     } else {
@@ -318,7 +328,8 @@ public class Optimization {
         printSummary(tableName, total, invalid, skipped, updated, newItem);
     }
 
-    public void entityEntitysOptimization(Map<String, Map<String, String>> project, String realmName, boolean isSynchronise) {
+    public void entityEntitysOptimization(Map<String, Map<String, String>> project, String realmName,
+                                          boolean isSynchronise, HashMap<String, String> userCodeUUIDMapping) {
         // Get all BaseEntity
         String tableName = "BaseEntity";
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
@@ -343,6 +354,9 @@ public class Optimization {
             String beCode = entityEntity.getPk().getSource().getCode();
             String attrCode = entityEntity.getPk().getAttribute().getCode();
             String targetCode = entityEntity.getPk().getTargetCode();
+            if (targetCode.toUpperCase().startsWith("PER_")) {
+               targetCode = KeycloakUtils.getKeycloakUUIDByUserCode(targetCode.toUpperCase(), userCodeUUIDMapping);
+            }
             String uniqueCode = beCode + "-" + attrCode + "-" + targetCode;
             codeBaseEntityEntityMapping.put(uniqueCode, entityEntity);
         }
@@ -366,6 +380,9 @@ public class Optimization {
                 parentCode = entEnts.get("sourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
 
             String targetCode = entEnts.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+            if (targetCode.toUpperCase().startsWith("PER_")) {
+                targetCode = KeycloakUtils.getKeycloakUUIDByUserCode(targetCode.toUpperCase(), userCodeUUIDMapping);
+            }
 
             String weightStr = entEnts.get("weight");
             String valueString = entEnts.get("valueString".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
