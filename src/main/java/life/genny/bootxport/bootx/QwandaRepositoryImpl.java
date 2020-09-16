@@ -874,7 +874,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
     @Override
     public void cleanAsk(String realm) {
         String qlString= String.format("delete from ask where realm = '%s'", realm);
-        Query query = getEntityManager().createQuery(qlString);
+        Query query = getEntityManager().createNativeQuery(qlString);
         query.executeUpdate();
     }
 
@@ -884,7 +884,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
                 "where baseEntityCode like \'RUL_FRM%_GRP\' " +
                 "and attributeCode = \'PRI_ASKS\' " +
                 "and realm = \'" + realm + "\'";
-        Query query = getEntityManager().createQuery(qlString);
+        Query query = getEntityManager().createNativeQuery(qlString);
         query.executeUpdate();
     }
 }
