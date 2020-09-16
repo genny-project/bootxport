@@ -786,6 +786,11 @@ public class BatchLoading {
         service.setRealm(rx.getCode());
         HashMap<String, String> userCodeUUIDMapping = KeycloakUtils.getUsersByRealm(rx.getKeycloakUrl(), rx.getCode());
         Optimization optimization = new Optimization(service);
+
+        // clean up
+        service.cleanAsk(rx.getCode());
+        service.cleanFrameFromBaseentityAttribute(rx.getCode());
+
         optimization.validationsOptimization(rx.getValidations(), rx.getCode());
 
         Map<String, DataType> dataTypes = dataType(rx.getDataTypes());
