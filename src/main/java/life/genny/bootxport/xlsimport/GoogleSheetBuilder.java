@@ -358,7 +358,7 @@ public class GoogleSheetBuilder {
             attributeCode = baseEntityAttr.get(searchKey).replaceAll("^\"|\"$", "");
         } else {
             log.error("Invalid record, AttributeCode not found [" + baseEntityAttr + "]");
-        }his 
+        }
         return attributeCode;
     }
 
@@ -388,7 +388,7 @@ public class GoogleSheetBuilder {
         if (attributeCode == null) return null;
 
         List<String> asList = Collections.singletonList("valuestring");
-        Optional<String> valueString = null;
+        Optional<String> valueString = Optional.empty();
         try {
 			valueString = asList.stream().map(baseEntityAttr::get).findFirst();
 		} catch (Exception e) {
