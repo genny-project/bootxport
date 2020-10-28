@@ -324,6 +324,7 @@ public class GoogleSheetBuilder {
         String oneshotStr = questions.get("oneshot");
         String readonlyStr = questions.get(READONLY);
         String mandatoryStr = questions.get(MANDATORY);
+        String helper = questions.get("helper");
 
         Boolean oneshot = getBooleanFromString(oneshotStr);
         Boolean readonly = getBooleanFromString(readonlyStr);
@@ -347,6 +348,7 @@ public class GoogleSheetBuilder {
         q.setMandatory(mandatory);
         q.setRealm(realmName);
         q.setDirections(directions);
+        q.setHelper(helper);
         return q;
     }
 
