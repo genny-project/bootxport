@@ -616,9 +616,11 @@ public class Optimization {
                 String name = questions.get("name");
                 String html = questions.get("html");
                 String directions = questions.get("directions");
+                String helper = questions.get("helper");
                 existing.setName(name);
                 existing.setHtml(html);
                 existing.setDirections(directions);
+                existing.setHelper(helper);
 
                 String oneshotStr = questions.get("oneshot");
                 String readonlyStr = questions.get(GoogleSheetBuilder.READONLY);
