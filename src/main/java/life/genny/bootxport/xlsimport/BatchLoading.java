@@ -19,6 +19,7 @@ import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
 import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.KeycloakUtils;
+import life.genny.qwandautils.SecurityUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 
@@ -782,9 +783,19 @@ public class BatchLoading {
         }
     }
 
+    private String decodePassword(String realm, String securityKey, String servicePass) {
+        String initVector = "PRJ_" + realm.toUpperCase();
+        initVector = StringUtils.rightPad(initVector, 16, '*');
+        String decrypt = SecurityUtils.decrypt(securityKey, initVector, servicePass);
+        return decrypt;
+    }
+
+
     public void persistProjectOptimization(life.genny.bootxport.bootx.RealmUnit rx) {
         service.setRealm(rx.getCode());
-        HashMap<String, String> userCodeUUIDMapping = KeycloakUtils.getUsersByRealm(rx.getKeycloakUrl(), rx.getCode());
+
+        String decrypt = decodePassword(rx.getCode(), rx.getSecurityKey(), rx.getServicePassword());
+        HashMap<String, String> userCodeUUIDMapping = KeycloakUtils.getUsersByRealm(rx.getKeycloakUrl(), rx.getCode(), decrypt);
         Optimization optimization = new Optimization(service);
 
         // clean up

@@ -388,7 +388,14 @@ public class GoogleSheetBuilder {
         if (attributeCode == null) return null;
 
         List<String> asList = Collections.singletonList("valuestring");
-        Optional<String> valueString = asList.stream().map(baseEntityAttr::get).findFirst();
+        Optional<String> valueString = Optional.empty();
+        try {
+			valueString = asList.stream().map(baseEntityAttr::get).findFirst();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			log.error("NULL ERROR: "+baseEntityAttr.get("baseentitycode")+":"+attributeCode);
+		}
         Integer valueInt = null;
         Optional<String> ofNullable = Optional.ofNullable(baseEntityAttr.get(VALUEINTEGER));
         if (ofNullable.isPresent() && !baseEntityAttr.get(VALUEINTEGER).matches("\\s*")) {
