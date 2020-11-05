@@ -82,4 +82,6 @@ public interface QwandaRepository {
 
     void bulkUpdateQuestionQuestion(ArrayList<QuestionQuestion> objectList, HashMap<String, QuestionQuestion> mapping);
 
+    void cleanAsk(String realm);
+    void cleanFrameFromBaseentityAttribute(String realm);
 }
