@@ -530,6 +530,7 @@ public class BatchLoading {
             String readonlyStr = questions.get("readonly");
             String mandatoryStr = questions.get("mandatory");
             String helper = questions.get("helper");
+            String icon = questions.get("icon");
 
             Boolean oneshot = getBooleanFromString(oneshotStr);
             Boolean readonly = getBooleanFromString(readonlyStr);
@@ -551,6 +552,7 @@ public class BatchLoading {
                 q.setReadonly(readonly);
                 q.setMandatory(mandatory);
                 q.setRealm(realmName);
+                q.setIcon(icon);
 
                 Question existing = service.findQuestionByCode(code);
                 if (existing == null) {
@@ -570,6 +572,7 @@ public class BatchLoading {
                     existing.setOneshot(oneshot);
                     existing.setReadonly(readonly);
                     existing.setMandatory(mandatory);
+                    existing.setIcon(icon);
                     service.upsert(existing);
                 }
             }
