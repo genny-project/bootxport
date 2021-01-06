@@ -235,6 +235,11 @@ public class GoogleSheetBuilder {
             return null;
         }
 
+        // Icon will default to Target Question's icon if null
+        if (icon == null) {
+            icon = tbe.getIcon();
+        }
+
         String oneshotStr = queQues.get("oneshot");
         Boolean oneshot = false;
         if (oneshotStr == null) {
@@ -340,6 +345,11 @@ public class GoogleSheetBuilder {
         if (attr == null) {
             log.error(String.format("Question: %s can not find Attribute:%s in database!", code, attrCode.toUpperCase()));
             return null;
+        }
+
+        // Icon will default to Attribute's icon if null
+        if ( (icon == null) || (icon.equals("null")) ) {
+            icon = attr.getIcon();
         }
 
         Question q = null;

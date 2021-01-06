@@ -441,6 +441,11 @@ public class BatchLoading {
                         oneshot = "TRUE".equalsIgnoreCase(oneshotStr);
                     }
 
+                    // Icon will default to Target Question's icon if null
+                    if (icon == null) {
+                        icon = tbe.getIcon();
+                    }
+
                     QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
                     qq.setOneshot(oneshot);
                     qq.setReadonly(readonly);
@@ -546,6 +551,11 @@ public class BatchLoading {
             if (attr == null) {
                 log.error(String.format("%s HAS NO ATTRIBUTE IN DATABASE", attrCode));
             } else {
+                // Icon will default to Attribute's icon if null
+                if (icon == null) {
+                    icon = attr.getIcon();
+                }
+
                 Question q = null;
                 if (placeholder != null) {
                     q = new Question(code, name, attr, placeholder);

@@ -617,7 +617,7 @@ public class Optimization {
                 String html = questions.get("html");
                 String directions = questions.get("directions");
                 String helper = questions.get("helper");
-                String icon = questions.get("icon");
+                String icon = question.getIcon();
                 existing.setName(name);
                 existing.setHtml(html);
                 existing.setDirections(directions);
