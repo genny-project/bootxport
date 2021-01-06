@@ -166,6 +166,8 @@ public class GoogleSheetBuilder {
         String helpStr = attributes.get("help");
         String placeholderStr = attributes.get("placeholder");
         String defaultValueStr = attributes.get("defaultValue".toLowerCase().replaceAll(REGEX_2, ""));
+        String icon = attributes.get("icon");
+
         Attribute attr = new Attribute(code, name, dataTypeRecord);
         attr.setDefaultPrivacyFlag(privacy);
         attr.setDescription(descriptionStr);
@@ -173,6 +175,7 @@ public class GoogleSheetBuilder {
         attr.setPlaceholder(placeholderStr);
         attr.setDefaultValue(defaultValueStr);
         attr.setRealm(realmName);
+        attr.setIcon(icon);
         return attr;
     }
 
@@ -213,6 +216,7 @@ public class GoogleSheetBuilder {
         Boolean formTrigger = queQues.get("formtrigger") != null && "TRUE".equalsIgnoreCase(queQues.get("formtrigger"));
         Boolean createOnTrigger = queQues.get("createontrigger") != null && "TRUE".equalsIgnoreCase(queQues.get("createontrigger"));
         String dependency = queQues.get("dependency");
+        String icon = queQues.get("icon");
 
         double weight = 0.0;
         if (isDouble(weightStr)) {
@@ -248,6 +252,7 @@ public class GoogleSheetBuilder {
             qq.setFormTrigger(formTrigger);
             qq.setRealm(realmName);
             qq.setDependency(dependency);
+            qq.setIcon(icon);
             return qq;
         } catch (BadDataException be) {
             log.error("Should never reach here!");

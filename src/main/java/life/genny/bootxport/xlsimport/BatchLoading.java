@@ -169,6 +169,8 @@ public class BatchLoading {
                 String helpStr = attributes.get("help");
                 String placeholderStr = attributes.get("placeholder");
                 String defaultValueStr = attributes.get("defaultValue".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+                String icon = attributes.get("icon");
+
                 Attribute attr = new Attribute(code, name, dataTypeRecord);
                 attr.setDefaultPrivacyFlag(privacy);
                 attr.setDescription(descriptionStr);
@@ -176,6 +178,7 @@ public class BatchLoading {
                 attr.setPlaceholder(placeholderStr);
                 attr.setDefaultValue(defaultValueStr);
                 attr.setRealm(realmName);
+                attr.setIcon(icon);
                 Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
                 for (ConstraintViolation<Attribute> constraint : constraints) {
                     log.info(String.format("%s, %s.", constraint.getPropertyPath(), constraint.getMessage()));
@@ -413,6 +416,7 @@ public class BatchLoading {
             Boolean formTrigger = (queQues.get("formtrigger")) != null && "TRUE".equalsIgnoreCase(queQues.get("formtrigger"));
             Boolean createOnTrigger = queQues.get("createontrigger") != null && "TRUE".equalsIgnoreCase(queQues.get("createontrigger"));
             double weight = 0.0;
+            String icon = queQues.get("icon");
 
             try {
                 weight = Double.parseDouble(weightStr);
@@ -443,6 +447,7 @@ public class BatchLoading {
                     qq.setCreateOnTrigger(createOnTrigger);
                     qq.setFormTrigger(formTrigger);
                     qq.setRealm(realmName);
+                    qq.setIcon(icon);
 
                     QuestionQuestion existing = null;
                     try {
@@ -463,6 +468,7 @@ public class BatchLoading {
                         existing.setFormTrigger(qq.getFormTrigger());
                         // existing.setRealm(mainRealm);
                         existing.setRealm(queQues.get("realm"));
+                        existing.setIcon(qq.getIcon());
 
                         qq = service.upsert(existing);
                     }
