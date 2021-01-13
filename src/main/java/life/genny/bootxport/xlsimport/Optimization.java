@@ -617,10 +617,12 @@ public class Optimization {
                 String html = questions.get("html");
                 String directions = questions.get("directions");
                 String helper = questions.get("helper");
+                String icon = question.getIcon();
                 existing.setName(name);
                 existing.setHtml(html);
                 existing.setDirections(directions);
                 existing.setHelper(helper);
+                existing.setIcon(icon);
 
                 String oneshotStr = questions.get("oneshot");
                 String readonlyStr = questions.get(GoogleSheetBuilder.READONLY);

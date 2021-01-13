@@ -169,6 +169,8 @@ public class BatchLoading {
                 String helpStr = attributes.get("help");
                 String placeholderStr = attributes.get("placeholder");
                 String defaultValueStr = attributes.get("defaultValue".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+                String icon = attributes.get("icon");
+
                 Attribute attr = new Attribute(code, name, dataTypeRecord);
                 attr.setDefaultPrivacyFlag(privacy);
                 attr.setDescription(descriptionStr);
@@ -176,6 +178,7 @@ public class BatchLoading {
                 attr.setPlaceholder(placeholderStr);
                 attr.setDefaultValue(defaultValueStr);
                 attr.setRealm(realmName);
+                attr.setIcon(icon);
                 Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
                 for (ConstraintViolation<Attribute> constraint : constraints) {
                     log.info(String.format("%s, %s.", constraint.getPropertyPath(), constraint.getMessage()));
@@ -413,6 +416,7 @@ public class BatchLoading {
             Boolean formTrigger = (queQues.get("formtrigger")) != null && "TRUE".equalsIgnoreCase(queQues.get("formtrigger"));
             Boolean createOnTrigger = queQues.get("createontrigger") != null && "TRUE".equalsIgnoreCase(queQues.get("createontrigger"));
             double weight = 0.0;
+            String icon = queQues.get("icon");
 
             try {
                 weight = Double.parseDouble(weightStr);
@@ -437,12 +441,18 @@ public class BatchLoading {
                         oneshot = "TRUE".equalsIgnoreCase(oneshotStr);
                     }
 
+                    // Icon will default to Target Question's icon if null
+                    if (icon == null) {
+                        icon = tbe.getIcon();
+                    }
+
                     QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
                     qq.setOneshot(oneshot);
                     qq.setReadonly(readonly);
                     qq.setCreateOnTrigger(createOnTrigger);
                     qq.setFormTrigger(formTrigger);
                     qq.setRealm(realmName);
+                    qq.setIcon(icon);
 
                     QuestionQuestion existing = null;
                     try {
@@ -463,6 +473,7 @@ public class BatchLoading {
                         existing.setFormTrigger(qq.getFormTrigger());
                         // existing.setRealm(mainRealm);
                         existing.setRealm(queQues.get("realm"));
+                        existing.setIcon(qq.getIcon());
 
                         qq = service.upsert(existing);
                     }
@@ -530,6 +541,7 @@ public class BatchLoading {
             String readonlyStr = questions.get("readonly");
             String mandatoryStr = questions.get("mandatory");
             String helper = questions.get("helper");
+            String icon = questions.get("icon");
 
             Boolean oneshot = getBooleanFromString(oneshotStr);
             Boolean readonly = getBooleanFromString(readonlyStr);
@@ -539,6 +551,11 @@ public class BatchLoading {
             if (attr == null) {
                 log.error(String.format("%s HAS NO ATTRIBUTE IN DATABASE", attrCode));
             } else {
+                // Icon will default to Attribute's icon if null
+                if (icon == null) {
+                    icon = attr.getIcon();
+                }
+
                 Question q = null;
                 if (placeholder != null) {
                     q = new Question(code, name, attr, placeholder);
@@ -551,6 +568,7 @@ public class BatchLoading {
                 q.setReadonly(readonly);
                 q.setMandatory(mandatory);
                 q.setRealm(realmName);
+                q.setIcon(icon);
 
                 Question existing = service.findQuestionByCode(code);
                 if (existing == null) {
@@ -570,6 +588,7 @@ public class BatchLoading {
                     existing.setOneshot(oneshot);
                     existing.setReadonly(readonly);
                     existing.setMandatory(mandatory);
+                    existing.setIcon(icon);
                     service.upsert(existing);
                 }
             }

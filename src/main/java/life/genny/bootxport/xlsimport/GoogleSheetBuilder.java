@@ -166,6 +166,8 @@ public class GoogleSheetBuilder {
         String helpStr = attributes.get("help");
         String placeholderStr = attributes.get("placeholder");
         String defaultValueStr = attributes.get("defaultValue".toLowerCase().replaceAll(REGEX_2, ""));
+        String icon = attributes.get("icon");
+
         Attribute attr = new Attribute(code, name, dataTypeRecord);
         attr.setDefaultPrivacyFlag(privacy);
         attr.setDescription(descriptionStr);
@@ -173,6 +175,7 @@ public class GoogleSheetBuilder {
         attr.setPlaceholder(placeholderStr);
         attr.setDefaultValue(defaultValueStr);
         attr.setRealm(realmName);
+        attr.setIcon(icon);
         return attr;
     }
 
@@ -213,6 +216,7 @@ public class GoogleSheetBuilder {
         Boolean formTrigger = queQues.get("formtrigger") != null && "TRUE".equalsIgnoreCase(queQues.get("formtrigger"));
         Boolean createOnTrigger = queQues.get("createontrigger") != null && "TRUE".equalsIgnoreCase(queQues.get("createontrigger"));
         String dependency = queQues.get("dependency");
+        String icon = queQues.get("icon");
 
         double weight = 0.0;
         if (isDouble(weightStr)) {
@@ -229,6 +233,11 @@ public class GoogleSheetBuilder {
         } else if (tbe == null) {
             log.error("QuestionQuesiton target Code:" + targetCode + " doesn't exist in Question table.");
             return null;
+        }
+
+        // Icon will default to Target Question's icon if null
+        if (icon == null) {
+            icon = tbe.getIcon();
         }
 
         String oneshotStr = queQues.get("oneshot");
@@ -248,6 +257,7 @@ public class GoogleSheetBuilder {
             qq.setFormTrigger(formTrigger);
             qq.setRealm(realmName);
             qq.setDependency(dependency);
+            qq.setIcon(icon);
             return qq;
         } catch (BadDataException be) {
             log.error("Should never reach here!");
@@ -325,6 +335,7 @@ public class GoogleSheetBuilder {
         String readonlyStr = questions.get(READONLY);
         String mandatoryStr = questions.get(MANDATORY);
         String helper = questions.get("helper");
+        String icon = questions.get("icon");
 
         Boolean oneshot = getBooleanFromString(oneshotStr);
         Boolean readonly = getBooleanFromString(readonlyStr);
@@ -334,6 +345,11 @@ public class GoogleSheetBuilder {
         if (attr == null) {
             log.error(String.format("Question: %s can not find Attribute:%s in database!", code, attrCode.toUpperCase()));
             return null;
+        }
+
+        // Icon will default to Attribute's icon if null
+        if ( (icon == null) || (icon.equals("null")) ) {
+            icon = attr.getIcon();
         }
 
         Question q = null;
@@ -349,6 +365,7 @@ public class GoogleSheetBuilder {
         q.setRealm(realmName);
         q.setDirections(directions);
         q.setHelper(helper);
+        q.setIcon(icon);
         return q;
     }
 
