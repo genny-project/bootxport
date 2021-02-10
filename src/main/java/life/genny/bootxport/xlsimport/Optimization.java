@@ -550,19 +550,9 @@ public class Optimization {
     public void questionsOptimization(Map<String, Map<String, String>> project, String realmName, boolean isSynchronise) {
         // Get all questions from database
         String tableName = "Question";
-        String mainRealm = GennySettings.mainrealm;
-        List<Question> questionsFromDBMainRealm = new ArrayList<>();
-        HashMap<String, Question> codeQuestionMappingMainRealm = new HashMap<>();
-
-        if (!realmName.equals(mainRealm)) {
-            questionsFromDBMainRealm = service.queryTableByRealm(tableName, mainRealm);
-            for (Question q : questionsFromDBMainRealm) {
-                codeQuestionMappingMainRealm.put(q.getCode(), q);
-            }
-        }
 
         List<Question> questionsFromDB = service.queryTableByRealm(tableName, realmName);
-        HashMap<String, Question> codeQuestionMapping = new HashMap<>();
+        HashMap<String, CodedEntity> codeQuestionMapping = new HashMap<>();
 
         for (Question q : questionsFromDB) {
             codeQuestionMapping.put(q.getCode(), q);
@@ -583,6 +573,9 @@ public class Optimization {
         int newItem = 0;
         int updated = 0;
 
+        ArrayList<CodedEntity> questionInsertList = new ArrayList<>();
+        ArrayList<CodedEntity> questionUpdateList = new ArrayList<>();
+
         for (Map.Entry<String, Map<String, String>> rawData : project.entrySet()) {
             total += 1;
             if (rawData.getKey().isEmpty()) {
@@ -599,44 +592,20 @@ public class Optimization {
                 continue;
             }
 
-            Question existing = codeQuestionMapping.get(code.toUpperCase());
-            if (existing == null) {
-                if (isSynchronise) {
-                    Question val = codeQuestionMappingMainRealm.get(code.toUpperCase());
-                    if (val != null) {
-                        val.setRealm(realmName);
-                        service.updateRealm(val);
-                        updated++;
-                        continue;
-                    }
+            if(codeQuestionMapping.containsKey(code.toUpperCase())) {
+                if (isChanged(question, codeQuestionMapping.get(question.getCode()))) {
+                    questionUpdateList.add(question);
+                    updated++;
+                } else {
+                    skipped++;
                 }
-                service.insert(question);
-                newItem++;
             } else {
-                String name = questions.get("name");
-                String html = questions.get("html");
-                String directions = questions.get("directions");
-                String helper = questions.get("helper");
-                String icon = question.getIcon();
-                existing.setName(name);
-                existing.setHtml(html);
-                existing.setDirections(directions);
-                existing.setHelper(helper);
-                existing.setIcon(icon);
-
-                String oneshotStr = questions.get("oneshot");
-                String readonlyStr = questions.get(GoogleSheetBuilder.READONLY);
-                String mandatoryStr = questions.get(GoogleSheetBuilder.MANDATORY);
-                boolean oneshot = GoogleSheetBuilder.getBooleanFromString(oneshotStr);
-                boolean readonly = GoogleSheetBuilder.getBooleanFromString(readonlyStr);
-                boolean mandatory = GoogleSheetBuilder.getBooleanFromString(mandatoryStr);
-                existing.setOneshot(oneshot);
-                existing.setReadonly(readonly);
-                existing.setMandatory(mandatory);
-                service.upsert(existing);
-                updated++;
+                questionInsertList.add(question);
+                newItem++;
             }
         }
+        service.bulkInsert(questionInsertList);
+        service.bulkUpdate(questionUpdateList, codeQuestionMapping);
         printSummary("Question", total, invalid, skipped, updated, newItem);
     }
 
