@@ -633,7 +633,7 @@ public class Optimization {
                 existing.setOneshot(oneshot);
                 existing.setReadonly(readonly);
                 existing.setMandatory(mandatory);
-                service.upsert(existing);
+                service.upsert(existing, codeQuestionMapping);
                 updated++;
             }
         }
