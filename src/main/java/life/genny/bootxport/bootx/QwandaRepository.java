@@ -28,6 +28,8 @@ public interface QwandaRepository {
 
     Question upsert(Question q);
 
+    Question upsert(Question q, HashMap<String, Question> mapping);
+
     Long insert(final Ask ask);
 
     Validation findValidationByCode(@NotNull final String code);

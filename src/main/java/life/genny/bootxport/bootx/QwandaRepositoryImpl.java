@@ -322,6 +322,41 @@ public class QwandaRepositoryImpl implements QwandaRepository {
     }
 
     @Override
+    public Question upsert(Question q, HashMap<String, Question> mapping) {
+        EntityTransaction transaction = em.getTransaction();
+        transaction.begin();
+        try {
+            String code = q.getCode();
+            Question val = mapping.get(code);
+            BeanNotNullFields copyFields = new BeanNotNullFields();
+            if (val == null) {
+                throw new NoResultException();
+            }
+            copyFields.copyProperties(val, q);
+
+            val.setRealm(getRealm());
+
+            val = getEntityManager().merge(val);
+            transaction.commit();
+            return val;
+        } catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
+            q.setRealm(getRealm());
+            if (BatchLoading.isSynchronise()) {
+                Question val =
+                        findQuestionByCode(q.getCode(), REALM_HIDDEN);
+                if (val != null) {
+                    val.setRealm(getRealm());
+                    updateRealm(val);
+                    return val;
+                }
+            }
+            getEntityManager().persist(q);
+            transaction.commit();
+            return q;
+        }
+    }
+
+    @Override
     public Question upsert(Question q) {
         EntityTransaction transaction = em.getTransaction();
         transaction.begin();
