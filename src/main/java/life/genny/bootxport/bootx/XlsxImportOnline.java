@@ -25,26 +25,26 @@ public class XlsxImportOnline extends XlsxImport {
     private Sheets service;
 
     private Function2<String, String, List<Map<String, String>>> mappingAndCacheHeaderToValues =
-            (sheetName, sheetId) -> {
-                log.info("Function2: not memoized for sheetName: " + sheetName + ",SheetID: " + sheetId);
+            (sheetURI, sheetName) -> {
+                log.info("Function2: not memoized for SheetID: " + sheetURI + ",sheetName: " + sheetName);
                 List<List<Object>> data;
                 try {
-                    data = Lists.newArrayList(fetchSpreadSheet(sheetName, sheetId));
+                    data = Lists.newArrayList(fetchSpreadSheet(sheetURI, sheetName));
                 } catch (IOException e) {
-                    log.error("Function2: There was a Error " + " in SheetID: " + sheetId + " and SheetName:" + sheetName);
+                    log.error("Function2: There was a Error " + " in SheetName:" + sheetName + " and SheetID:" + sheetURI);
                     return new ArrayList<>();
                 }
                 return mappingHeaderToValues(data);
             };
 
     private Function3<String, String, Set<String>, Map<String, Map<String, String>>> mappingAndCacheKeyHeaderToHeaderValues =
-            (sheetName, sheetId, keys) -> {
-                log.info("Function3: not memoized for sheetName: " + sheetName + ",SheetID: " + sheetId);
+            (sheetURI, sheetName, keys) -> {
+                log.info("Function3: not memoized for sheetID:" + sheetURI + ",SheetName: " + sheetName);
                 List<List<Object>> data;
                 try {
-                    data = Lists.newArrayList(fetchSpreadSheet(sheetName, sheetId));
+                    data = Lists.newArrayList(fetchSpreadSheet(sheetURI, sheetName));
                 } catch (IOException e) {
-                    log.error("Function3: There was a Error " + " in SheetID: " + sheetId + " and SheetName:" + sheetName);
+                    log.error("Function3: There was a Error " + " in SheetName:" + sheetName + " and SheetID:" + sheetURI);
                     return new HashMap<>();
                 }
                 return mappingKeyHeaderToHeaderValues(data, keys);

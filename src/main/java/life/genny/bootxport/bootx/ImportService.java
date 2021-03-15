@@ -200,4 +200,28 @@ public class ImportService {
             return new HashMap<>();
         }
     }
+
+    // Baseentity Definition
+    public Map<String, Map<String, String>> fetchDefBaseEntity(String sheetURI) {
+        String baseEntity = "DEF_BaseEntity";
+        String key = sheetURI + baseEntity;
+        XlsxImport createXlsImport = createXlsImport(key);
+        try {
+            return createXlsImport.mappingRawToHeaderAndValuesFmt(sheetURI, baseEntity, DataKeyColumn.CODE);
+        } catch (Exception e1) {
+            return new HashMap<>();
+        }
+    }
+
+    // EntityAttribute Definition
+    public Map<String, Map<String, String>> fetchDefEntityAttribute(String sheetURI) {
+        String entityAttribute = "DEF_EntityAttribute";
+        String key = sheetURI + entityAttribute;
+        XlsxImport createXlsImport = createXlsImport(key);
+        try {
+            return createXlsImport.mappingRawToHeaderAndValuesFmt(sheetURI, entityAttribute, DataKeyColumn.CODE_BA);
+        } catch (Exception e1) {
+            return new HashMap<>();
+        }
+    }
 }
