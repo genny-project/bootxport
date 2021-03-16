@@ -692,6 +692,8 @@ public class Optimization {
 
     public void def_baseEntityAttributesOptimization(Map<String, Map<String, String>> project, String realmName,
                                                  HashMap<String, String> userCodeUUIDMapping) {
+        log.info("Processing DEF_BaseEntityAttribute data");
+
         // Get all BaseEntity
         String tableName = "BaseEntity";
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
@@ -745,6 +747,7 @@ public class Optimization {
                     // ATT_ doesn't exist in database, create and persist
                     if (!attrHashMap.containsKey(attributeCode)) {
                         Attribute virtualAttr = new Attribute(attributeCode, attributeCode, new DataType(String.class));
+                        virtualAttr.setRealm(realmName);
                         virtualDefAttribute.add(virtualAttr);
                         attrHashMap.put(attributeCode, virtualAttr);
                         log.debug("Create new virtual Attribute:" + attributeCode);
@@ -769,7 +772,7 @@ public class Optimization {
     public void def_baseEntitysOptimization(Map<String, Map<String, String>> project, String realmName,
                                         HashMap<String, String> userCodeUUIDMapping) {
 
-        log.info("Processing DEF_Baseentity data");
+        log.info("Processing DEF_BaseEntity data");
         String tableName = "BaseEntity";
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
 
