@@ -31,7 +31,7 @@ public class XlsxImportOnline extends XlsxImport {
                 try {
                     data = Lists.newArrayList(fetchSpreadSheet(sheetName, sheetId));
                 } catch (IOException e) {
-                    log.error("Function2: There was a Error " + " in SheetID: " + sheetId + " and SheetName:" + sheetName);
+                    log.error("Function2: There was a Error:" + e.getMessage() + " in SheetID: " + sheetId + " and SheetName:" + sheetName);
                     return new ArrayList<>();
                 }
                 return mappingHeaderToValues(data);
@@ -44,7 +44,7 @@ public class XlsxImportOnline extends XlsxImport {
                 try {
                     data = Lists.newArrayList(fetchSpreadSheet(sheetName, sheetId));
                 } catch (IOException e) {
-                    log.error("Function3: There was a Error " + " in SheetID: " + sheetId + " and SheetName:" + sheetName);
+                    log.error("Function3: There was a Error:" + e.getMessage() + " in SheetID: " + sheetId + " and SheetName:" + sheetName);
                     return new HashMap<>();
                 }
                 return mappingKeyHeaderToHeaderValues(data, keys);
