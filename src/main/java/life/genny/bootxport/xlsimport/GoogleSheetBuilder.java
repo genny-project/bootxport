@@ -376,7 +376,7 @@ public class GoogleSheetBuilder {
         if (baseEntityAttr.containsKey(searchKey)) {
             attributeCode = baseEntityAttr.get(searchKey).replaceAll("^\"|\"$", "");
         } else {
-            log.error("Invalid record, AttributeCode not found [" + baseEntityAttr + "]");
+            log.error("Invalid record, AttributeCode not found in [" + baseEntityAttr + "]");
         }
         return attributeCode;
     }
@@ -393,7 +393,7 @@ public class GoogleSheetBuilder {
                 baseEntityCode = keycloakUUID;
             }
         } else {
-            log.error("Invalid record, BaseEntityCode not found [" + baseEntityAttr + "]");
+            log.error("Invalid record, BaseEntityCode not found in [" + baseEntityAttr + "]");
         }
         return baseEntityCode;
     }

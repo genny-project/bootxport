@@ -558,6 +558,13 @@ public class QwandaRepositoryImpl implements QwandaRepository {
     }
 
     @Override
+    public void bulkUpdateWithAttributes(List<BaseEntity> entities) {
+        for (BaseEntity entity : entities) {
+            updateWithAttributes(entity);
+        }
+    }
+
+    @Override
     public EntityEntity findEntityEntity(final String sourceCode,
                                          final String targetCode, final String linkCode)
             throws NoResultException {

@@ -20,6 +20,8 @@ public abstract class DataUnit {
     protected Map<String, Map<String, String>> entityEntitys = new HashMap<>();
     protected Map<String, Map<String, String>> baseEntitys = new HashMap<>();
     protected Map<String, Map<String, String>> messages = new HashMap<>();
+    protected Map<String, Map<String, String>> def_baseEntitys = new HashMap<>();
+    protected Map<String, Map<String, String>> def_entityAttributes = new HashMap<>();
 
     public void setAttributes(Map<String, Map<String, String>> attributes) {
         this.attributes = attributes;
@@ -112,6 +114,14 @@ public abstract class DataUnit {
 
     public Map<String, Map<String, String>> getBaseEntitys() {
         return baseEntitys;
+    }
+
+    public Map<String, Map<String, String>> getDef_baseEntitys() {
+        return def_baseEntitys;
+    }
+
+    public Map<String, Map<String, String>> getDef_entityAttributes() {
+        return def_entityAttributes;
     }
 
     public Map<String, Map<String, String>> getMessages() {

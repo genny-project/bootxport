@@ -40,6 +40,8 @@ public interface QwandaRepository {
 
     Long updateWithAttributes(BaseEntity entity);
 
+    void bulkUpdateWithAttributes(List<BaseEntity> entities);
+
     EntityEntity findEntityEntity(final String sourceCode, final String targetCode, final String linkCode);
 
     Integer updateEntityEntity(final EntityEntity ee);

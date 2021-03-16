@@ -29,6 +29,8 @@ public class ModuleUnit extends DataUnit {
         this.entityAttributes = service.fetchEntityAttribute(sheetURI);
         this.entityEntitys = service.fetchEntityEntity(sheetURI);
 
+        this.def_baseEntitys = service.fetchDefBaseEntity(sheetURI);
+        this.def_entityAttributes = service.fetchDefEntityAttribute(sheetURI);
     }
 
 

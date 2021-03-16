@@ -689,4 +689,134 @@ public class Optimization {
         service.bulkUpdate(validationUpdateList, codeValidationMapping);
         printSummary(tableName, total, invalid, skipped, updated, newItem);
     }
+
+    public void def_baseEntityAttributesOptimization(Map<String, Map<String, String>> project, String realmName,
+                                                 HashMap<String, String> userCodeUUIDMapping) {
+        // Get all BaseEntity
+        String tableName = "BaseEntity";
+        List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
+        HashMap<String, BaseEntity> beHashMap = new HashMap<>();
+        for (BaseEntity be : baseEntityFromDB) {
+            beHashMap.put(be.getCode(), be);
+        }
+
+        // Get all Attribute
+        tableName = "Attribute";
+        List<Attribute> attributeFromDB = service.queryTableByRealm(tableName, realmName);
+        HashMap<String, Attribute> attrHashMap = new HashMap<>();
+        for (Attribute attribute : attributeFromDB) {
+            attrHashMap.put(attribute.getCode(), attribute);
+        }
+
+        int invalid = 0;
+        int total = 0;
+        int skipped = 0;
+        int newItem = 0;
+        int updated = 0;
+
+
+        List<BaseEntity> baseEntities = new ArrayList<>();
+        // Attribute code start with ATT_
+        ArrayList<CodedEntity> virtualDefAttribute = new ArrayList<>();
+
+        for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
+            total++;
+            Map<String, String> baseEntityAttr = entry.getValue();
+
+            String baseEntityCode = GoogleSheetBuilder.getBaseEntityCodeFromBaseEntityAttribute(baseEntityAttr,
+                    userCodeUUIDMapping);
+            if (baseEntityCode == null) {
+                invalid++;
+                continue;
+            }
+
+            String attributeCode = GoogleSheetBuilder.getAttributeCodeFromBaseEntityAttribute(baseEntityAttr);
+            if (attributeCode == null) {
+                invalid++;
+                continue;
+            } else if(attributeCode.startsWith("ATT")) {
+                String trimedAttrCode = attributeCode.replaceFirst("ATT_", "");
+                // check if real attribute exist
+                if(attrHashMap.get(trimedAttrCode.toUpperCase()) == null) {
+                    log.error("Found DEF attribute:" + attributeCode + ", but real attribute code:" +  trimedAttrCode + " does not exist");
+                    invalid++;
+                    continue;
+                } else {
+                    // ATT_ doesn't exist in database, create and persist
+                    if (!attrHashMap.containsKey(attributeCode)) {
+                        Attribute virtualAttr = new Attribute(attributeCode, attributeCode, new DataType(String.class));
+                        virtualDefAttribute.add(virtualAttr);
+                        attrHashMap.put(attributeCode, virtualAttr);
+                        log.debug("Create new virtual Attribute:" + attributeCode);
+                    }
+                }
+            }
+
+            BaseEntity be = GoogleSheetBuilder.buildEntityAttribute(baseEntityAttr, realmName, attrHashMap, beHashMap,
+                    userCodeUUIDMapping);
+            if (be != null) {
+                baseEntities.add(be);
+                newItem++;
+            } else {
+                invalid++;
+            }
+        }
+        service.bulkInsert(virtualDefAttribute);
+        service.bulkUpdateWithAttributes(baseEntities);
+        printSummary("BaseEntityAttributes", total, invalid, skipped, updated, newItem);
+    }
+
+    public void def_baseEntitysOptimization(Map<String, Map<String, String>> project, String realmName,
+                                        HashMap<String, String> userCodeUUIDMapping) {
+
+        log.info("Processing DEF_Baseentity data");
+        String tableName = "BaseEntity";
+        List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
+
+        HashMap<String, CodedEntity> codeBaseEntityMapping = new HashMap<>();
+
+        for (BaseEntity be : baseEntityFromDB) {
+            codeBaseEntityMapping.put(be.getCode(), be);
+        }
+
+        ArrayList<CodedEntity> baseEntityInsertList = new ArrayList<>();
+        ArrayList<CodedEntity> baseEntityUpdateList = new ArrayList<>();
+        int invalid = 0;
+        int total = 0;
+        int skipped = 0;
+        int newItem = 0;
+        int updated = 0;
+
+        for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
+            total += 1;
+            Map<String, String> baseEntitys = entry.getValue();
+            BaseEntity baseEntity = GoogleSheetBuilder.buildBaseEntity(baseEntitys, realmName);
+            // validation check
+            if (isValid(baseEntity)) {
+                // get keycloak uuid from keycloak, replace code and beasentity
+                if (baseEntity.getCode().startsWith("PER_")) {
+                    String keycloakUUID = KeycloakUtils.getKeycloakUUIDByUserCode(baseEntity.getCode(), userCodeUUIDMapping);
+                    baseEntity.setCode(keycloakUUID);
+                }
+
+                if (codeBaseEntityMapping.containsKey(baseEntity.getCode())) {
+                    if (isChanged(baseEntity, codeBaseEntityMapping.get(baseEntity.getCode()))) {
+                        baseEntityUpdateList.add(baseEntity);
+                        updated++;
+                    } else {
+                        skipped++;
+                    }
+                } else {
+                    // insert new item
+                    baseEntityInsertList.add(baseEntity);
+                    newItem++;
+                }
+            } else {
+                invalid++;
+            }
+        }
+        service.bulkInsert(baseEntityInsertList);
+        service.bulkUpdate(baseEntityUpdateList, codeBaseEntityMapping);
+        printSummary(tableName, total, invalid, skipped, updated, newItem);
+    }
 }

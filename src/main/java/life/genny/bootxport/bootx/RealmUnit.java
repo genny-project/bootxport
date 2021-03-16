@@ -161,6 +161,15 @@ public class RealmUnit extends DataUnit {
                     .reduce(overrideByPrecedence);
             tmpOptional.ifPresent(stringMapHashMap -> super.attributes = stringMapHashMap);
 
+            tmpOptional = module.getDataUnits().stream()
+                    .map(moduleUnit -> Maps.newHashMap(moduleUnit.def_baseEntitys))
+                    .reduce(overrideByPrecedence);
+            tmpOptional.ifPresent(stringMapHashMap -> super.def_baseEntitys= stringMapHashMap);
+
+            tmpOptional = module.getDataUnits().stream()
+                    .map(moduleUnit -> Maps.newHashMap(moduleUnit.def_entityAttributes))
+                    .reduce(overrideByPrecedence);
+            tmpOptional.ifPresent(stringMapHashMap -> super.def_entityAttributes= stringMapHashMap);
 
             tmpOptional = module.getDataUnits().stream()
                     .map(mm -> Maps.newHashMap(mm.attributeLinks))
