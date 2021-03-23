@@ -142,23 +142,38 @@ public class BatchLoading {
 
     }
 
+    private Attribute getUrlListAttr() {
+        String attrName = "Url List";
+        String attrCode = "ENV_URL_LIST";
+        String dttCode = "DTT_TEXT";
+
+        ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
+        Validator validator = factory.getValidator();
+
+        Attribute attr = service.findAttributeByCode(attrCode);
+        if (attr == null) {
+            DataType dataType = new DataType(dttCode);
+            dataType.setDttCode(dttCode);
+            attr = new Attribute(attrCode, attrName, dataType);
+        } else {
+            attr.setName(attrName);
+        }
+        attr.setRealm(mainRealm);
+        Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
+        for (ConstraintViolation<Attribute> constraint : constraints) {
+            log.info(String.format("[\" %s\"] %s, %s.", this.mainRealm, constraint.getPropertyPath(), constraint.getMessage()));
+        }
+        return attr;
+    }
+
     public void upsertProjectUrls(String urlList) {
 
         final String PROJECT_CODE = "PRJ_" + this.mainRealm.toUpperCase();
         BaseEntity be = service.findBaseEntityByCode(PROJECT_CODE);
 
-        ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
-        Validator validator = factory.getValidator();
-        Attribute attr = service.findAttributeByCode("ENV_URL_LIST");
-        attr.setRealm(mainRealm);
-        DataType dataType = new DataType("DTT_TEXT");
-        dataType.setDttCode("DTT_TEXT");
-        attr = new Attribute("ENV_URL_LIST", "Url List", dataType);
-        Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
-        for (ConstraintViolation<Attribute> constraint : constraints) {
-            log.info(String.format("[\" %s\"] %s, %s.", this.mainRealm, constraint.getPropertyPath(), constraint.getMessage()));
-        }
+        Attribute attr = getUrlListAttr();
         service.upsert(attr);
+
         try {
             be.addAttribute(attr, 0.0, urlList);
         } catch (BadDataException e) {
