@@ -412,8 +412,8 @@ public class GoogleSheetBuilder {
 			valueString = asList.stream().map(baseEntityAttr::get).findFirst();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-			log.error("NULL ERROR: "+baseEntityAttr.get("baseentitycode")+":"+attributeCode);
+//			e.printStackTrace();
+			log.error("NULL ERROR: "+baseEntityAttr.get("baseentitycode")+":"+attributeCode + " doesn't have column valuestring.");
 		}
         Integer valueInt = null;
         Optional<String> ofNullable = Optional.ofNullable(baseEntityAttr.get(VALUEINTEGER));
