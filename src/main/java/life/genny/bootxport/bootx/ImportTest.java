@@ -34,7 +34,17 @@ public class ImportTest {
                 }
         ).collect(Collectors.toList());
 
-        collect.parallelStream().forEach(d -> d._2.persistProject(d._1));
+        collect.parallelStream().forEach(d ->
+                {
+                    if (!d._1.getDisable() && !d._1.getSkipGoogleDoc())
+                        d._2.persistProject(d._1);
+                    else {
+                        System.out.println("Realm:" + d._1.getName()
+                                + ", disabled:" + d._1.getDisable()
+                                + ", skipGoogleDoc:" + d._1.getSkipGoogleDoc());
+                    }
+                }
+        ) ;
     }
 
     public static void mains(String[] args) {
@@ -56,6 +66,16 @@ public class ImportTest {
                 }
         ).collect(Collectors.toList());
 
-        collect.parallelStream().forEach(d -> d._2.persistProject(d._1));
+        collect.parallelStream().forEach(d ->
+                {
+                    if (!d._1.getDisable() && !d._1.getSkipGoogleDoc())
+                        d._2.persistProject(d._1);
+                    else {
+                        System.out.println("Realm:" + d._1.getName()
+                                + ", disabled:" + d._1.getDisable()
+                                + ", skipGoogleDoc:" + d._1.getSkipGoogleDoc());
+                    }
+                }
+        ) ;
     }
 }
