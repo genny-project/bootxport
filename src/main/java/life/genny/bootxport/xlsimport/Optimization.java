@@ -736,24 +736,17 @@ public class Optimization {
             if (attributeCode == null) {
                 invalid++;
                 continue;
-            } else if(attributeCode.startsWith("ATT")) {
+            } else if(attributeCode.startsWith("ATT_")) {
                 String trimedAttrCode = attributeCode.replaceFirst("ATT_", "");
                 // check if real attribute exist
                 if(attrHashMap.get(trimedAttrCode.toUpperCase()) == null) {
                     log.error("Found DEF attribute:" + attributeCode + ", but real attribute code:" +  trimedAttrCode + " does not exist");
                     invalid++;
                     continue;
-                } else if (trimedAttrCode.toUpperCase().startsWith("ATT_")) {
-                	   Attribute virtualAttr = new Attribute(attributeCode, attributeCode, new DataType(Boolean.class));
-                       virtualAttr.setRealm(realmName);
-                       virtualDefAttribute.add(virtualAttr);
-                       attrHashMap.put(attributeCode, virtualAttr);
-                       log.debug("Create new virtual Boolean Attribute:" + attributeCode);
-                
                 } else {
                     // ATT_ doesn't exist in database, create and persist
                     if (!attrHashMap.containsKey(attributeCode)) {
-                        Attribute virtualAttr = new Attribute(attributeCode, attributeCode, new DataType(String.class));
+                        Attribute virtualAttr = new Attribute(attributeCode, attributeCode, new DataType(Boolean.class));
                         virtualAttr.setRealm(realmName);
                         virtualDefAttribute.add(virtualAttr);
                         attrHashMap.put(attributeCode, virtualAttr);
