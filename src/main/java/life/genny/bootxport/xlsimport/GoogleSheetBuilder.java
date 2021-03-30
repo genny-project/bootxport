@@ -442,9 +442,14 @@ public class GoogleSheetBuilder {
         Double valueDouble = null;
         Optional<String> ofNullableDouble = Optional.ofNullable(baseEntityAttr.get(VALUEDOUBLE));
         if (ofNullableDouble.isPresent() && !baseEntityAttr.get(VALUEDOUBLE).matches("\\s*")) {
-            BigDecimal big = new BigDecimal(baseEntityAttr.get(VALUEDOUBLE));
-            Optional<String[]> nullableVal = Optional.of(big.toPlainString().split("[.]"));
-            valueDouble = nullableVal.filter(d -> d.length > 0).map(d -> Double.valueOf(d[0])).get();
+            BigDecimal big = null;
+            try {
+				big = new BigDecimal(baseEntityAttr.get(VALUEDOUBLE));
+				Optional<String[]> nullableVal = Optional.of(big.toPlainString().split("[.]"));
+				valueDouble = nullableVal.filter(d -> d.length > 0).map(d -> Double.valueOf(d[0])).get();
+			} catch (Exception e) {
+				log.error("Bad fDouble format "+attributeCode);
+			}
         }
 
         Boolean valueBoolean = null;
@@ -489,6 +494,14 @@ public class GoogleSheetBuilder {
         }
 
         EntityAttribute ea = null;
+        if (valueString != null) {
+        	 try {
+                 ea = baseEntity.addAttribute(attribute, weightField, valueStr);
+             } catch (BadDataException be) {
+                 log.error(String.format("Should never reach here!, Error:%s", be.getMessage()));
+             }
+        	 valueBoolean = null; // force
+        } else
         if (valueLong != null) {
             try {
                 ea = baseEntity.addAttribute(attribute, weightField, valueLong);
@@ -503,6 +516,9 @@ public class GoogleSheetBuilder {
             }
         } else if (valueBoolean != null) {
             try {
+            	if (!attribute.getDataType().getClassName().equalsIgnoreCase("java.lang.Boolean")) {
+            		log.error("Bad boolean");
+            	}
                 ea = baseEntity.addAttribute(attribute, weightField, valueBoolean);
             } catch (BadDataException be) {
                 log.error(String.format("Should never reach here!, Error:%s", be.getMessage()));

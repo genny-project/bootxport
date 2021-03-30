@@ -751,6 +751,11 @@ public class Optimization {
                         virtualDefAttribute.add(virtualAttr);
                         attrHashMap.put(attributeCode, virtualAttr);
                         log.debug("Create new virtual Attribute:" + attributeCode);
+                    } else {
+                    	// inspect
+                    	Attribute at = attrHashMap.get(attributeCode);
+                    	log.info(at.getCode());
+                    	
                     }
                 }
             }
