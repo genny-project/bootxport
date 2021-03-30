@@ -32,6 +32,13 @@ public class GoogleSheetBuilder {
     private static final String REGEX_2 = "^\"|\"$|_|-";
     private static final String PRIVACY = "privacy";
     private static final String VALUEINTEGER = "valueinteger";
+    private static final String VALUEBOOLEAN = "valueboolean";
+    private static final String VALUEDOUBLE = "valuedouble";
+    private static final String VALUESTRING = "valuestring";
+    private static final String VALUEBDATETIME = "valuedatetime";
+    private static final String VALUEDATE = "valuedate";
+    private static final String VALUETIME = "valuetime";
+    private static final String VALUELONG = "valuelong";
     public static final String MANDATORY = "mandatory";
     public static final String READONLY = "readonly";
 
@@ -422,6 +429,30 @@ public class GoogleSheetBuilder {
             Optional<String[]> nullableVal = Optional.of(big.toPlainString().split("[.]"));
             valueInt = nullableVal.filter(d -> d.length > 0).map(d -> Integer.valueOf(d[0])).get();
         }
+
+        Long valueLong = null;
+        Optional<String> ofNullableLong = Optional.ofNullable(baseEntityAttr.get(VALUELONG));
+        if (ofNullableLong.isPresent() && !baseEntityAttr.get(VALUELONG).matches("\\s*")) {
+            BigDecimal big = new BigDecimal(baseEntityAttr.get(VALUELONG));
+            Optional<String[]> nullableVal = Optional.of(big.toPlainString().split("[.]"));
+            valueLong = nullableVal.filter(d -> d.length > 0).map(d -> Long.valueOf(d[0])).get();
+        }
+
+        Double valueDouble = null;
+        Optional<String> ofNullableDouble = Optional.ofNullable(baseEntityAttr.get(VALUEDOUBLE));
+        if (ofNullableDouble.isPresent() && !baseEntityAttr.get(VALUEDOUBLE).matches("\\s*")) {
+            BigDecimal big = new BigDecimal(baseEntityAttr.get(VALUEDOUBLE));
+            Optional<String[]> nullableVal = Optional.of(big.toPlainString().split("[.]"));
+            valueDouble = nullableVal.filter(d -> d.length > 0).map(d -> Double.valueOf(d[0])).get();
+        }
+
+        Boolean valueBoolean = null;
+        Optional<Boolean> ofNullableBoolean = Optional.ofNullable("TRUE".equalsIgnoreCase(baseEntityAttr.get(VALUEBOOLEAN)));
+        if (ofNullableBoolean.isPresent()) {
+            valueBoolean = ofNullableBoolean.get();
+        }
+
+        
         String valueStr = null;
         if (valueString.isPresent()) {
             valueStr = valueString.get().replaceAll(REGEX_1, "");
@@ -454,7 +485,25 @@ public class GoogleSheetBuilder {
         }
 
         EntityAttribute ea = null;
-        if (valueInt != null) {
+        if (valueLong != null) {
+            try {
+                ea = baseEntity.addAttribute(attribute, weightField, valueLong);
+            } catch (BadDataException be) {
+                log.error(String.format("Should never reach here!, Error:%s", be.getMessage()));
+            }
+        } else if (valueDouble != null) {
+            try {
+                ea = baseEntity.addAttribute(attribute, weightField, valueDouble);
+            } catch (BadDataException be) {
+                log.error(String.format("Should never reach here!, Error:%s", be.getMessage()));
+            }
+        } else if (valueBoolean != null) {
+            try {
+                ea = baseEntity.addAttribute(attribute, weightField, valueBoolean);
+            } catch (BadDataException be) {
+                log.error(String.format("Should never reach here!, Error:%s", be.getMessage()));
+            }
+        } else if (valueInt != null) {
             try {
                 ea = baseEntity.addAttribute(attribute, weightField, valueInt);
             } catch (BadDataException be) {
