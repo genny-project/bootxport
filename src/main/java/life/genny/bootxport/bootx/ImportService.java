@@ -76,6 +76,7 @@ public class ImportService {
         try {
             return createXlsImport.mappingRawToHeaderAndValuesFmt(sheetURI, baseEntity, DataKeyColumn.CODE);
         } catch (Exception e1) {
+            logFetchExceptionForSheets(e1.getMessage(), baseEntity, sheetURI);
             return new HashMap<>();
         }
     }
@@ -87,6 +88,7 @@ public class ImportService {
         try {
             return createXlsImport.mappingRawToHeaderAndValuesFmt(sheetURI, attribute, DataKeyColumn.CODE);
         } catch (Exception e1) {
+            logFetchExceptionForSheets(e1.getMessage(), attribute, sheetURI);
             return new HashMap<>();
         }
     }
@@ -98,6 +100,7 @@ public class ImportService {
         try {
             return createXlsImport.mappingRawToHeaderAndValuesFmt(sheetURI, attributeLink, DataKeyColumn.CODE);
         } catch (Exception e1) {
+            logFetchExceptionForSheets(e1.getMessage(), attributeLink, sheetURI);
             return new HashMap<>();
         }
     }
@@ -109,6 +112,7 @@ public class ImportService {
         try {
             return createXlsImport.mappingRawToHeaderAndValuesFmt(sheetURI, questionQuestion, DataKeyColumn.CODE_TARGET_PARENT);
         } catch (Exception e1) {
+            logFetchExceptionForSheets(e1.getMessage(), questionQuestion, sheetURI);
             return new HashMap<>();
         }
     }
@@ -120,6 +124,7 @@ public class ImportService {
         try {
             return createXlsImport.mappingRawToHeaderAndValuesFmt(sheetURI, validation, DataKeyColumn.CODE);
         } catch (Exception e1) {
+            logFetchExceptionForSheets(e1.getMessage(), validation, sheetURI);
             return new HashMap<>();
         }
     }
@@ -131,6 +136,7 @@ public class ImportService {
         try {
             return createXlsImport.mappingRawToHeaderAndValuesFmt(sheetURI, dataType, DataKeyColumn.CODE);
         } catch (Exception e1) {
+            logFetchExceptionForSheets(e1.getMessage(), dataType, sheetURI);
             return new HashMap<>();
         }
     }
@@ -142,6 +148,7 @@ public class ImportService {
         try {
             return createXlsImport.mappingRawToHeaderAndValuesFmt(sheetURI, question, DataKeyColumn.CODE);
         } catch (Exception e1) {
+            logFetchExceptionForSheets(e1.getMessage(), question, sheetURI);
             return new HashMap<>();
         }
     }
@@ -153,6 +160,7 @@ public class ImportService {
         try {
             return createXlsImport.mappingRawToHeaderAndValuesFmt(sheetURI, ask, DataKeyColumn.CODE_QUESTION_SOURCE_TARGET);
         } catch (Exception e1) {
+            logFetchExceptionForSheets(e1.getMessage(), ask, sheetURI);
             return new HashMap<>();
         }
     }
@@ -164,6 +172,7 @@ public class ImportService {
         try {
             return createXlsImport.mappingRawToHeaderAndValuesFmt(sheetURI, notifications, DataKeyColumn.CODE);
         } catch (Exception e1) {
+            logFetchExceptionForSheets(e1.getMessage(), notifications, sheetURI);
             return new HashMap<>();
         }
     }
@@ -175,6 +184,7 @@ public class ImportService {
         try {
             return createXlsImport.mappingRawToHeaderAndValuesFmt(sheetURI, messages, DataKeyColumn.CODE);
         } catch (Exception e1) {
+            logFetchExceptionForSheets(e1.getMessage(), messages, sheetURI);
             return new HashMap<>();
         }
     }
@@ -186,6 +196,7 @@ public class ImportService {
         try {
             return createXlsImport.mappingRawToHeaderAndValuesFmt(sheetURI, entityAttribute, DataKeyColumn.CODE_BA);
         } catch (Exception e1) {
+            logFetchExceptionForSheets(e1.getMessage(), entityAttribute, sheetURI);
             return new HashMap<>();
         }
     }
@@ -197,6 +208,7 @@ public class ImportService {
         try {
             return createXlsImport.mappingRawToHeaderAndValuesFmt(sheetURI, entityEntity, DataKeyColumn.CODE_TARGET_PARENT_LINK);
         } catch (Exception e1) {
+            logFetchExceptionForSheets(e1.getMessage(), entityEntity, sheetURI);
             return new HashMap<>();
         }
     }
@@ -209,6 +221,7 @@ public class ImportService {
         try {
             return createXlsImport.mappingRawToHeaderAndValuesFmt(sheetURI, baseEntity, DataKeyColumn.CODE);
         } catch (Exception e1) {
+            logFetchExceptionForSheets(e1.getMessage(), baseEntity, sheetURI);
             return new HashMap<>();
         }
     }
@@ -221,7 +234,13 @@ public class ImportService {
         try {
             return createXlsImport.mappingRawToHeaderAndValuesFmt(sheetURI, entityAttribute, DataKeyColumn.CODE_BA);
         } catch (Exception e1) {
+            logFetchExceptionForSheets(e1.getMessage(), entityAttribute, sheetURI);
             return new HashMap<>();
         }
+    }
+
+    private void logFetchExceptionForSheets(String exception, String sheetName, String sheetURI) {
+        log.error("ATTENTION!, Exception:"  +  exception + " occurred when fetching sheetName:" + sheetName
+        + ", sheetURI:" + sheetURI + ", return EMPTY HashMap!!!");
     }
 }
