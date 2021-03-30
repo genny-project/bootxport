@@ -39,6 +39,7 @@ public class GoogleSheetBuilder {
     private static final String VALUEDATE = "valuedate";
     private static final String VALUETIME = "valuetime";
     private static final String VALUELONG = "valuelong";
+
     public static final String MANDATORY = "mandatory";
     public static final String READONLY = "readonly";
 
@@ -465,6 +466,9 @@ public class GoogleSheetBuilder {
         String privacyStr = baseEntityAttr.get(PRIVACY);
         Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
 
+//        String valueBooleanStr = baseEntityAttr.get(VALUEBOOLEAN);
+//        Boolean valueBoolean= "TRUE".equalsIgnoreCase(valueBooleanStr);
+
         // Check if attribute code exist in Attribute table, foreign key restriction
         Attribute attribute = attrHashMap.get(attributeCode.toUpperCase());
         if (attribute == null) {
@@ -521,6 +525,11 @@ public class GoogleSheetBuilder {
             if (privacy || attribute.getDefaultPrivacyFlag()) {
                 ea.setPrivacyFlag(true);
             }
+
+            if (valueBoolean!= null) {
+                ea.setValueBoolean(valueBoolean);
+            }
+
             ea.setRealm(realmName);
         }
 
