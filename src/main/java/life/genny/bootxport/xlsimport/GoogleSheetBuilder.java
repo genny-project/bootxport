@@ -413,6 +413,14 @@ public class GoogleSheetBuilder {
                                                   HashMap<String, String> userCodeUUIDMapping) {
         String attributeCode = getAttributeCodeFromBaseEntityAttribute(baseEntityAttr);
         if (attributeCode == null) return null;
+        
+        // Check if attribute code exist in Attribute table, foreign key restriction
+        Attribute attribute = attrHashMap.get(attributeCode.toUpperCase());
+        if (attribute == null) {
+            log.error(String.format("Invalid EntityAttribute record, AttributeCode:%s is not in the Attribute Table!!!", attributeCode));
+            return null;
+        }
+
 
         List<String> asList = Collections.singletonList("valuestring");
         Optional<String> valueString = Optional.empty();
@@ -425,7 +433,7 @@ public class GoogleSheetBuilder {
 		}
         Integer valueInt = null;
         Optional<String> ofNullable = Optional.ofNullable(baseEntityAttr.get(VALUEINTEGER));
-        if (ofNullable.isPresent() && !baseEntityAttr.get(VALUEINTEGER).matches("\\s*")) {
+        if (ofNullable.isPresent() && !baseEntityAttr.get(VALUEINTEGER).matches("\\s*") && (attribute.dataType.getClassName().contains("Integer"))) {
             BigDecimal big = new BigDecimal(baseEntityAttr.get(VALUEINTEGER));
             Optional<String[]> nullableVal = Optional.of(big.toPlainString().split("[.]"));
             valueInt = nullableVal.filter(d -> d.length > 0).map(d -> Integer.valueOf(d[0])).get();
@@ -433,7 +441,7 @@ public class GoogleSheetBuilder {
 
         Long valueLong = null;
         Optional<String> ofNullableLong = Optional.ofNullable(baseEntityAttr.get(VALUELONG));
-        if (ofNullableLong.isPresent() && !baseEntityAttr.get(VALUELONG).matches("\\s*")) {
+        if (ofNullableLong.isPresent() && !baseEntityAttr.get(VALUELONG).matches("\\s*") && (attribute.dataType.getClassName().contains("Long"))) {
             BigDecimal big = new BigDecimal(baseEntityAttr.get(VALUELONG));
             Optional<String[]> nullableVal = Optional.of(big.toPlainString().split("[.]"));
             valueLong = nullableVal.filter(d -> d.length > 0).map(d -> Long.valueOf(d[0])).get();
@@ -441,7 +449,7 @@ public class GoogleSheetBuilder {
 
         Double valueDouble = null;
         Optional<String> ofNullableDouble = Optional.ofNullable(baseEntityAttr.get(VALUEDOUBLE));
-        if (ofNullableDouble.isPresent() && !baseEntityAttr.get(VALUEDOUBLE).matches("\\s*")) {
+        if (ofNullableDouble.isPresent() && !baseEntityAttr.get(VALUEDOUBLE).matches("\\s*") && (attribute.dataType.getClassName().contains("Double"))) {
             BigDecimal big = null;
             try {
 				big = new BigDecimal(baseEntityAttr.get(VALUEDOUBLE));
@@ -453,7 +461,7 @@ public class GoogleSheetBuilder {
         }
 
         Boolean valueBoolean = null;
-        Optional<Boolean> ofNullableBoolean = Optional.ofNullable("TRUE".equalsIgnoreCase(baseEntityAttr.get(VALUEBOOLEAN)));
+        Optional<Boolean> ofNullableBoolean = Optional.ofNullable("TRUE".equalsIgnoreCase(baseEntityAttr.get(VALUEBOOLEAN)) && (attribute.dataType.getClassName().contains("Boolean")));
         if (ofNullableBoolean.isPresent()) {
             valueBoolean = ofNullableBoolean.get();
         }
@@ -474,13 +482,7 @@ public class GoogleSheetBuilder {
 //        String valueBooleanStr = baseEntityAttr.get(VALUEBOOLEAN);
 //        Boolean valueBoolean= "TRUE".equalsIgnoreCase(valueBooleanStr);
 
-        // Check if attribute code exist in Attribute table, foreign key restriction
-        Attribute attribute = attrHashMap.get(attributeCode.toUpperCase());
-        if (attribute == null) {
-            log.error(String.format("Invalid EntityAttribute record, AttributeCode:%s is not in the Attribute Table!!!", attributeCode));
-            return null;
-        }
-
+ 
         // Check if baseEntity code exist in BaseEntity table, foreign key restriction
         BaseEntity baseEntity = beHashMap.get(baseEntityCode.toUpperCase());
         if (baseEntity == null) {
