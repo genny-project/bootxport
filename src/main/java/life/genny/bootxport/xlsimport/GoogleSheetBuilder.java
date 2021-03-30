@@ -32,6 +32,7 @@ public class GoogleSheetBuilder {
     private static final String REGEX_2 = "^\"|\"$|_|-";
     private static final String PRIVACY = "privacy";
     private static final String VALUEINTEGER = "valueinteger";
+    private static final String VALUEBOOLEAN = "valueboolean";
     public static final String MANDATORY = "mandatory";
     public static final String READONLY = "readonly";
 
@@ -434,6 +435,9 @@ public class GoogleSheetBuilder {
         String privacyStr = baseEntityAttr.get(PRIVACY);
         Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
 
+        String valueBooleanStr = baseEntityAttr.get(VALUEBOOLEAN);
+        Boolean valueBoolean= "TRUE".equalsIgnoreCase(valueBooleanStr);
+
         // Check if attribute code exist in Attribute table, foreign key restriction
         Attribute attribute = attrHashMap.get(attributeCode.toUpperCase());
         if (attribute == null) {
@@ -472,6 +476,11 @@ public class GoogleSheetBuilder {
             if (privacy || attribute.getDefaultPrivacyFlag()) {
                 ea.setPrivacyFlag(true);
             }
+
+            if (valueBooleanStr!= null) {
+                ea.setValueBoolean(valueBoolean);
+            }
+
             ea.setRealm(realmName);
         }
 
