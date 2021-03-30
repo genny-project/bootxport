@@ -743,6 +743,13 @@ public class Optimization {
                     log.error("Found DEF attribute:" + attributeCode + ", but real attribute code:" +  trimedAttrCode + " does not exist");
                     invalid++;
                     continue;
+                } else if (trimedAttrCode.toUpperCase().startsWith("ATT_")) {
+                	   Attribute virtualAttr = new Attribute(attributeCode, attributeCode, new DataType(Boolean.class));
+                       virtualAttr.setRealm(realmName);
+                       virtualDefAttribute.add(virtualAttr);
+                       attrHashMap.put(attributeCode, virtualAttr);
+                       log.debug("Create new virtual Boolean Attribute:" + attributeCode);
+                
                 } else {
                     // ATT_ doesn't exist in database, create and persist
                     if (!attrHashMap.containsKey(attributeCode)) {
