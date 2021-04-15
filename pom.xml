@@ -441,8 +441,8 @@
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         <!-- the maven dependency plugin will have already downloaded the server
                             on /target -->
-                        <jboss.home>${project.basedir}/target/wildfly-19.0.0.Final</jboss.home>
-                        <module.path>${project.basedir}/target/wildfly-19.0.0.Final/modules</module.path>
+                        <jboss.home>${project.basedir}/target/wildfly-23.0.0.Final</jboss.home>
+                        <module.path>${project.basedir}/target/wildfly-23.0.0.Final/modules</module.path>
                     </systemPropertyVariables>
                     <redirectTestOutputToFile>false</redirectTestOutputToFile>
                 </configuration>
