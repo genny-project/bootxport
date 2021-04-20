@@ -79,7 +79,7 @@ public class ModuleUnit extends DataUnit {
         Set<String> validSheetsTitle = initValidTitles();
         Map<String, Set<String>> keyColumnsMapping  = initKeyColumnsMapping();
 
-        System.out.println("Processing spreadsheet:" + sheetURI);
+        log.info("Processing spreadsheet:" + sheetURI);
         Sheets sheetsService = GoogleImportService.getInstance().getService();
         ArrayList<Sheet> sheets = getSheets(sheetsService,sheetURI);
 
@@ -95,23 +95,6 @@ public class ModuleUnit extends DataUnit {
         ArrayList<ValueRange> valueRanges = getValueRanges(sheetsService, sheetURI, titles);
 
         processValues(sheetsService, titles, valueRanges, sheetURI, keyColumnsMapping);
-
-        this.service = new ImportService(mode, SheetState.getState());
-        service.fetchValidation(sheetURI);
-        service.fetchDataType(sheetURI);
-        service.fetchAttribute(sheetURI);
-        service.fetchAttributeLink(sheetURI);
-        service.fetchBaseEntity(sheetURI);
-        service.fetchQuestionQuestion(sheetURI);
-        service.fetchQuestion(sheetURI);
-        service.fetchAsk(sheetURI);
-        service.fetchNotifications(sheetURI);
-        service.fetchMessages(sheetURI);
-        service.fetchEntityAttribute(sheetURI);
-        service.fetchEntityEntity(sheetURI);
-        service.fetchDefBaseEntity(sheetURI);
-        service.fetchDefEntityAttribute(sheetURI);
-
     /*
         this.validations = service.fetchValidation(sheetURI);
         this.dataTypes = service.fetchDataType(sheetURI);
@@ -203,7 +186,7 @@ public class ModuleUnit extends DataUnit {
             String title = valueRange.getRange().split("!")[0];
             if (titles.contains(title)) {
                 List<List<Object>> values = valueRange.getValues();
-                System.out.println("processing " + title + ", value size:" + values.size());
+                log.info("processing " + title + ", value size:" + values.size());
                 switch (title) {
                     case VALIDATION:
                         this.validations = getData(sheetsService, title, values, keyColumnsMapping, sheetURI);
@@ -252,7 +235,6 @@ public class ModuleUnit extends DataUnit {
                 }
             }
         }
-        System.out.println("All done");
     }
 
     private void logFetchExceptionForSheets(String exception, String sheetName, String sheetURI) {
