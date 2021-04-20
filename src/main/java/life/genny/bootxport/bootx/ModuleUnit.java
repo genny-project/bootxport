@@ -78,6 +78,21 @@ public class ModuleUnit extends DataUnit {
 
         processValues(sheetsService, titles, valueRanges, sheetURI);
 
+        service.fetchValidation(sheetURI);
+        service.fetchDataType(sheetURI);
+        service.fetchAttribute(sheetURI);
+        service.fetchAttributeLink(sheetURI);
+        service.fetchBaseEntity(sheetURI);
+        service.fetchQuestionQuestion(sheetURI);
+        service.fetchQuestion(sheetURI);
+        service.fetchAsk(sheetURI);
+        service.fetchNotifications(sheetURI);
+        service.fetchMessages(sheetURI);
+        service.fetchEntityAttribute(sheetURI);
+        service.fetchEntityEntity(sheetURI);
+        service.fetchDefBaseEntity(sheetURI);
+        service.fetchDefEntityAttribute(sheetURI);
+
     /*
         this.validations = service.fetchValidation(sheetURI);
         this.dataTypes = service.fetchDataType(sheetURI);
@@ -124,7 +139,7 @@ public class ModuleUnit extends DataUnit {
     private ArrayList<ValueRange> getValueRanges(Sheets service, String spreadsheetId, Set<String> titles) {
         // The ranges to retrieve from the spreadsheet.
         List<String> ranges = new ArrayList<>();
-        ArrayList<ValueRange> valueRanges = null;
+        ArrayList<ValueRange> valueRanges = new ArrayList<>();
 
         for (String title: titles) {
             ranges.add(title + RANGE);
@@ -138,7 +153,7 @@ public class ModuleUnit extends DataUnit {
             BatchGetValuesResponse response = request.execute();
             valueRanges = (ArrayList<ValueRange>) response.get("valueRanges");
         } catch (IOException ioe) {
-            log.error("IOException occurred when fetch SpreadSheets:" + spreadsheetId);
+            log.error("IOException occurred when fetch SpreadSheets:" + spreadsheetId + ", exception msg:" + ioe.getMessage());
         }
         return valueRanges;
     }

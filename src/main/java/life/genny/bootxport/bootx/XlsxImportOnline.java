@@ -43,9 +43,11 @@ public class XlsxImportOnline extends XlsxImport {
                 try {
                     data = Lists.newArrayList(fetchSpreadSheet(sheetURI, sheetName));
                     log.info("Function3: not memoized for sheetID:" + sheetURI + ", SheetName:" + sheetName + ", Value size:" + data.size());
+//                    System.out.println("sheetID:" + sheetURI + ", SheetName:" + sheetName + ", Value size:" + data.size());
 
                 } catch (IOException e) {
                     log.error("Function3: There was a Error " + e.getMessage() + " in SheetName:" + sheetName + " and SheetID:" + sheetURI);
+//                    System.out.println("Function3: There was a Error " + e.getMessage() + " in SheetName:" + sheetName + " and SheetID:" + sheetURI);
                     return new HashMap<>();
                 }
                 return mappingKeyHeaderToHeaderValues(data, keys);
