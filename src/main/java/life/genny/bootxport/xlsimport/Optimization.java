@@ -790,6 +790,7 @@ public class Optimization {
                     String[] defBaseentityArray = ea.getValueString().replace("[","")
                             .replace("]","")
                             .replace("\"", "")
+                            .replaceAll("\\s", "") // remove all space
                             .split(",");
                     for (String defBeCode: defBaseentityArray) {
                         if(def_basenetity_attributes_mapping.containsKey(defBeCode)) {
