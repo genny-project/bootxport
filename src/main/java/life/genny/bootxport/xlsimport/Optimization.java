@@ -694,6 +694,9 @@ public class Optimization {
                                                  HashMap<String, String> userCodeUUIDMapping) {
         log.info("Processing DEF_BaseEntityAttribute data");
 
+        // "DEF_XXX":"ATT_XXX, ATT_YYY"
+        HashMap<String, String> def_basenetity_attributes_mapping = new HashMap<>();
+
         // Get all BaseEntity
         String tableName = "BaseEntity";
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
@@ -764,12 +767,35 @@ public class Optimization {
                     userCodeUUIDMapping);
             if (be != null) {
                 baseEntities.add(be);
+                if (be.getCode().startsWith("DEF_")) {
+                    List<String> attributeCodeList= new ArrayList<>();
+                    for(EntityAttribute ea : be.getBaseEntityAttributes()) {
+                        attributeCodeList.add(ea.getAttributeCode());
+                    }
+                    def_basenetity_attributes_mapping.put(be.getCode(), String.join(",", attributeCodeList));
+                }
                 newItem++;
             } else {
                 invalid++;
             }
         }
         service.bulkInsert(virtualDefAttribute);
+
+        for (BaseEntity be: baseEntities) {
+            Set<EntityAttribute> entityAttributeList = be.getBaseEntityAttributes();
+            for (EntityAttribute ea : entityAttributeList) {
+                if (ea.getAttributeCode().equals("LNK_INCLUDE")) {
+                    List<String> tmpList = new ArrayList<>();
+                    String[] defBaseentityArray = ea.getValueString().replace("\\[","").replace("\\]","").split(",");
+                    for (String defBeCode: defBaseentityArray) {
+                        if(def_basenetity_attributes_mapping.containsKey(defBeCode)) {
+                            tmpList.add(def_basenetity_attributes_mapping.get(defBeCode));
+                        }
+                       ea.setValueString( "[" + String.join(",", tmpList) + "]");
+                    }
+                }
+            }
+        }
         service.bulkUpdateWithAttributes(baseEntities);
         printSummary("BaseEntityAttributes", total, invalid, skipped, updated, newItem);
     }
