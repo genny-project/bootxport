@@ -770,7 +770,8 @@ public class Optimization {
                 if (be.getCode().startsWith("DEF_")) {
                     List<String> attributeCodeList= new ArrayList<>();
                     for(EntityAttribute ea : be.getBaseEntityAttributes()) {
-                        attributeCodeList.add(ea.getAttributeCode());
+                       if (!ea.getAttributeCode().equals("LNK_INCLUDE"))
+                            attributeCodeList.add(ea.getAttributeCode());
                     }
                     def_basenetity_attributes_mapping.put(be.getCode(), String.join(",", attributeCodeList));
                 }
