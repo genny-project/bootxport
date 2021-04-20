@@ -796,7 +796,9 @@ public class Optimization {
                             tmpList.add(def_basenetity_attributes_mapping.get(defBeCode));
                         }
                     }
-                    ea.setValueString( "[" + String.join(",", tmpList) + "]");
+                    if (!tmpList.isEmpty()) {
+                        ea.setValueString("[" + String.join(",", tmpList) + "]");
+                    }
                 }
             }
         }
