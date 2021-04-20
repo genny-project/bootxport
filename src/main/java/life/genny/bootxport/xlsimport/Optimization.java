@@ -795,8 +795,8 @@ public class Optimization {
                         if(def_basenetity_attributes_mapping.containsKey(defBeCode)) {
                             tmpList.add(def_basenetity_attributes_mapping.get(defBeCode));
                         }
-                       ea.setValueString( "[" + String.join(",", tmpList) + "]");
                     }
+                    ea.setValueString( "[" + String.join(",", tmpList) + "]");
                 }
             }
         }
