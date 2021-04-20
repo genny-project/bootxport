@@ -803,7 +803,7 @@ public class Optimization {
             }
         }
         service.bulkUpdateWithAttributes(baseEntities);
-        printSummary("BaseEntityAttributes", total, invalid, skipped, updated, newItem);
+        printSummary("DEF_BaseEntityAttributes", total, invalid, skipped, updated, newItem);
     }
 
     public void def_baseEntitysOptimization(Map<String, Map<String, String>> project, String realmName,
@@ -857,6 +857,6 @@ public class Optimization {
         }
         service.bulkInsert(baseEntityInsertList);
         service.bulkUpdate(baseEntityUpdateList, codeBaseEntityMapping);
-        printSummary(tableName, total, invalid, skipped, updated, newItem);
+        printSummary("DEF_BaseEntity", total, invalid, skipped, updated, newItem);
     }
 }
