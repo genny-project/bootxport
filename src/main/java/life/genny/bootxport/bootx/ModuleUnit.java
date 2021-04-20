@@ -2,15 +2,14 @@ package life.genny.bootxport.bootx;
 
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.*;
-import com.google.common.collect.Lists;
-import org.apache.logging.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.util.*;
 
 public class ModuleUnit extends DataUnit {
-    protected static final Logger log = org.apache.logging.log4j.LogManager.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+    private final Log log = LogFactory.getLog(ModuleUnit.class);
     private static final String RANGE = "!A1:Z";
     private static final String VALIDATION = "Validation";
     private static final String DATATYPE = "DataType";
@@ -57,11 +56,30 @@ public class ModuleUnit extends DataUnit {
         return validSheetsTitle;
     }
 
+    private Map<String, Set<String>> initKeyColumnsMapping() {
+        Map<String, Set<String>> keyColumnsMapping = new HashMap<>();
+        keyColumnsMapping.put(VALIDATION, DataKeyColumn.CODE);
+        keyColumnsMapping.put(DATATYPE, DataKeyColumn.CODE);
+        keyColumnsMapping.put(ATTRIBUTE, DataKeyColumn.CODE);
+        keyColumnsMapping.put(ATTRIBUTE_LINK, DataKeyColumn.CODE);
+        keyColumnsMapping.put(BASE_ENTITY, DataKeyColumn.CODE);
+        keyColumnsMapping.put(QUESTION_QUESTION,  DataKeyColumn.CODE_TARGET_PARENT);
+        keyColumnsMapping.put(QUESTION, DataKeyColumn.CODE);
+        keyColumnsMapping.put(ASK, DataKeyColumn.CODE_QUESTION_SOURCE_TARGET);
+        keyColumnsMapping.put(NOTIFICATION, DataKeyColumn.CODE);
+        keyColumnsMapping.put(MESSAGE, DataKeyColumn.CODE);
+        keyColumnsMapping.put(ENTITY_ATTRIBUTE, DataKeyColumn.CODE_BA);
+        keyColumnsMapping.put(ENTITY_ENTITY, DataKeyColumn.CODE_TARGET_PARENT_LINK);
+        keyColumnsMapping.put(DEF_BASE_ENTITY, DataKeyColumn.CODE);
+        keyColumnsMapping.put(DEF_ENTITY_ATTRIBUTE, DataKeyColumn.CODE_BA);
+        return keyColumnsMapping;
+    }
+
     public ModuleUnit(BatchLoadMode mode, String sheetURI) {
-        this.service = new ImportService(mode, SheetState.getState());
+        Set<String> validSheetsTitle = initValidTitles();
+        Map<String, Set<String>> keyColumnsMapping  = initKeyColumnsMapping();
 
         System.out.println("Processing spreadsheet:" + sheetURI);
-        Set<String> validSheetsTitle = initValidTitles();
         Sheets sheetsService = GoogleImportService.getInstance().getService();
         ArrayList<Sheet> sheets = getSheets(sheetsService,sheetURI);
 
@@ -76,8 +94,9 @@ public class ModuleUnit extends DataUnit {
 
         ArrayList<ValueRange> valueRanges = getValueRanges(sheetsService, sheetURI, titles);
 
-        processValues(sheetsService, titles, valueRanges, sheetURI);
+        processValues(sheetsService, titles, valueRanges, sheetURI, keyColumnsMapping);
 
+        this.service = new ImportService(mode, SheetState.getState());
         service.fetchValidation(sheetURI);
         service.fetchDataType(sheetURI);
         service.fetchAttribute(sheetURI);
@@ -158,63 +177,75 @@ public class ModuleUnit extends DataUnit {
         return valueRanges;
     }
 
-    private void processValues (Sheets sheetsService, Set<String> titles, ArrayList<ValueRange> valueRanges,
-                                String sheetURI) {
+    private Map<String, Map<String, String>> getData(Sheets sheetsService, String title,
+    List<List<Object>> values, Map<String, Set<String>> keyColumnsMapping, String sheetURI) {
         XlsxImportOnline xlsxImportOnline = new XlsxImportOnline(sheetsService);
+        Map<String, Map<String, String>> tmp =  new HashMap<>();
+
+        try {
+            /*
+             DataKeyColumn.CODE_TARGET_PARENT for question_question
+             DataKeyColumn.CODE_QUESTION_SOURCE_TARGET for ask
+             DataKeyColumn.CODE_BA for entity_attribute
+             DataKeyColumn.CODE_TARGET_PARENT_LINK for entity_entity
+             DataKeyColumn.CODE_BA for def_baseentity_attribute
+             */
+            tmp = xlsxImportOnline.mappingKeyHeaderToHeaderValues(values, keyColumnsMapping.get(title));
+        } catch (Exception ex) {
+            logFetchExceptionForSheets(ex.getMessage(), title, sheetURI);
+        }
+        return tmp;
+    }
+
+    private void processValues (Sheets sheetsService, Set<String> titles, ArrayList<ValueRange> valueRanges,
+                                String sheetURI, Map<String, Set<String>> keyColumnsMapping) {
         for (ValueRange valueRange : valueRanges) {
             String title = valueRange.getRange().split("!")[0];
             if (titles.contains(title)) {
                 List<List<Object>> values = valueRange.getValues();
                 System.out.println("processing " + title + ", value size:" + values.size());
-
-                Map<String, Map<String, String>> tmp =  new HashMap<>();
-                try {
-                    tmp = xlsxImportOnline.mappingKeyHeaderToHeaderValues(values, DataKeyColumn.CODE);
-                } catch (Exception ex) {
-                    logFetchExceptionForSheets(ex.getMessage(), title, sheetURI);
-                }
                 switch (title) {
                     case VALIDATION:
-                        this.validations = tmp;
+                        this.validations = getData(sheetsService, title, values, keyColumnsMapping, sheetURI);
                         break;
                     case DATATYPE:
-                        this.dataTypes= tmp;
+                        this.dataTypes= getData(sheetsService, title, values, keyColumnsMapping, sheetURI);
                         break;
                     case ATTRIBUTE:
-                        this.attributes= tmp;
+                        this.attributes= getData(sheetsService, title, values, keyColumnsMapping, sheetURI);
                         break;
                     case ATTRIBUTE_LINK:
-                        this.attributeLinks= tmp;
+                        this.attributeLinks= getData(sheetsService, title, values, keyColumnsMapping, sheetURI);
                         break;
                     case BASE_ENTITY:
-                        this.baseEntitys= tmp;
+                        this.baseEntitys= getData(sheetsService, title, values, keyColumnsMapping, sheetURI);
                         break;
                     case QUESTION_QUESTION:
-                        this.questionQuestions= tmp;
+                        this.questionQuestions= getData(sheetsService, title, values, keyColumnsMapping, sheetURI);
                         break;
                     case QUESTION:
-                        this.questions= tmp;
+                        this.questions= getData(sheetsService, title, values, keyColumnsMapping, sheetURI);
                         break;
                     case ASK:
-                        this.asks= tmp;
+                        this.asks= getData(sheetsService, title, values, keyColumnsMapping, sheetURI);
                         break;
                     case NOTIFICATION:
-                        this.notifications= tmp;
+                        this.notifications= getData(sheetsService, title, values, keyColumnsMapping, sheetURI);
                         break;
                     case MESSAGE:
-                        this.messages= tmp;
+                        this.messages= getData(sheetsService, title, values, keyColumnsMapping, sheetURI);
                         break;
                     case ENTITY_ATTRIBUTE:
-                        this.entityAttributes= tmp;
+                        this.entityAttributes= getData(sheetsService, title, values, keyColumnsMapping, sheetURI);
                         break;
                     case ENTITY_ENTITY:
-                        this.entityEntitys= tmp;
+                        this.entityEntitys= getData(sheetsService, title, values, keyColumnsMapping, sheetURI);
                         break;
                     case DEF_BASE_ENTITY:
-                        this.def_baseEntitys= tmp;
+                        this.def_baseEntitys= getData(sheetsService, title, values, keyColumnsMapping, sheetURI);
                         break;
                     case DEF_ENTITY_ATTRIBUTE:
-                        this.def_entityAttributes= tmp;
+                        this.def_entityAttributes= getData(sheetsService, title, values, keyColumnsMapping, sheetURI);
                         break;
                     default:
                         break;
