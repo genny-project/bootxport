@@ -787,7 +787,7 @@ public class Optimization {
             for (EntityAttribute ea : entityAttributeList) {
                 if (ea.getAttributeCode().equals("LNK_INCLUDE")) {
                     List<String> tmpList = new ArrayList<>();
-                    String[] defBaseentityArray = ea.getValueString().replace("\\[","").replace("\\]","").split(",");
+                    String[] defBaseentityArray = ea.getValueString().replace("[","").replace("]","").split(",");
                     for (String defBeCode: defBaseentityArray) {
                         if(def_basenetity_attributes_mapping.containsKey(defBeCode)) {
                             tmpList.add(def_basenetity_attributes_mapping.get(defBeCode));
