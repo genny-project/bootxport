@@ -802,7 +802,17 @@ public class Optimization {
                         }
                     }
                     if (!tmpList.isEmpty()) {
-                        ea.setValueString("[" + String.join(",", tmpList) + "]");
+                        String target = "[";
+                        String[] array = String.join(",", tmpList) .replaceAll("\\s", "")
+                                .replace("\"", "")
+                                .replaceAll("\\s", "") // remove all space
+                                .split(",");
+                        for (String str : array) {
+                            target += "\"" + str + "\"" + ",";
+                        }
+                        if (target.endsWith(",") )
+                            target = target.substring(0, target.length() -1) + "]";
+                        ea.setValueString(target);
                     }
                 }
             }
