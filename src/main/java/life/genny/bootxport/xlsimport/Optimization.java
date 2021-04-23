@@ -1,5 +1,6 @@
 package life.genny.bootxport.xlsimport;
 
+import life.genny.bootxport.bootx.DEFBaseentityAttribute;
 import life.genny.bootxport.bootx.QwandaRepository;
 import life.genny.qwanda.*;
 import life.genny.qwanda.attribute.Attribute;
@@ -24,9 +25,10 @@ import java.util.*;
 
 public class Optimization {
     private static final Logger log = LoggerFactory.getLogger(Optimization.class);
-
     private QwandaRepository service;
-
+    private static final String LNK_INCLUDE = "LNK_INCLUDE";
+    private static final String DEF_PREFIX= "DEF_";
+    private static final String ATT_PREFIX= "ATT_";
 
     public Optimization(QwandaRepository repo) {
         this.service = repo;
@@ -690,9 +692,119 @@ public class Optimization {
         printSummary(tableName, total, invalid, skipped, updated, newItem);
     }
 
+    private String getCodeBySearchKey(String searchKey, Map<String, String> baseEntityAttr) {
+        if (baseEntityAttr.containsKey(searchKey.toLowerCase())) {
+            return baseEntityAttr.get(searchKey.toLowerCase()).replaceAll("^\"|\"$", "");
+        }
+        return null;
+    }
+
+    private Map<String, Set<String>> getAttributeCodeFromLinkDefs(DEFBaseentityAttribute defBaseentityAttribute,
+                                                     Map<String, DEFBaseentityAttribute> defBeAttrCodeObjMapping,
+                                                     Set<String> scannedDefs) {
+        // {DEF:(attr, attr)}
+        Map<String, Set<String>> defAttributeMapping = new HashMap<>();
+        for (String linkedDefBeCode: defBaseentityAttribute.getIncludeDefBaseentitys()) {
+            DEFBaseentityAttribute defBeAttr = defBeAttrCodeObjMapping.get(linkedDefBeCode);
+            if ( defBeAttr == null) {
+                log.error("ATTENTION, Can not find " + linkedDefBeCode + " from DEF_BaseentityAttribute sheet.");
+            } else  {
+                if (scannedDefs.contains(linkedDefBeCode)) {
+                    log.error("ATTENTION, you have loop dependence DEFs.");
+                    log.error("Terminate startup !!!");
+                    System.exit(1);
+                } else {
+                    scannedDefs.add(linkedDefBeCode);
+                }
+
+                defAttributeMapping.putIfAbsent(linkedDefBeCode, defBeAttr.getAttributes());
+                if (defBeAttr.isHasLnkInclude()) {
+                    Map<String, Set<String>> tmpDefAttributes = getAttributeCodeFromLinkDefs(defBeAttr, defBeAttrCodeObjMapping, scannedDefs);
+                    defAttributeMapping.putAll(tmpDefAttributes);
+                }
+            }
+        }
+        return defAttributeMapping;
+    }
+
+    private void foo1() {
+    }
+
+    private Map<String, Map<String, String>> extendDefBaseentityAttribute(Map<String, Map<String, String>> project) {
+        Map<String, Map<String, String>> newDefBeAttr = new HashMap<>();
+        Map<String, DEFBaseentityAttribute> DEFBeAttrCodeObjMapping = new HashMap<>();
+        Set<String> defBaseentityHasLnkInclude = new HashSet<>();
+        DEFBaseentityAttribute defBaseentityAttribute  = null;
+
+        for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
+            Map<String, String> baseEntityAttr = entry.getValue();
+
+            // get be_code
+            String baseEntityCode = null;
+            String searchKey = "baseEntityCode";
+            baseEntityCode = getCodeBySearchKey(searchKey, baseEntityAttr);
+            if (baseEntityCode == null) {
+                log.error("Invalid" + searchKey + " record, BaseEntityCode not found in [" + baseEntityAttr + "]");
+                continue;
+            }
+
+            // get attr_code
+            String attributeCode = null;
+            searchKey = "attributeCode";
+            attributeCode =getCodeBySearchKey(searchKey, baseEntityAttr);
+            if (attributeCode == null) {
+                log.error("Invalid" + searchKey + " record, BaseEntityCode not found in [" + baseEntityAttr + "]");
+                continue;
+            }
+
+            // Set defBaseentityAttribute value
+            if (!DEFBeAttrCodeObjMapping.containsKey(baseEntityCode)) {
+                defBaseentityAttribute = new DEFBaseentityAttribute(baseEntityCode);
+                defBaseentityAttribute.getAttributes().add(attributeCode);
+                DEFBeAttrCodeObjMapping.put(baseEntityCode, defBaseentityAttribute);
+            } else {
+                defBaseentityAttribute = DEFBeAttrCodeObjMapping.get(baseEntityCode);
+                defBaseentityAttribute.getAttributes().add(attributeCode);
+            }
+
+            // save DEF_xx for further process
+            if (attributeCode.equals(LNK_INCLUDE)) {
+                String[] defBaseentityArray = baseEntityAttr.get("valuestring").replace("[","")
+                        .replace("]","")
+                        .replace("\"", "")
+                        .replaceAll("\\s", "") // remove all space
+                        .split(",");
+                defBaseentityAttribute.getIncludeDefBaseentitys().addAll(Arrays.asList(defBaseentityArray));
+                defBaseentityAttribute.setHasLnkInclude(true);
+
+                // add for further process
+                defBaseentityHasLnkInclude.add(baseEntityCode);
+            }
+        }
+
+        for (String defBeCode : defBaseentityHasLnkInclude) {
+            Set<String> scannedDefs = new HashSet<>();
+            scannedDefs.add(defBeCode);
+
+            defBaseentityAttribute  = DEFBeAttrCodeObjMapping.get(defBeCode);
+            Map<String, Set<String>> attrFromLinkDefs = getAttributeCodeFromLinkDefs(defBaseentityAttribute,
+                    DEFBeAttrCodeObjMapping, scannedDefs);
+            //TODO final process, cherry pick attribute from linked defs
+            /*
+            1. ignore if attribute already had
+            2. if attribute exist in 2 or more linked defs, check valueBoolean,
+               pick if true, treat null, empty and false value as false
+            3. pick first one if valueBoolean all false, and log warning
+             */
+             foo1();
+        }
+        return newDefBeAttr;
+    }
+
     public void def_baseEntityAttributesOptimization(Map<String, Map<String, String>> project, String realmName,
                                                  HashMap<String, String> userCodeUUIDMapping) {
         log.info("Processing DEF_BaseEntityAttribute data");
+        Map<String, Map<String, String>> newProject = extendDefBaseentityAttribute(project);
 
         // "DEF_XXX":"ATT_XXX, ATT_YYY"
         HashMap<String, String> def_basenetity_attributes_mapping = new HashMap<>();
@@ -739,8 +851,8 @@ public class Optimization {
             if (attributeCode == null) {
                 invalid++;
                 continue;
-            } else if(attributeCode.startsWith("ATT_")) {
-                String trimedAttrCode = attributeCode.replaceFirst("ATT_", "");
+            } else if(attributeCode.startsWith(ATT_PREFIX)) {
+                String trimedAttrCode = attributeCode.replaceFirst(ATT_PREFIX, "");
                 // check if real attribute exist
                 if(attrHashMap.get(trimedAttrCode.toUpperCase()) == null) {
                     log.error("Found DEF attribute:" + attributeCode + ", but real attribute code:" +  trimedAttrCode + " does not exist");
@@ -767,12 +879,12 @@ public class Optimization {
                     userCodeUUIDMapping);
             if (be != null) {
                 baseEntities.add(be);
-                if (be.getCode().startsWith("DEF_")) {
+                if (be.getCode().startsWith(DEF_PREFIX)) {
                     List<String> attributeCodeList= new ArrayList<>();
                     for(EntityAttribute ea : be.getBaseEntityAttributes()) {
-                       if (!ea.getAttributeCode().equals("LNK_INCLUDE"))
-                            if (ea.getAttributeCode().startsWith("ATT_")) {
-                                attributeCodeList.add(ea.getAttributeCode().replaceFirst("ATT_", ""));
+                       if (!ea.getAttributeCode().equals(LNK_INCLUDE))
+                            if (ea.getAttributeCode().startsWith(ATT_PREFIX)) {
+                                attributeCodeList.add(ea.getAttributeCode().replaceFirst(ATT_PREFIX, ""));
                             } else {
                                 attributeCodeList.add(ea.getAttributeCode());
                             }
@@ -789,7 +901,7 @@ public class Optimization {
         for (BaseEntity be: baseEntities) {
             Set<EntityAttribute> entityAttributeList = be.getBaseEntityAttributes();
             for (EntityAttribute ea : entityAttributeList) {
-                if (ea.getAttributeCode().equals("LNK_INCLUDE")) {
+                if (ea.getAttributeCode().equals(LNK_INCLUDE)) {
                     List<String> tmpList = new ArrayList<>();
                     String[] defBaseentityArray = ea.getValueString().replace("[","")
                             .replace("]","")
