@@ -743,6 +743,7 @@ public class Optimization {
                pick if true, treat null, empty and false value as false
             3. pick first one if valueBoolean all false, and log warning
         */
+        final String BASEENTITYCODE = "baseentitycode";
         Map<String, Map<String, String>> newValueSet = new HashMap<>();
         for(String lnkDefBeCode: attrFromLinkDefs.keySet()) {
             Set<String> attrs = attrFromLinkDefs.get(lnkDefBeCode);
@@ -755,17 +756,20 @@ public class Optimization {
                     if (newValueSet.containsKey(key)) {
                         // check valueBoolean and copy if true
                         String valueboolean = tmpValue.get("valueboolean");
-                        // TODO check newValueSet.containsKey(key).get("valueboolean") if null or true
                         if (valueboolean != null && valueboolean.equalsIgnoreCase("TRUE")) {
-                            Map<String, String> newValue  = clone(tmpValue);
-                            newValue.remove("baseentitycode");
-                            newValue.put("baseentitycode", defBeCode);
-                            newValueSet.put(key, newValue);
+                            String existing = newValueSet.get(key).get("valueboolean");
+                             if (existing == null || !existing.equalsIgnoreCase("TRUE"))  {
+                                 // replace when new valueBoolean is true and previous boolean is false or null
+                                 Map<String, String> newValue  = clone(tmpValue);
+                                 newValue.remove(BASEENTITYCODE);
+                                 newValue.put(BASEENTITYCODE, defBeCode);
+                                 newValueSet.put(key, newValue);
+                             }
                         }
                     } else {
                         Map<String, String> newValue  = clone(tmpValue);
-                        newValue.remove("baseentitycode");
-                        newValue.put("baseentitycode", defBeCode);
+                        newValue.remove(BASEENTITYCODE);
+                        newValue.put(BASEENTITYCODE, defBeCode);
                         newValueSet.put(key, newValue);
                     }
                 }
@@ -836,6 +840,8 @@ public class Optimization {
 
             //Final process, cherry pick attribute from linked defs
             newDefBeAttr.putAll(generateNewValueSet(defBeCode, attrFromLinkDefs, project));
+            // remove LNK_INCLUDE attr
+            newDefBeAttr.remove(defBeCode + LNK_INCLUDE);
         }
         return newDefBeAttr;
     }
