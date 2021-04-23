@@ -755,11 +755,18 @@ public class Optimization {
                     if (newValueSet.containsKey(key)) {
                         // check valueBoolean and copy if true
                         String valueboolean = tmpValue.get("valueboolean");
+                        // TODO check newValueSet.containsKey(key).get("valueboolean") if null or true
                         if (valueboolean != null && valueboolean.equalsIgnoreCase("TRUE")) {
-                            newValueSet.put(key, clone(tmpValue));
+                            Map<String, String> newValue  = clone(tmpValue);
+                            newValue.remove("baseentitycode");
+                            newValue.put("baseentitycode", defBeCode);
+                            newValueSet.put(key, newValue);
                         }
                     } else {
-                        newValueSet.put(key, clone(tmpValue));
+                        Map<String, String> newValue  = clone(tmpValue);
+                        newValue.remove("baseentitycode");
+                        newValue.put("baseentitycode", defBeCode);
+                        newValueSet.put(key, newValue);
                     }
                 }
             }
