@@ -22,6 +22,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Optimization {
     private static final Logger log = LoggerFactory.getLogger(Optimization.class);
@@ -727,11 +728,47 @@ public class Optimization {
         return defAttributeMapping;
     }
 
-    private void foo1() {
+    private static<K, V> Map<K, V> clone(Map<K, V> original)
+    {
+        return original.entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private Map<String, Map<String, String>> generateNewValueSet(String defBeCode, Map<String, Set<String>> attrFromLinkDefs,
+                                                                  Map<String, Map<String, String>> project) {
+        /*
+            1. ignore if attribute already had
+            2. if attribute exist in 2 or more linked defs, check valueBoolean,
+               pick if true, treat null, empty and false value as false
+            3. pick first one if valueBoolean all false, and log warning
+        */
+        Map<String, Map<String, String>> newValueSet = new HashMap<>();
+        for(String lnkDefBeCode: attrFromLinkDefs.keySet()) {
+            Set<String> attrs = attrFromLinkDefs.get(lnkDefBeCode);
+            for (String attrCode:attrs) {
+                // new Attribute
+                String key = defBeCode+attrCode;
+                if(!project.containsKey(key)) {
+                    // copy attribute value from linked def
+                    Map<String, String> tmpValue =  project.get(lnkDefBeCode + attrCode);
+                    if (newValueSet.containsKey(key)) {
+                        // check valueBoolean and copy if true
+                        String valueboolean = tmpValue.get("valueboolean");
+                        if (valueboolean != null && valueboolean.equalsIgnoreCase("TRUE")) {
+                            newValueSet.put(key, clone(tmpValue));
+                        }
+                    } else {
+                        newValueSet.put(key, clone(tmpValue));
+                    }
+                }
+            }
+        }
+        return newValueSet;
     }
 
     private Map<String, Map<String, String>> extendDefBaseentityAttribute(Map<String, Map<String, String>> project) {
-        Map<String, Map<String, String>> newDefBeAttr = new HashMap<>();
+        Map<String, Map<String, String>> newDefBeAttr = clone(project);
         Map<String, DEFBaseentityAttribute> DEFBeAttrCodeObjMapping = new HashMap<>();
         Set<String> defBaseentityHasLnkInclude = new HashSet<>();
         DEFBaseentityAttribute defBaseentityAttribute  = null;
@@ -789,14 +826,9 @@ public class Optimization {
             defBaseentityAttribute  = DEFBeAttrCodeObjMapping.get(defBeCode);
             Map<String, Set<String>> attrFromLinkDefs = getAttributeCodeFromLinkDefs(defBaseentityAttribute,
                     DEFBeAttrCodeObjMapping, scannedDefs);
-            //TODO final process, cherry pick attribute from linked defs
-            /*
-            1. ignore if attribute already had
-            2. if attribute exist in 2 or more linked defs, check valueBoolean,
-               pick if true, treat null, empty and false value as false
-            3. pick first one if valueBoolean all false, and log warning
-             */
-             foo1();
+
+            //Final process, cherry pick attribute from linked defs
+            newDefBeAttr.putAll(generateNewValueSet(defBeCode, attrFromLinkDefs, project));
         }
         return newDefBeAttr;
     }
@@ -836,7 +868,7 @@ public class Optimization {
         // Attribute code start with ATT_
         ArrayList<CodedEntity> virtualDefAttribute = new ArrayList<>();
 
-        for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
+        for (Map.Entry<String, Map<String, String>> entry : newProject.entrySet()) {
             total++;
             Map<String, String> baseEntityAttr = entry.getValue();
 
