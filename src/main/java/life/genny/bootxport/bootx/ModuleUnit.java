@@ -182,6 +182,9 @@ public class ModuleUnit extends DataUnit {
 
     private void processValues (Sheets sheetsService, Set<String> titles, ArrayList<ValueRange> valueRanges,
                                 String sheetURI, Map<String, Set<String>> keyColumnsMapping) {
+    	if (valueRanges == null) {
+    		return;
+    	}
         for (ValueRange valueRange : valueRanges) {
             String title = valueRange.getRange().split("!")[0];
             if (titles.contains(title)) {
