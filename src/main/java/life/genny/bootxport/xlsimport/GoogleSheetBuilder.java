@@ -31,6 +31,7 @@ public class GoogleSheetBuilder {
     private static final String REGEX_1 = "^\"|\"$";
     private static final String REGEX_2 = "^\"|\"$|_|-";
     private static final String PRIVACY = "privacy";
+    private static final String CONFIRMATION = "confirmation";
     private static final String VALUEINTEGER = "valueinteger";
     private static final String VALUEBOOLEAN = "valueboolean";
     private static final String VALUEDOUBLE = "valuedouble";
@@ -477,6 +478,9 @@ public class GoogleSheetBuilder {
         String privacyStr = baseEntityAttr.get(PRIVACY);
         Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
 
+        String confirmationStr= baseEntityAttr.get(CONFIRMATION);
+        Boolean confirmation = "TRUE".equalsIgnoreCase(confirmationStr);
+
 //        String valueBooleanStr = baseEntityAttr.get(VALUEBOOLEAN);
 //        Boolean valueBoolean= "TRUE".equalsIgnoreCase(valueBooleanStr);
 
@@ -540,6 +544,10 @@ public class GoogleSheetBuilder {
         if (ea != null) {
             if (privacy || attribute.getDefaultPrivacyFlag()) {
                 ea.setPrivacyFlag(true);
+            }
+
+            if (confirmation) {
+                ea.setConfirmationFlag(true);
             }
 
             if (valueBoolean!= null) {
