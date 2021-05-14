@@ -928,7 +928,7 @@ public class Optimization {
                     }
                 }
             } else if(attributeCode.startsWith(SER_PREFIX)) {
-                if (isValidDEFAttribute(attrHashMap, attributeCode, SER_PREFIX)) {
+                if (!isValidDEFAttribute(attrHashMap, attributeCode, SER_PREFIX)) {
                     invalid++;
                     continue;
                 }
