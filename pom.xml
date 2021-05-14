@@ -62,12 +62,12 @@
             <groupId>life.genny</groupId>
             <artifactId>qwanda-utils</artifactId>
             <version>${qwanda-utils.version}</version>
-            <exclusions>
+            <!--exclusions>
                 <exclusion>
                     <groupId>io.vertx</groupId>
                     <artifactId>vertx-core</artifactId>
                 </exclusion>
-            </exclusions>
+            </exclusions-->
         </dependency>
         <dependency>
             <groupId>org.jxls</groupId>

@@ -30,6 +30,7 @@ public class Optimization {
     private static final String LNK_INCLUDE = "LNK_INCLUDE";
     private static final String DEF_PREFIX= "DEF_";
     private static final String ATT_PREFIX= "ATT_";
+    private static final String SER_PREFIX= "SER_";
 
     public Optimization(QwandaRepository repo) {
         this.service = repo;
@@ -846,6 +847,23 @@ public class Optimization {
         return newDefBeAttr;
     }
 
+
+    private boolean isValidDEFAttribute(HashMap<String, Attribute> attrHashMap, String attributeCode, String prefix) {
+        boolean isValid = true;
+        String trimmedAttrCode = attributeCode.replaceFirst(prefix, "");
+        if(attrHashMap.get(trimmedAttrCode.toUpperCase()) == null) {
+            isValid = false;
+            log.error("Found DEF attribute:" + attributeCode + ", but real attribute code:" + trimmedAttrCode + " does not exist");
+        }
+        return isValid;
+    }
+    private Attribute createVirtualDefAttribute(String attributeCode, String realmName) {
+        // ATT_ doesn't exist in database, create and persist
+        Attribute virtualAttr = new Attribute(attributeCode, attributeCode, new DataType(Boolean.class));
+        virtualAttr.setRealm(realmName);
+        return virtualAttr;
+    }
+
     public void def_baseEntityAttributesOptimization(Map<String, Map<String, String>> project, String realmName,
                                                  HashMap<String, String> userCodeUUIDMapping) {
         log.info("Processing DEF_BaseEntityAttribute data");
@@ -897,26 +915,29 @@ public class Optimization {
                 invalid++;
                 continue;
             } else if(attributeCode.startsWith(ATT_PREFIX)) {
-                String trimedAttrCode = attributeCode.replaceFirst(ATT_PREFIX, "");
-                // check if real attribute exist
-                if(attrHashMap.get(trimedAttrCode.toUpperCase()) == null) {
-                    log.error("Found DEF attribute:" + attributeCode + ", but real attribute code:" +  trimedAttrCode + " does not exist");
+                if (!isValidDEFAttribute(attrHashMap, attributeCode, ATT_PREFIX)) {
                     invalid++;
                     continue;
                 } else {
                     // ATT_ doesn't exist in database, create and persist
                     if (!attrHashMap.containsKey(attributeCode)) {
-                        Attribute virtualAttr = new Attribute(attributeCode, attributeCode, new DataType(Boolean.class));
-                        virtualAttr.setRealm(realmName);
+                        log.debug("Create new virtual Attribute:" + attributeCode);
+                        Attribute virtualAttr = createVirtualDefAttribute(attributeCode, realmName);
                         virtualDefAttribute.add(virtualAttr);
                         attrHashMap.put(attributeCode, virtualAttr);
-                        log.debug("Create new virtual Attribute:" + attributeCode);
-                    } else {
-                    	// inspect
-                    	Attribute at = attrHashMap.get(attributeCode);
-                    	log.info(at.getCode());
-                    	
                     }
+                }
+            } else if(attributeCode.startsWith(SER_PREFIX)) {
+                if (isValidDEFAttribute(attrHashMap, attributeCode, SER_PREFIX)) {
+                    invalid++;
+                    continue;
+                }
+                // SER_ doesn't exist in database, create and persist
+                if (!attrHashMap.containsKey(attributeCode)) {
+                    log.debug("Create new virtual Attribute:" + attributeCode);
+                    Attribute virtualAttr = createVirtualDefAttribute(attributeCode, realmName);
+                    virtualDefAttribute.add(virtualAttr);
+                    attrHashMap.put(attributeCode, virtualAttr);
                 }
             }
 
