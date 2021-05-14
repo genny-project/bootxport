@@ -521,7 +521,8 @@ public class GoogleSheetBuilder {
         } else if (valueBoolean != null) {
             try {
             	if (!attribute.getDataType().getClassName().equalsIgnoreCase("java.lang.Boolean")) {
-            		log.error("Bad boolean");
+//            		log.error("Bad boolean");
+            		attribute.setDataType(new DataType(Boolean.class));
             	}
                 ea = baseEntity.addAttribute(attribute, weightField, valueBoolean);
             } catch (BadDataException be) {

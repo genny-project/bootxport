@@ -928,11 +928,10 @@ public class Optimization {
                 // update datatype incase real attribute datatype changed
                     if (attrHashMap.containsKey(attributeCode)) {
                         DataType dataType = getDataTypeFromRealAttribute(attributeCode, ATT_PREFIX, attrHashMap) ;
-                        // TODO
-//                        attrHashMap.get(attributeCode).setDataType(dataType);
+                        attrHashMap.get(attributeCode).setDataType(dataType);
                     } else {
                         // ATT_ doesn't exist in database, create and persist
-                        log.debug("Create new virtual Attribute:" + attributeCode);
+                        log.info("Create new virtual Attribute:" + attributeCode);
                         DataType dataType = getDataTypeFromRealAttribute(attributeCode, ATT_PREFIX, attrHashMap) ;
                         Attribute virtualAttr = createVirtualDefAttribute(attributeCode, realmName, dataType);
                         virtualDefAttribute.add(virtualAttr);
@@ -947,10 +946,9 @@ public class Optimization {
                 // SER_ doesn't exist in database, create and persist
                 if (attrHashMap.containsKey(attributeCode)) {
                     DataType dataType = getDataTypeFromRealAttribute(attributeCode, SER_PREFIX, attrHashMap) ;
-                    // TODO
-//                    attrHashMap.get(attributeCode).setDataType(dataType);
+                    attrHashMap.get(attributeCode).setDataType(dataType);
                 } else {
-                    log.debug("Create new virtual Attribute:" + attributeCode);
+                    log.info("Create new virtual Attribute:" + attributeCode);
                     DataType dataType = getDataTypeFromRealAttribute(attributeCode, SER_PREFIX, attrHashMap) ;
                     Attribute virtualAttr = createVirtualDefAttribute(attributeCode, realmName, dataType);
                     virtualDefAttribute.add(virtualAttr);
