@@ -857,9 +857,15 @@ public class Optimization {
         }
         return isValid;
     }
-    private Attribute createVirtualDefAttribute(String attributeCode, String realmName) {
+
+    private DataType getDataTypeFromRealAttribute(String attributeCode, String prefix, HashMap<String, Attribute> attrHashMap) {
+        String trimmedAttrCode = attributeCode.replaceFirst(prefix, "");
+        return attrHashMap.get(trimmedAttrCode.toUpperCase()).getDataType();
+    }
+
+    private Attribute createVirtualDefAttribute(String attributeCode, String realmName, DataType dataType) {
         // ATT_ doesn't exist in database, create and persist
-        Attribute virtualAttr = new Attribute(attributeCode, attributeCode, new DataType(Boolean.class));
+        Attribute virtualAttr = new Attribute(attributeCode, attributeCode, dataType);
         virtualAttr.setRealm(realmName);
         return virtualAttr;
     }
@@ -922,7 +928,8 @@ public class Optimization {
                     // ATT_ doesn't exist in database, create and persist
                     if (!attrHashMap.containsKey(attributeCode)) {
                         log.debug("Create new virtual Attribute:" + attributeCode);
-                        Attribute virtualAttr = createVirtualDefAttribute(attributeCode, realmName);
+                        DataType dataType = getDataTypeFromRealAttribute(attributeCode, ATT_PREFIX, attrHashMap) ;
+                        Attribute virtualAttr = createVirtualDefAttribute(attributeCode, realmName, dataType);
                         virtualDefAttribute.add(virtualAttr);
                         attrHashMap.put(attributeCode, virtualAttr);
                     }
@@ -935,7 +942,8 @@ public class Optimization {
                 // SER_ doesn't exist in database, create and persist
                 if (!attrHashMap.containsKey(attributeCode)) {
                     log.debug("Create new virtual Attribute:" + attributeCode);
-                    Attribute virtualAttr = createVirtualDefAttribute(attributeCode, realmName);
+                    DataType dataType = getDataTypeFromRealAttribute(attributeCode, SER_PREFIX, attrHashMap) ;
+                    Attribute virtualAttr = createVirtualDefAttribute(attributeCode, realmName, dataType);
                     virtualDefAttribute.add(virtualAttr);
                     attrHashMap.put(attributeCode, virtualAttr);
                 }

@@ -1,9 +1,11 @@
 package life.genny.bootxport.bootx;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 
+import life.genny.qwandautils.JsonUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import io.vavr.Tuple;
@@ -17,7 +19,8 @@ public class ImportTest {
     public static void main(String[] args) throws InterruptedException {
 
         Realm realm = new Realm(BatchLoadMode.ONLINE,
-               "1W9BRH6cTRNACGPH8cVJtgUlefdZzG9U-WMCj1Qw4L2k"/* "1BhLyxJr7HglCOH1NwZeay0Pzje2VMJsiAVWEeHoSmnk"*/);
+//               "1W9BRH6cTRNACGPH8cVJtgUlefdZzG9U-WMCj1Qw4L2k"/* "1BhLyxJr7HglCOH1NwZeay0Pzje2VMJsiAVWEeHoSmnk"*/);
+                "17CbqWLICh882xKVTU5J5mqqvGVl2F0Z7mdTgiAHAXx8");
 
         Thread.sleep(10000);
         StateManagement.initStateManagement(realm);
