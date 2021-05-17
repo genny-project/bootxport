@@ -915,15 +915,15 @@ public class QwandaRepositoryImpl implements QwandaRepository {
 
     @Override
     public void cleanAsk(String realm) {
-        String qlString= String.format("delete from ask where realm = '%s'", realm);
-        EntityManager em1 = getEntityManager();
-        EntityTransaction transaction = em1.getTransaction();
-        if (!transaction.isActive()) transaction.begin();
-        Query query = em1.createNativeQuery(qlString);
-        int number = query.executeUpdate();
-        em.flush();
-        transaction.commit();
-        log.info(String.format("Clean up ask, realm:%s, %d ask deleted", realm, number));
+//        String qlString= String.format("delete from ask where realm = '%s'", realm);
+//        EntityManager em1 = getEntityManager();
+//        EntityTransaction transaction = em1.getTransaction();
+//        if (!transaction.isActive()) transaction.begin();
+//        Query query = em1.createNativeQuery(qlString);
+//        int number = query.executeUpdate();
+//        em.flush();
+//        transaction.commit();
+//        log.info(String.format("Clean up ask, realm:%s, %d ask deleted", realm, number));
     }
 
     @Override
