@@ -925,7 +925,7 @@ public class Optimization {
                     invalid++;
                     continue;
                 } else {
-                // update datatype incase real attribute datatype changed
+                // update datatype in case real attribute datatype changed
                     if (attrHashMap.containsKey(attributeCode)) {
                         DataType dataType = getDataTypeFromRealAttribute(attributeCode, ATT_PREFIX, attrHashMap) ;
                         attrHashMap.get(attributeCode).setDataType(dataType);
