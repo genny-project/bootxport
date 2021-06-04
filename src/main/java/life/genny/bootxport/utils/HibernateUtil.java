@@ -27,7 +27,7 @@ public class HibernateUtil {
         Optional.ofNullable(System.getenv("MYSQL_PASSWORD"));
 
     FULL_MYSQL_URL =
-        fullMysqlUrl.orElse("jdbc:mysql://192.168.17.35:3318/gennydb");
+        fullMysqlUrl.orElse("jdbc:mysql://127.0.0.1:3310/gennydb");
     MYSQL_USER = mysqlUser.orElse("genny");
     MYSQL_PASSWORD = mysqlPassword.orElse("password");
 
