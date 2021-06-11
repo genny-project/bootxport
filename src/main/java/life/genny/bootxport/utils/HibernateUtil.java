@@ -39,6 +39,9 @@ public class HibernateUtil {
     configuration.setProperty("hibernate.connection.password",
         MYSQL_PASSWORD);
 
+    System.out.println("MySQL details, FULL_MYSQL_URL:"+ FULL_MYSQL_URL
+    + ", MYSQL_USER:" + MYSQL_USER + ",MYSQL_PASSWORD: " + MYSQL_PASSWORD);
+
     SESSION_FACTORY = configuration.configure().buildSessionFactory();
     CriteriaBuilder criteriaBuilder =
         SESSION_FACTORY.getSessionFactory().openSession().getSession()

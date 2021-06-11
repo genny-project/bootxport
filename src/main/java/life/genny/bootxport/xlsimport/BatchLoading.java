@@ -221,8 +221,11 @@ public class BatchLoading {
         Optimization optimization = new Optimization(service);
 
         // clean up
-        service.cleanAsk(rx.getCode());
-        service.cleanFrameFromBaseentityAttribute(rx.getCode());
+        if (GennySettings.CleanupTaskAndBeAttrForm) {
+            System.out.println("Clean Task and BeAttrForm");
+            service.cleanAsk(rx.getCode());
+            service.cleanFrameFromBaseentityAttribute(rx.getCode());
+        }
 
         optimization.validationsOptimization(rx.getValidations(), rx.getCode());
 
