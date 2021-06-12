@@ -103,6 +103,7 @@ public class XlsxImportOnline extends XlsxImport {
         final String absoluteRange = sheetName + RANGE;
         ValueRange response = service.spreadsheets().values().get(sheetId, absoluteRange).execute();
         return response.getValues();
+        
     }
 
 

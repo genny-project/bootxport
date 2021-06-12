@@ -715,7 +715,7 @@ public class Optimization {
                     log.error("ATTENTION, you have loop dependence DEFs, " +
                      "linked DEFBeCode:" + linkedDefBeCode);
                     log.error("Terminate startup !!!");
-                    System.exit(1);
+                  //  System.exit(1);
                 } else {
                     scannedDefs.add(linkedDefBeCode);
                 }
@@ -819,6 +819,7 @@ public class Optimization {
 
             // save DEF_xx for further process
             if (attributeCode.equals(LNK_INCLUDE)) {
+            	log.info("LNK_INCLUDE ->"+baseEntityCode);
                 String[] defBaseentityArray = baseEntityAttr.get("valuestring").replace("[","")
                         .replace("]","")
                         .replace("\"", "")

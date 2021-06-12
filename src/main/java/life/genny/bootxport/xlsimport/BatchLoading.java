@@ -220,7 +220,7 @@ public class BatchLoading {
         HashMap<String, String> userCodeUUIDMapping = KeycloakUtils.getUsersByRealm(rx.getKeycloakUrl(), rx.getCode(), decrypt);
         Optimization optimization = new Optimization(service);
 
-        // clean up
+        // clean up       
         if (GennySettings.CleanupTaskAndBeAttrForm) {
             System.out.println("Clean Task and BeAttrForm");
             service.cleanAsk(rx.getCode());

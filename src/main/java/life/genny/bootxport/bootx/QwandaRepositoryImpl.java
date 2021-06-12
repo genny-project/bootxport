@@ -780,6 +780,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         try {
             Query query = getEntityManager().createQuery(String.format("SELECT temp FROM %s temp where temp.realm=:realmStr", tableName));
             query.setParameter("realmStr", realm);
+            query.setHint("javax.persistence.query.timeout", 60000);
             result = query.getResultList();
         } catch (Exception e) {
             log.error(String.format("Query table %s Error:%s".format(realm, e.getMessage())));
