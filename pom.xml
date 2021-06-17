@@ -53,7 +53,7 @@
         </repository>
         <snapshotRepository>
             <id>nexus-snapshots</id>
-            <url>http://nexus.outcome-hub.com/repository/snapshots/</url>
+            <url>https://nexus.outcome-hub.com/repository/snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 
