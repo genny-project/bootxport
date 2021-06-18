@@ -712,9 +712,8 @@ public class Optimization {
                 log.error("ATTENTION, Can not find " + linkedDefBeCode + " from DEF_BaseentityAttribute sheet.");
             } else  {
                 if (scannedDefs.contains(linkedDefBeCode)) {
-                    log.error("ATTENTION, you have loop dependence DEFs.");
-                    log.error("Terminate startup !!!");
-                    System.exit(1);
+                    log.warn("ATTENTION, found scanned dependence DEFs." + linkedDefBeCode + ", skip this code.);
+                    continue;
                 } else {
                     scannedDefs.add(linkedDefBeCode);
                 }
