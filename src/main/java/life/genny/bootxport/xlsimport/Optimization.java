@@ -32,6 +32,11 @@ public class Optimization {
     private static final String ATT_PREFIX= "ATT_";
     private static final String SER_PREFIX= "SER_";
     private static final String DFT_PREFIX= "DFT_";
+    private static final Map<String, String> defPrefixDataTypeMapping =
+    Map.of(ATT_PREFIX,"DTT_BOOLEAN",
+    SER_PREFIX, "DTT_JSON",
+    DFT_PREFIX, "DTT_TEXT");
+
     public Optimization(QwandaRepository repo) {
         this.service = repo;
     }
@@ -870,6 +875,23 @@ public class Optimization {
         return virtualAttr;
     }
 
+
+    private boolean hasDefPrefix(String attributeCode) {
+        for (String prefix: defPrefixDataTypeMapping.keySet()) {
+            if(attributeCode.startsWith(prefix))
+                return true;
+        }
+        return false;
+    }
+
+    private String getDefPrefix(String attributeCode) {
+        for (String prefix: defPrefixDataTypeMapping.keySet()) {
+            if(attributeCode.startsWith(prefix))
+                return prefix;
+        }
+        return null;
+    }
+
     public void def_baseEntityAttributesOptimization(Map<String, Map<String, String>> project, String realmName,
                                                  HashMap<String, String> userCodeUUIDMapping,
                                                  Map<String, DataType> dataTypes) {
@@ -921,7 +943,28 @@ public class Optimization {
             if (attributeCode == null) {
                 invalid++;
                 continue;
-            } else if(attributeCode.startsWith(ATT_PREFIX)) {
+            }  else if (hasDefPrefix(attributeCode)) {
+                String defPrefix = getDefPrefix(attributeCode);
+                assert(defPrefix != null);
+                if (!isValidDEFAttribute(attrHashMap, attributeCode, defPrefix)) {
+                    invalid++;
+                    continue;
+                } else {
+                    DataType dataType = dataTypes.get(defPrefixDataTypeMapping.get(defPrefix));
+                    // update datatype in case real attribute datatype changed
+                    if (attrHashMap.containsKey(attributeCode)) {
+                        attrHashMap.get(attributeCode).setDataType(dataType);
+                    } else {
+                        // ATT_ doesn't exist in database, create and persist
+                        log.info("Create new virtual Attribute:" + attributeCode);
+                        Attribute virtualAttr = createVirtualDefAttribute(attributeCode, realmName, dataType);
+                        virtualDefAttribute.add(virtualAttr);
+                        attrHashMap.put(attributeCode, virtualAttr);
+                    }
+                }
+            }
+            /*
+            else if(attributeCode.startsWith(ATT_PREFIX)) {
                 if (!isValidDEFAttribute(attrHashMap, attributeCode, ATT_PREFIX)) {
                     invalid++;
                     continue;
@@ -969,6 +1012,7 @@ public class Optimization {
                     attrHashMap.put(attributeCode, virtualAttr);
                 }
             }
+             */
 
             BaseEntity be = GoogleSheetBuilder.buildEntityAttribute(baseEntityAttr, realmName, attrHashMap, beHashMap,
                     userCodeUUIDMapping);
