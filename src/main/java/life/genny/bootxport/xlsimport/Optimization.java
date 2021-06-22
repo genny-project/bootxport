@@ -963,56 +963,6 @@ public class Optimization {
                     }
                 }
             }
-            /*
-            else if(attributeCode.startsWith(ATT_PREFIX)) {
-                if (!isValidDEFAttribute(attrHashMap, attributeCode, ATT_PREFIX)) {
-                    invalid++;
-                    continue;
-                } else {
-                    DataType dataType = dataTypes.get("DTT_BOOLEAN");
-                    // update datatype in case real attribute datatype changed
-                    if (attrHashMap.containsKey(attributeCode)) {
-                        attrHashMap.get(attributeCode).setDataType(dataType);
-                    } else {
-                        // ATT_ doesn't exist in database, create and persist
-                        log.info("Create new virtual Attribute:" + attributeCode);
-                        Attribute virtualAttr = createVirtualDefAttribute(attributeCode, realmName, dataType);
-                        virtualDefAttribute.add(virtualAttr);
-                        attrHashMap.put(attributeCode, virtualAttr);
-                    }
-                }
-            } else if(attributeCode.startsWith(SER_PREFIX)) {
-                DataType dataType = dataTypes.get("DTT_JSON");
-                if (!isValidDEFAttribute(attrHashMap, attributeCode, SER_PREFIX)) {
-                    invalid++;
-                    continue;
-                }
-                // SER_ doesn't exist in database, create and persist
-                if (attrHashMap.containsKey(attributeCode)) {
-                    attrHashMap.get(attributeCode).setDataType(dataType);
-                } else {
-                    log.info("Create new virtual Attribute:" + attributeCode);
-                    Attribute virtualAttr = createVirtualDefAttribute(attributeCode, realmName, dataType);
-                    virtualDefAttribute.add(virtualAttr);
-                    attrHashMap.put(attributeCode, virtualAttr);
-                }
-            } else if(attributeCode.startsWith(DFT_PREFIX)) {
-                DataType dataType = dataTypes.get("DTT_TEXT");
-                if (!isValidDEFAttribute(attrHashMap, attributeCode, DFT_PREFIX)) {
-                    invalid++;
-                    continue;
-                }
-                // DFT_ doesn't exist in database, create and persist
-                if (attrHashMap.containsKey(attributeCode)) {
-                    attrHashMap.get(attributeCode).setDataType(dataType);
-                } else {
-                    log.info("Create new virtual Attribute:" + attributeCode);
-                    Attribute virtualAttr = createVirtualDefAttribute(attributeCode, realmName, dataType);
-                    virtualDefAttribute.add(virtualAttr);
-                    attrHashMap.put(attributeCode, virtualAttr);
-                }
-            }
-             */
 
             BaseEntity be = GoogleSheetBuilder.buildEntityAttribute(baseEntityAttr, realmName, attrHashMap, beHashMap,
                     userCodeUUIDMapping);
