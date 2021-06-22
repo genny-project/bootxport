@@ -233,7 +233,7 @@ public class BatchLoading {
         optimization.attributesOptimization(rx.getAttributes(), dataTypes, rx.getCode());
 
         optimization.def_baseEntitysOptimization(rx.getDef_baseEntitys(), rx.getCode(), userCodeUUIDMapping);
-        optimization.def_baseEntityAttributesOptimization(rx.getDef_entityAttributes(), rx.getCode(), userCodeUUIDMapping);
+        optimization.def_baseEntityAttributesOptimization(rx.getDef_entityAttributes(), rx.getCode(), userCodeUUIDMapping, dataTypes);
 
         optimization.baseEntitysOptimization(rx.getBaseEntitys(), rx.getCode(), userCodeUUIDMapping);
 

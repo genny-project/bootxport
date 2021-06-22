@@ -31,7 +31,7 @@ public class Optimization {
     private static final String DEF_PREFIX= "DEF_";
     private static final String ATT_PREFIX= "ATT_";
     private static final String SER_PREFIX= "SER_";
-
+    private static final String DFT_PREFIX= "DFT_";
     public Optimization(QwandaRepository repo) {
         this.service = repo;
     }
@@ -871,7 +871,8 @@ public class Optimization {
     }
 
     public void def_baseEntityAttributesOptimization(Map<String, Map<String, String>> project, String realmName,
-                                                 HashMap<String, String> userCodeUUIDMapping) {
+                                                 HashMap<String, String> userCodeUUIDMapping,
+                                                 Map<String, DataType> dataTypes) {
         log.info("Processing DEF_BaseEntityAttribute data");
         Map<String, Map<String, String>> newProject = extendDefBaseentityAttribute(project);
 
@@ -925,31 +926,44 @@ public class Optimization {
                     invalid++;
                     continue;
                 } else {
-                // update datatype in case real attribute datatype changed
+                    DataType dataType = dataTypes.get("DTT_BOOLEAN");
+                    // update datatype in case real attribute datatype changed
                     if (attrHashMap.containsKey(attributeCode)) {
-                        DataType dataType = getDataTypeFromRealAttribute(attributeCode, ATT_PREFIX, attrHashMap) ;
                         attrHashMap.get(attributeCode).setDataType(dataType);
                     } else {
                         // ATT_ doesn't exist in database, create and persist
                         log.info("Create new virtual Attribute:" + attributeCode);
-                        DataType dataType = getDataTypeFromRealAttribute(attributeCode, ATT_PREFIX, attrHashMap) ;
                         Attribute virtualAttr = createVirtualDefAttribute(attributeCode, realmName, dataType);
                         virtualDefAttribute.add(virtualAttr);
                         attrHashMap.put(attributeCode, virtualAttr);
                     }
                 }
             } else if(attributeCode.startsWith(SER_PREFIX)) {
+                DataType dataType = dataTypes.get("DTT_JSON");
                 if (!isValidDEFAttribute(attrHashMap, attributeCode, SER_PREFIX)) {
                     invalid++;
                     continue;
                 }
                 // SER_ doesn't exist in database, create and persist
                 if (attrHashMap.containsKey(attributeCode)) {
-                    DataType dataType = getDataTypeFromRealAttribute(attributeCode, SER_PREFIX, attrHashMap) ;
                     attrHashMap.get(attributeCode).setDataType(dataType);
                 } else {
                     log.info("Create new virtual Attribute:" + attributeCode);
-                    DataType dataType = getDataTypeFromRealAttribute(attributeCode, SER_PREFIX, attrHashMap) ;
+                    Attribute virtualAttr = createVirtualDefAttribute(attributeCode, realmName, dataType);
+                    virtualDefAttribute.add(virtualAttr);
+                    attrHashMap.put(attributeCode, virtualAttr);
+                }
+            } else if(attributeCode.startsWith(DFT_PREFIX)) {
+                DataType dataType = dataTypes.get("DTT_TEXT");
+                if (!isValidDEFAttribute(attrHashMap, attributeCode, DFT_PREFIX)) {
+                    invalid++;
+                    continue;
+                }
+                // DFT_ doesn't exist in database, create and persist
+                if (attrHashMap.containsKey(attributeCode)) {
+                    attrHashMap.get(attributeCode).setDataType(dataType);
+                } else {
+                    log.info("Create new virtual Attribute:" + attributeCode);
                     Attribute virtualAttr = createVirtualDefAttribute(attributeCode, realmName, dataType);
                     virtualDefAttribute.add(virtualAttr);
                     attrHashMap.put(attributeCode, virtualAttr);
