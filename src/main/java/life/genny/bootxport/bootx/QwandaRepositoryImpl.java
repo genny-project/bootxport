@@ -29,6 +29,7 @@ import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.message.QEventLinkChangeMessage;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwandautils.JsonUtils;
+import life.genny.qwandautils.BeanNotNullFields;
 
 public class QwandaRepositoryImpl implements QwandaRepository {
     protected static final Logger log = LogManager.getLogger(
