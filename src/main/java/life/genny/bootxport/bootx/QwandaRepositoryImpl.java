@@ -18,6 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.exception.ConstraintViolationException;
 
+import io.vertx.core.json.JsonObject;
 import life.genny.bootxport.xlsimport.BatchLoading;
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
@@ -28,7 +29,9 @@ import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.message.QEventLinkChangeMessage;
 import life.genny.qwanda.validation.Validation;
+import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
+
 
 public class QwandaRepositoryImpl implements QwandaRepository {
     protected static final Logger log = LogManager.getLogger(
@@ -42,6 +45,9 @@ public class QwandaRepositoryImpl implements QwandaRepository {
 
     public void writeToDDT(final String key, final String value) {
         ddtCacheMock.put(key, value);
+        JsonObject tokenObj = VertxUtils.writeCachedJson(GennySettings.GENNY_REALM,
+				key,value);  
+
     }
 
     private String realm;
