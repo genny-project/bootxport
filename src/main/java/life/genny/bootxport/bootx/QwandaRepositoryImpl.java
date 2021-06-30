@@ -37,7 +37,7 @@ import life.genny.qwanda.validation.Validation;
 import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.utils.VertxUtils;
-
+import life.genny.qwandautils.BeanNotNullFields;
 
 
 public class QwandaRepositoryImpl implements QwandaRepository {
@@ -52,9 +52,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
 
     public void writeToDDT(final String key, final String value) {
         ddtCacheMock.put(key, value);
-         VertxUtils.writeCachedJson(GennySettings.GENNY_REALM,
-				key,value);  
-
+         VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, key,value);
     }
 
     private String realm;

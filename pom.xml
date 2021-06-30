@@ -41,6 +41,8 @@
 		<version.maven-jar-plugin>3.1.2</version.maven-jar-plugin>
 		<version.maven-source-plugin>3.1.0</version.maven-source-plugin>
 		<version.wildfly-maven-plugin>2.0.1.Final</version.wildfly-maven-plugin>
+		<vertx.version>3.9.3</vertx.version>
+		<log4j-core-version>2.13.3</log4j-core-version>
 	</properties>
 	<ciManagement>
 		<system>jenkins</system>
@@ -58,28 +60,23 @@
 	</distributionManagement>
 
 	<dependencies>
-		<!-- <dependency> <groupId>life.genny</groupId> <artifactId>qwanda-utils</artifactId> 
-			<version>${qwanda-utils.version}</version> exclusions> <exclusion> <groupId>io.vertx</groupId> 
-			<artifactId>vertx-core</artifactId> </exclusion> </exclusions </dependency> -->
 		<dependency>
 			<groupId>life.genny</groupId>
-			<artifactId>genny-verticle-rules</artifactId>
-			<version>${project.version}</version>
-			<exclusions>
+			<artifactId>qwanda-utils</artifactId>
+			<version>${qwanda-utils.version}</version>
+			<!--exclusions>
 				<exclusion>
-					<artifactId>vertx-core</artifactId>
 					<groupId>io.vertx</groupId>
+					<artifactId>vertx-core</artifactId>
 				</exclusion>
-				<exclusion>
-					<artifactId>hipster-all</artifactId>
-					<groupId>es.usc.citius.hipster</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>xml-apis</artifactId>
-					<groupId>xml-apis</groupId>
-				</exclusion>
-			</exclusions>
+			</exclusions-->
 		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>${log4j-core-version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.jxls</groupId>
 			<artifactId>jxls</artifactId>
