@@ -2,25 +2,30 @@ package life.genny.bootxport.bootx;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceException;
+import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 
-import life.genny.qwanda.CodedEntity;
-import life.genny.qwanda.attribute.AttributeLink;
-import life.genny.qwanda.attribute.EntityAttribute;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.exception.ConstraintViolationException;
 
-import io.vertx.core.json.JsonObject;
 import life.genny.bootxport.xlsimport.BatchLoading;
 import life.genny.qwanda.Ask;
+import life.genny.qwanda.CodedEntity;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.attribute.Attribute;
@@ -31,6 +36,8 @@ import life.genny.qwanda.message.QEventLinkChangeMessage;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
+import life.genny.utils.VertxUtils;
+
 
 
 public class QwandaRepositoryImpl implements QwandaRepository {
@@ -45,7 +52,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
 
     public void writeToDDT(final String key, final String value) {
         ddtCacheMock.put(key, value);
-        JsonObject tokenObj = VertxUtils.writeCachedJson(GennySettings.GENNY_REALM,
+         VertxUtils.writeCachedJson(GennySettings.GENNY_REALM,
 				key,value);  
 
     }
