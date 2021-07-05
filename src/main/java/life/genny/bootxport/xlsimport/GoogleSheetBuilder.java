@@ -226,6 +226,8 @@ public class GoogleSheetBuilder {
         Boolean createOnTrigger = queQues.get("createontrigger") != null && "TRUE".equalsIgnoreCase(queQues.get("createontrigger"));
         String dependency = queQues.get("dependency");
         String icon = queQues.get("icon");
+        Boolean disabled = queQues.get("disabled") != null && "TRUE".equalsIgnoreCase(queQues.get("disabled"));
+        Boolean hidden = queQues.get("hidden") != null && "TRUE".equalsIgnoreCase(queQues.get("hidden"));
 
         double weight = 0.0;
         if (isDouble(weightStr)) {
@@ -267,6 +269,8 @@ public class GoogleSheetBuilder {
             qq.setRealm(realmName);
             qq.setDependency(dependency);
             qq.setIcon(icon);
+            qq.setDisabled(disabled);
+            qq.setHidden(hidden);
             return qq;
         } catch (BadDataException be) {
             log.error("Should never reach here!");
