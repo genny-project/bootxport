@@ -207,6 +207,15 @@ public class GoogleSheetBuilder {
         return linkAttribute;
     }
 
+    private static QuestionQuestion hasChild(Question sourceQuestion, String targetCode) {
+        for (QuestionQuestion qq : sourceQuestion.getChildQuestions()) {
+            if (qq.getPk().getTargetCode().equals(targetCode)) {
+            return qq;
+            }
+        }
+        return null;
+    }
+
     public static QuestionQuestion buildQuestionQuestion(Map<String, String> queQues,
                                                          String realmName,
                                                          Map<String, Question> questionHashMap) {
@@ -261,7 +270,10 @@ public class GoogleSheetBuilder {
         }
 
         try {
-            QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
+            QuestionQuestion qq  = hasChild(sbe, tbe.getCode()) ;
+            if(qq == null) {
+                qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
+            }
             qq.setOneshot(oneshot);
             qq.setReadonly(readonly);
             qq.setCreateOnTrigger(createOnTrigger);
@@ -273,7 +285,7 @@ public class GoogleSheetBuilder {
             qq.setHidden(hidden);
             return qq;
         } catch (BadDataException be) {
-            log.error("Should never reach here!");
+            log.error("Should never reach here, got BadDataException when process sourceCode: " + sbe.getCode() + ", targetCode:" + tbe.getCode());
         }
         return null;
     }
