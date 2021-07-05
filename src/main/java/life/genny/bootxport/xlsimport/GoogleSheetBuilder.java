@@ -207,6 +207,15 @@ public class GoogleSheetBuilder {
         return linkAttribute;
     }
 
+    private static QuestionQuestion hasChild(Question sourceQuestion, String targetCode) {
+        for (QuestionQuestion qq : sourceQuestion.getChildQuestions()) {
+            if (qq.getPk().getTargetCode().equals(targetCode)) {
+            return qq;
+            }
+        }
+        return null;
+    }
+
     public static QuestionQuestion buildQuestionQuestion(Map<String, String> queQues,
                                                          String realmName,
                                                          Map<String, Question> questionHashMap) {
@@ -226,6 +235,8 @@ public class GoogleSheetBuilder {
         Boolean createOnTrigger = queQues.get("createontrigger") != null && "TRUE".equalsIgnoreCase(queQues.get("createontrigger"));
         String dependency = queQues.get("dependency");
         String icon = queQues.get("icon");
+        Boolean disabled = queQues.get("disabled") != null && "TRUE".equalsIgnoreCase(queQues.get("disabled"));
+        Boolean hidden = queQues.get("hidden") != null && "TRUE".equalsIgnoreCase(queQues.get("hidden"));
 
         double weight = 0.0;
         if (isDouble(weightStr)) {
@@ -259,7 +270,10 @@ public class GoogleSheetBuilder {
         }
 
         try {
-            QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
+            QuestionQuestion qq  = hasChild(sbe, tbe.getCode()) ;
+            if(qq == null) {
+                qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
+            }
             qq.setOneshot(oneshot);
             qq.setReadonly(readonly);
             qq.setCreateOnTrigger(createOnTrigger);
@@ -267,9 +281,11 @@ public class GoogleSheetBuilder {
             qq.setRealm(realmName);
             qq.setDependency(dependency);
             qq.setIcon(icon);
+            qq.setDisabled(disabled);
+            qq.setHidden(hidden);
             return qq;
         } catch (BadDataException be) {
-            log.error("Should never reach here!");
+            log.error("Should never reach here, got BadDataException when process sourceCode: " + sbe.getCode() + ", targetCode:" + tbe.getCode());
         }
         return null;
     }
