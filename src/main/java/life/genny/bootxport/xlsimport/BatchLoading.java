@@ -461,6 +461,7 @@ public class BatchLoading {
                         existing.setReadonly(qq.getReadonly());
                         existing.setCreateOnTrigger(qq.getCreateOnTrigger());
                         existing.setFormTrigger(qq.getFormTrigger());
+                        existing.setDependency(qq.getDependency());
                         // existing.setRealm(mainRealm);
                         existing.setRealm(queQues.get("realm"));
 
