@@ -1052,10 +1052,10 @@ public class QwandaRepositoryImpl implements QwandaRepository {
     @Override
     public void cleanAsk(String realm) {
         String qlString= String.format("delete from ask where realm = '%s'", realm);
-//        EntityManager em = getEntityManager();
-        Query query = em.createNativeQuery(qlString);
+        EntityManager em1 = getEntityManager();
+        Query query = em1.createNativeQuery(qlString);
         int number = query.executeUpdate();
-        em.flush();
+        em1.flush();
         log.info(String.format("Clean up ask, realm:%s, %d ask deleted", realm, number));
     }
 
@@ -1065,10 +1065,10 @@ public class QwandaRepositoryImpl implements QwandaRepository {
                 "where baseEntityCode like \'RUL_FRM%_GRP\' " +
                 "and attributeCode = \'PRI_ASKS\' " +
                 "and realm = \'" + realm + "\'";
-//        EntityManager em = getEntityManager();
-        Query query = em.createNativeQuery(qlString);
+        EntityManager em1 = getEntityManager();
+        Query query = em1.createNativeQuery(qlString);
         int number = query.executeUpdate();
-        em.flush();
+        em1.flush();
         log.info(String.format("Clean up BaseentityAttribute, realm:%s, %d BaseentityAttribute deleted", realm, number));
     }
 }
