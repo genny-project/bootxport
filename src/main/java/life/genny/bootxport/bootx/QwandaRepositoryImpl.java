@@ -53,7 +53,6 @@ public class QwandaRepositoryImpl implements QwandaRepository {
 
     public void writeToDDT(final String key, final String value) {
         ddtCacheMock.put(key, value);
-         VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, key,value);
     }
 
     private String realm;
