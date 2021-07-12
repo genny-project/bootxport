@@ -68,6 +68,8 @@ public class QwandaRepositoryImpl implements QwandaRepository {
     }
 
     protected EntityManager getEntityManager() {
+        EntityTransaction transaction = em.getTransaction();
+        if (!transaction.isActive()) transaction.begin();
         return em;
     }
 
@@ -1050,7 +1052,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
     @Override
     public void cleanAsk(String realm) {
         String qlString= String.format("delete from ask where realm = '%s'", realm);
-        EntityManager em = getEntityManager();
+//        EntityManager em = getEntityManager();
         Query query = em.createNativeQuery(qlString);
         int number = query.executeUpdate();
         em.flush();
@@ -1063,7 +1065,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
                 "where baseEntityCode like \'RUL_FRM%_GRP\' " +
                 "and attributeCode = \'PRI_ASKS\' " +
                 "and realm = \'" + realm + "\'";
-        EntityManager em = getEntityManager();
+//        EntityManager em = getEntityManager();
         Query query = em.createNativeQuery(qlString);
         int number = query.executeUpdate();
         em.flush();
