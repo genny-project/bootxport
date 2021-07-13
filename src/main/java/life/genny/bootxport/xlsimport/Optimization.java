@@ -291,7 +291,12 @@ public class Optimization {
     public void baseEntitysOptimization(Map<String, Map<String, String>> project, String realmName,
                                         HashMap<String, String> userCodeUUIDMapping) {
         String tableName = "BaseEntity";
+
+        Instant start = Instant.now();
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
+        Instant end = Instant.now();
+        Duration timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished query table:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
 
         HashMap<String, CodedEntity> codeBaseEntityMapping = new HashMap<>();
 
@@ -307,6 +312,7 @@ public class Optimization {
         int newItem = 0;
         int updated = 0;
 
+        start = Instant.now();
         for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
             total += 1;
             Map<String, String> baseEntitys = entry.getValue();
@@ -339,8 +345,22 @@ public class Optimization {
                 invalid++;
             }
         }
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished for loop, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
+
+        start = Instant.now();
         service.bulkInsert(baseEntityInsertList);
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished bulk insert, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
+
+        start = Instant.now();
         service.bulkUpdate(baseEntityUpdateList, codeBaseEntityMapping);
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished bulk update, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
+
         printSummary(tableName, total, invalid, skipped, updated, newItem);
     }
 
