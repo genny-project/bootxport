@@ -306,18 +306,21 @@ public class Optimization {
         for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
             total += 1;
             Map<String, String> baseEntitys = entry.getValue();
-            String code = baseEntitys.get("code").replaceAll("^\"|\"$", "");
             BaseEntity baseEntity = GoogleSheetBuilder.buildBaseEntity(baseEntitys, realmName);
             // validation check
+            String baseentityCode ;
             if (isValid(baseEntity)) {
-                // get keycloak uuid from keycloak, replace code and beasentity
-                if (baseEntity.getCode().startsWith("PER_")) {
-                    String keycloakUUID = KeycloakUtils.getKeycloakUUIDByUserCode(baseEntity.getCode(), userCodeUUIDMapping);
+                // get keycloak uuid from keycloak, update code
+                baseentityCode = baseEntity.getCode();
+                if (baseentityCode.startsWith("PER_")) {
+                    String keycloakUUID = KeycloakUtils.getKeycloakUUIDByUserCode(baseentityCode, userCodeUUIDMapping);
                     baseEntity.setCode(keycloakUUID);
+                    // assign new value
+                    baseentityCode = keycloakUUID;
                 }
 
-                if (codeBaseEntityMapping.containsKey(baseEntity.getCode())) {
-                    if (isChanged(baseEntity, codeBaseEntityMapping.get(baseEntity.getCode()))) {
+                if (codeBaseEntityMapping.containsKey(baseentityCode)) {
+                    if (isChanged(baseEntity, codeBaseEntityMapping.get(baseentityCode))) {
                         baseEntityUpdateList.add(baseEntity);
                         updated++;
                     } else {
