@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,6 +38,8 @@ public class Optimization {
     Map.of(ATT_PREFIX,"DTT_BOOLEAN",
     SER_PREFIX, "DTT_JSON",
     DFT_PREFIX, "DTT_TEXT");
+
+    String debugStr = "Time profile";
 
     public Optimization(QwandaRepository repo) {
         this.service = repo;
@@ -1030,7 +1034,12 @@ public class Optimization {
 
         log.info("Processing DEF_BaseEntity data");
         String tableName = "BaseEntity";
+
+        Instant start = Instant.now();
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
+        Instant end = Instant.now();
+        Duration timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished query table:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
 
         HashMap<String, CodedEntity> codeBaseEntityMapping = new HashMap<>();
 
@@ -1046,6 +1055,7 @@ public class Optimization {
         int newItem = 0;
         int updated = 0;
 
+        start = Instant.now();
         for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
             total += 1;
             Map<String, String> baseEntitys = entry.getValue();
@@ -1074,8 +1084,21 @@ public class Optimization {
                 invalid++;
             }
         }
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished for loop, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
+
+        start = Instant.now();
         service.bulkInsert(baseEntityInsertList);
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished bulk insert, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
+
+        start = Instant.now();
         service.bulkUpdate(baseEntityUpdateList, codeBaseEntityMapping);
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished bulk update, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
         printSummary("DEF_BaseEntity", total, invalid, skipped, updated, newItem);
     }
 }
