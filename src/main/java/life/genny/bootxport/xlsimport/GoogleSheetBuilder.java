@@ -368,8 +368,18 @@ public class GoogleSheetBuilder {
 
         Attribute attr = attributeHashMap.get(attrCode.toUpperCase());
         if (attr == null) {
-            log.error(String.format("Question: %s can not find Attribute:%s in database!", code, attrCode.toUpperCase()));
-            return null;
+			if (attrCode.startsWith("_")) {
+				String[] attributeField = attrCode.toUpperCase().substring(1).split("__");
+				attr = attributeHashMap.get(attributeField[attributeField.length-1]);
+				if (attr == null) {
+					log.error(String.format("Question: %s can not find Attribute:%s in database!", code, attrCode.toUpperCase()));
+					return null;
+				}
+				log.info(String.format("Question: %s using linked Attribute:%s", code, attr.getCode()));
+			} else {
+				log.error(String.format("Question: %s can not find Attribute:%s in database!", code, attrCode.toUpperCase()));
+				return null;
+			}
         }
 
         // Icon will default to Attribute's icon if null
@@ -383,6 +393,7 @@ public class GoogleSheetBuilder {
         } else {
             q = new Question(code, name, attr);
         }
+		q.setAttributeCode(attrCode.toUpperCase());
         q.setOneshot(oneshot);
         q.setHtml(html);
         q.setReadonly(readonly);
