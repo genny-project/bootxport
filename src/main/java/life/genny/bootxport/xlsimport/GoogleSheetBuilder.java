@@ -368,9 +368,9 @@ public class GoogleSheetBuilder {
 
         Attribute attr = attributeHashMap.get(attrCode.toUpperCase());
         if (attr == null) {
-			if (attrCode.startsWith("_")) {
-				String[] attributeField = attrCode.toUpperCase().substring(1).split("__");
-				attr = attributeHashMap.get(attributeField[attributeField.length-1]);
+			if (attrCode.contains(".")) {
+				String[] attributeFields = attrCode.toUpperCase().split(".");
+				attr = attributeHashMap.get(attributeFields[attributeFields.length-1]);
 				if (attr == null) {
 					log.error(String.format("Question: %s can not find Attribute:%s in database!", code, attrCode.toUpperCase()));
 					return null;
