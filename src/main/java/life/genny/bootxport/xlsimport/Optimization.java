@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,6 +38,8 @@ public class Optimization {
     Map.of(ATT_PREFIX,"DTT_BOOLEAN",
     SER_PREFIX, "DTT_JSON",
     DFT_PREFIX, "DTT_TEXT");
+
+    String debugStr = "Time profile";
 
     public Optimization(QwandaRepository repo) {
         this.service = repo;
@@ -255,6 +259,7 @@ public class Optimization {
         int skipped = 0;
         int newItem = 0;
         int updated = 0;
+        Set<String> entityCodes= new HashSet<>();
 
         for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
             total++;
@@ -275,11 +280,17 @@ public class Optimization {
             BaseEntity be = GoogleSheetBuilder.buildEntityAttribute(baseEntityAttr, realmName, attrHashMap, beHashMap,
                     userCodeUUIDMapping);
             if (be != null) {
-                service.updateWithAttributes(be);
+                // update Baseentity in entity hash map
+                beHashMap.put(be.getCode(), be);
+                entityCodes.add(be.getCode());
                 newItem++;
             } else {
                 invalid++;
             }
+        }
+
+        for(String beCode: entityCodes) {
+            service.updateWithAttributes(beHashMap.get(beCode));
         }
         printSummary("BaseEntityAttributes", total, invalid, skipped, updated, newItem);
     }
@@ -287,7 +298,12 @@ public class Optimization {
     public void baseEntitysOptimization(Map<String, Map<String, String>> project, String realmName,
                                         HashMap<String, String> userCodeUUIDMapping) {
         String tableName = "BaseEntity";
+
+        Instant start = Instant.now();
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
+        Instant end = Instant.now();
+        Duration timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished query table:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
 
         HashMap<String, CodedEntity> codeBaseEntityMapping = new HashMap<>();
 
@@ -303,21 +319,25 @@ public class Optimization {
         int newItem = 0;
         int updated = 0;
 
+        start = Instant.now();
         for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
             total += 1;
             Map<String, String> baseEntitys = entry.getValue();
-            String code = baseEntitys.get("code").replaceAll("^\"|\"$", "");
             BaseEntity baseEntity = GoogleSheetBuilder.buildBaseEntity(baseEntitys, realmName);
             // validation check
+            String baseentityCode ;
             if (isValid(baseEntity)) {
-                // get keycloak uuid from keycloak, replace code and beasentity
-                if (baseEntity.getCode().startsWith("PER_")) {
-                    String keycloakUUID = KeycloakUtils.getKeycloakUUIDByUserCode(baseEntity.getCode(), userCodeUUIDMapping);
+                // get keycloak uuid from keycloak, update code
+                baseentityCode = baseEntity.getCode();
+                if (baseentityCode.startsWith("PER_")) {
+                    String keycloakUUID = KeycloakUtils.getKeycloakUUIDByUserCode(baseentityCode, userCodeUUIDMapping);
                     baseEntity.setCode(keycloakUUID);
+                    // assign new value
+                    baseentityCode = keycloakUUID;
                 }
 
-                if (codeBaseEntityMapping.containsKey(baseEntity.getCode())) {
-                    if (isChanged(baseEntity, codeBaseEntityMapping.get(baseEntity.getCode()))) {
+                if (codeBaseEntityMapping.containsKey(baseentityCode)) {
+                    if (isChanged(baseEntity, codeBaseEntityMapping.get(baseentityCode))) {
                         baseEntityUpdateList.add(baseEntity);
                         updated++;
                     } else {
@@ -332,8 +352,22 @@ public class Optimization {
                 invalid++;
             }
         }
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished for loop, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
+
+        start = Instant.now();
         service.bulkInsert(baseEntityInsertList);
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished bulk insert, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
+
+        start = Instant.now();
         service.bulkUpdate(baseEntityUpdateList, codeBaseEntityMapping);
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished bulk update, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
+
         printSummary(tableName, total, invalid, skipped, updated, newItem);
     }
 
@@ -1029,7 +1063,12 @@ public class Optimization {
 
         log.info("Processing DEF_BaseEntity data");
         String tableName = "BaseEntity";
+
+        Instant start = Instant.now();
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
+        Instant end = Instant.now();
+        Duration timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished query table:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
 
         HashMap<String, CodedEntity> codeBaseEntityMapping = new HashMap<>();
 
@@ -1045,6 +1084,7 @@ public class Optimization {
         int newItem = 0;
         int updated = 0;
 
+        start = Instant.now();
         for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
             total += 1;
             Map<String, String> baseEntitys = entry.getValue();
@@ -1073,8 +1113,21 @@ public class Optimization {
                 invalid++;
             }
         }
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished for loop, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
+
+        start = Instant.now();
         service.bulkInsert(baseEntityInsertList);
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished bulk insert, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
+
+        start = Instant.now();
         service.bulkUpdate(baseEntityUpdateList, codeBaseEntityMapping);
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished bulk update, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
         printSummary("DEF_BaseEntity", total, invalid, skipped, updated, newItem);
     }
 }

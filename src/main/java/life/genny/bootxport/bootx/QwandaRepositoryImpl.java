@@ -34,9 +34,7 @@ import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.message.QEventLinkChangeMessage;
 import life.genny.qwanda.validation.Validation;
-import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
-import life.genny.utils.VertxUtils;
 import life.genny.qwandautils.BeanNotNullFields;
 
 
@@ -52,7 +50,6 @@ public class QwandaRepositoryImpl implements QwandaRepository {
 
     public void writeToDDT(final String key, final String value) {
         ddtCacheMock.put(key, value);
-         VertxUtils.writeCachedJson(GennySettings.GENNY_REALM, key,value);
     }
 
     private String realm;
@@ -214,6 +211,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
                     .setParameter("code", code.toUpperCase()).getSingleResult();
 
         } catch (Exception e) {
+            log.error("Get error:" + e.getMessage() + " when findAttributeByCode.");
             return null;
 
         }
@@ -560,6 +558,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         try {
             entity = getEntityManager().merge(entity);
         } catch (final Exception e) {
+            log.error("Catch error:" + e.getMessage() + " when updateWithAttributes");
             getEntityManager().persist(entity);
         }
         String json = JsonUtils.toJson(entity);
@@ -676,7 +675,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
             existing = getEntityManager().merge(existing);
             return existing;
         } catch (NoResultException e) {
-            log.debug("------- QUESTION 00 ------------");
+            log.error("------- QUESTION 00 ------------");
             getEntityManager().persist(qq);
             QuestionQuestion id = qq;
             transaction.commit();
@@ -796,6 +795,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         } catch (Exception e) {
             log.error(String.format("Query table %s Error:%s".format(realm, e.getMessage())));
         }
+        log.info("Get " + result.size() + " results from table " + tableName);
         return result;
     }
 

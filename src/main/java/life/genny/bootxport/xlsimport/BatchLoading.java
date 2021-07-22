@@ -29,6 +29,8 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import java.lang.invoke.MethodHandles;
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -217,7 +219,14 @@ public class BatchLoading {
         service.setRealm(rx.getCode());
 
         String decrypt = decodePassword(rx.getCode(), rx.getSecurityKey(), rx.getServicePassword());
+
+        String debugStr = "Time profile";
+        Instant start = Instant.now();
         HashMap<String, String> userCodeUUIDMapping = KeycloakUtils.getUsersByRealm(rx.getKeycloakUrl(), rx.getCode(), decrypt);
+        Instant end = Instant.now();
+        Duration timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished get user from keycloak, cost:" + timeElapsed.toMillis() + " millSeconds.");
+
         Optimization optimization = new Optimization(service);
 
         // clean up       
@@ -227,25 +236,63 @@ public class BatchLoading {
             service.cleanFrameFromBaseentityAttribute(rx.getCode());
         }
 
+        start = Instant.now();
         optimization.validationsOptimization(rx.getValidations(), rx.getCode());
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished validations, cost:" + timeElapsed.toMillis() + " millSeconds.");
 
         Map<String, DataType> dataTypes = dataType(rx.getDataTypes());
+
+        start = Instant.now();
         optimization.attributesOptimization(rx.getAttributes(), dataTypes, rx.getCode());
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished attribute, cost:" + timeElapsed.toMillis() + " millSeconds.");
 
+        start = Instant.now();
         optimization.def_baseEntitysOptimization(rx.getDef_baseEntitys(), rx.getCode(), userCodeUUIDMapping);
-        optimization.def_baseEntityAttributesOptimization(rx.getDef_entityAttributes(), rx.getCode(), userCodeUUIDMapping, dataTypes);
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished def_baseentity, cost:" + timeElapsed.toMillis() + " millSeconds.");
 
+        start = Instant.now();
+        optimization.def_baseEntityAttributesOptimization(rx.getDef_entityAttributes(), rx.getCode(), userCodeUUIDMapping, dataTypes);
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished def_baseentity_attribute, cost:" + timeElapsed.toMillis() + " millSeconds.");
+
+        start = Instant.now();
         optimization.baseEntitysOptimization(rx.getBaseEntitys(), rx.getCode(), userCodeUUIDMapping);
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished baseentity, cost:" + timeElapsed.toMillis() + " millSeconds.");
 
         optimization.attributeLinksOptimization(rx.getAttributeLinks(), dataTypes, rx.getCode());
 
+        start = Instant.now();
         optimization.baseEntityAttributesOptimization(rx.getEntityAttributes(), rx.getCode(), userCodeUUIDMapping);
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished baseentity_attribute, cost:" + timeElapsed.toMillis() + " millSeconds.");
 
+        start = Instant.now();
         optimization.entityEntitysOptimization(rx.getEntityEntitys(), rx.getCode(), isSynchronise, userCodeUUIDMapping);
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished entity_entity, cost:" + timeElapsed.toMillis() + " millSeconds.");
 
+        start = Instant.now();
         optimization.questionsOptimization(rx.getQuestions(), rx.getCode(), isSynchronise);
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished question, cost:" + timeElapsed.toMillis() + " millSeconds.");
 
+        start = Instant.now();
         optimization.questionQuestionsOptimization(rx.getQuestionQuestions(), rx.getCode());
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(debugStr + " Finished question_question, cost:" + timeElapsed.toMillis() + " millSeconds.");
 
         optimization.asksOptimization(rx.getAsks(), rx.getCode());
 
