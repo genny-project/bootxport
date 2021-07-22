@@ -211,6 +211,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
                     .setParameter("code", code.toUpperCase()).getSingleResult();
 
         } catch (Exception e) {
+            log.error("Get error:" + e.getMessage() + " when findAttributeByCode.");
             return null;
 
         }
@@ -557,6 +558,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         try {
             entity = getEntityManager().merge(entity);
         } catch (final Exception e) {
+            log.error("Catch error:" + e.getMessage() + " when updateWithAttributes");
             getEntityManager().persist(entity);
         }
         String json = JsonUtils.toJson(entity);
@@ -673,7 +675,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
             existing = getEntityManager().merge(existing);
             return existing;
         } catch (NoResultException e) {
-            log.debug("------- QUESTION 00 ------------");
+            log.error("------- QUESTION 00 ------------");
             getEntityManager().persist(qq);
             QuestionQuestion id = qq;
             transaction.commit();

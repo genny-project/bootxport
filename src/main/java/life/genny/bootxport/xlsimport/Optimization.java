@@ -259,6 +259,7 @@ public class Optimization {
         int skipped = 0;
         int newItem = 0;
         int updated = 0;
+        Set<String> entityCodes= new HashSet<>();
 
         for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
             total++;
@@ -279,11 +280,17 @@ public class Optimization {
             BaseEntity be = GoogleSheetBuilder.buildEntityAttribute(baseEntityAttr, realmName, attrHashMap, beHashMap,
                     userCodeUUIDMapping);
             if (be != null) {
-                service.updateWithAttributes(be);
+                // update Baseentity in entity hash map
+                beHashMap.put(be.getCode(), be);
+                entityCodes.add(be.getCode());
                 newItem++;
             } else {
                 invalid++;
             }
+        }
+
+        for(String beCode: entityCodes) {
+            service.updateWithAttributes(beHashMap.get(beCode));
         }
         printSummary("BaseEntityAttributes", total, invalid, skipped, updated, newItem);
     }
