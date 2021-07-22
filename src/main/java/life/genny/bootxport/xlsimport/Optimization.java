@@ -659,6 +659,8 @@ public class Optimization {
                 existing.setDirections(directions);
                 existing.setHelper(helper);
                 existing.setIcon(icon);
+                existing.setAttributeCode(question.getAttributeCode());
+                existing.setAttribute(question.getAttribute());
 
                 String oneshotStr = questions.get("oneshot");
                 String readonlyStr = questions.get(GoogleSheetBuilder.READONLY);
