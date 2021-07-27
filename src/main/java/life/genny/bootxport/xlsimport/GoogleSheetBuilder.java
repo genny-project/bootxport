@@ -461,7 +461,7 @@ public class GoogleSheetBuilder {
 		}
         Integer valueInt = null;
         Optional<String> ofNullable = Optional.ofNullable(baseEntityAttr.get(VALUEINTEGER));
-        if (ofNullable.isPresent() && !baseEntityAttr.get(VALUEINTEGER).matches("\\s*") && (attribute.dataType.getClassName().contains("Integer"))) {
+        if (ofNullable.isPresent() && !baseEntityAttr.get(VALUEINTEGER).matches("\\s*") && (attribute.getDataType().getClassName().contains("Integer"))) {
             BigDecimal big = new BigDecimal(baseEntityAttr.get(VALUEINTEGER));
             Optional<String[]> nullableVal = Optional.of(big.toPlainString().split("[.]"));
             valueInt = nullableVal.filter(d -> d.length > 0).map(d -> Integer.valueOf(d[0])).get();
@@ -469,7 +469,7 @@ public class GoogleSheetBuilder {
 
         Long valueLong = null;
         Optional<String> ofNullableLong = Optional.ofNullable(baseEntityAttr.get(VALUELONG));
-        if (ofNullableLong.isPresent() && !baseEntityAttr.get(VALUELONG).matches("\\s*") && (attribute.dataType.getClassName().contains("Long"))) {
+        if (ofNullableLong.isPresent() && !baseEntityAttr.get(VALUELONG).matches("\\s*") && (attribute.getDataType().getClassName().contains("Long"))) {
             BigDecimal big = new BigDecimal(baseEntityAttr.get(VALUELONG));
             Optional<String[]> nullableVal = Optional.of(big.toPlainString().split("[.]"));
             valueLong = nullableVal.filter(d -> d.length > 0).map(d -> Long.valueOf(d[0])).get();
@@ -477,7 +477,7 @@ public class GoogleSheetBuilder {
 
         Double valueDouble = null;
         Optional<String> ofNullableDouble = Optional.ofNullable(baseEntityAttr.get(VALUEDOUBLE));
-        if (ofNullableDouble.isPresent() && !baseEntityAttr.get(VALUEDOUBLE).matches("\\s*") && (attribute.dataType.getClassName().contains("Double"))) {
+        if (ofNullableDouble.isPresent() && !baseEntityAttr.get(VALUEDOUBLE).matches("\\s*") && (attribute.getDataType().getClassName().contains("Double"))) {
             BigDecimal big = null;
             try {
 				big = new BigDecimal(baseEntityAttr.get(VALUEDOUBLE));
@@ -489,7 +489,7 @@ public class GoogleSheetBuilder {
         }
 
         Boolean valueBoolean = null;
-        Optional<Boolean> ofNullableBoolean = Optional.ofNullable("TRUE".equalsIgnoreCase(baseEntityAttr.get(VALUEBOOLEAN)) && (attribute.dataType.getClassName().contains("Boolean")));
+        Optional<Boolean> ofNullableBoolean = Optional.ofNullable("TRUE".equalsIgnoreCase(baseEntityAttr.get(VALUEBOOLEAN)) && (attribute.getDataType().getClassName().contains("Boolean")));
         valueBoolean = ofNullableBoolean.get();
 
 
