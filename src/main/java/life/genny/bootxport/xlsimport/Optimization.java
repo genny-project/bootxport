@@ -987,6 +987,10 @@ public class Optimization {
                     continue;
                 } else {
                     DataType dataType = dataTypes.get(defPrefixDataTypeMapping.get(defPrefix));
+					// If default, then find the datatype of the actual attribute
+					if (defPrefix.equals(DFT_PREFIX)) {
+						dataType = attrHashMap.get(attributeCode.substring(DFT_PREFIX.length())).getDataType();
+					}
                     // update datatype in case real attribute datatype changed
                     if (attrHashMap.containsKey(attributeCode)) {
                         attrHashMap.get(attributeCode).setDataType(dataType);
