@@ -545,6 +545,12 @@ public class GoogleSheetBuilder {
             } catch (BadDataException be) {
                 log.error(String.format("Should never reach here!, Error:%s", be.getMessage()));
             }
+        } else if (valueInt != null) {
+            try {
+                ea = baseEntity.addAttribute(attribute, weightField, valueInt);
+            } catch (BadDataException be) {
+                log.error(String.format("Should never reach here!, Error:%s", be.getMessage()));
+            }
         } else if (valueBoolean != null) {
             try {
             	if (!attribute.getDataType().getClassName().equalsIgnoreCase("java.lang.Boolean")) {
@@ -552,12 +558,6 @@ public class GoogleSheetBuilder {
             		attribute.setDataType(new DataType(Boolean.class));
             	}
                 ea = baseEntity.addAttribute(attribute, weightField, valueBoolean);
-            } catch (BadDataException be) {
-                log.error(String.format("Should never reach here!, Error:%s", be.getMessage()));
-            }
-        } else if (valueInt != null) {
-            try {
-                ea = baseEntity.addAttribute(attribute, weightField, valueInt);
             } catch (BadDataException be) {
                 log.error(String.format("Should never reach here!, Error:%s", be.getMessage()));
             }
