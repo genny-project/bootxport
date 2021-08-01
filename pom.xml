@@ -40,8 +40,8 @@
 		<compiler-plugin-version>3.1</compiler-plugin-version>
 		<version.maven-jar-plugin>3.1.2</version.maven-jar-plugin>
 		<version.maven-source-plugin>3.1.0</version.maven-source-plugin>
-		<version.wildfly-maven-plugin>2.0.1.Final</version.wildfly-maven-plugin>
-		<vertx.version>3.9.3</vertx.version>
+		<version.wildfly-maven-plugin>2.0.2.Final</version.wildfly-maven-plugin>
+		<vertx.version>3.9.8</vertx.version>
 		<log4j-core-version>2.13.3</log4j-core-version>
 	</properties>
 	<ciManagement>
@@ -449,8 +449,8 @@
 						<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
 						<!-- the maven dependency plugin will have already downloaded the server 
 							on /target -->
-						<jboss.home>${project.basedir}/target/wildfly-19.0.0.Final</jboss.home>
-						<module.path>${project.basedir}/target/wildfly-19.0.0.Final/modules</module.path>
+						<jboss.home>${project.basedir}/target/wildfly-22.0.0.Final</jboss.home>
+						<module.path>${project.basedir}/target/wildfly-22.0.0.Final/modules</module.path>
 					</systemPropertyVariables>
 					<redirectTestOutputToFile>false</redirectTestOutputToFile>
 				</configuration>
