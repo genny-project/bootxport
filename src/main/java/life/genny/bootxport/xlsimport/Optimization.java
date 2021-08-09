@@ -15,6 +15,9 @@ import life.genny.qwanda.validation.Validation;
 import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.KeycloakUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -930,6 +933,19 @@ public class Optimization {
         return null;
     }
 
+    public boolean isJSONValid(String jsonStr) {
+        try {
+            new JSONObject(jsonStr);
+        } catch (JSONException ex) {
+            try {
+                new JSONArray(jsonStr);
+            } catch (JSONException ex1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public void def_baseEntityAttributesOptimization(Map<String, Map<String, String>> project, String realmName,
                                                  HashMap<String, String> userCodeUUIDMapping,
                                                  Map<String, DataType> dataTypes) {
@@ -1013,12 +1029,20 @@ public class Optimization {
                 if (be.getCode().startsWith(DEF_PREFIX)) {
                     List<String> attributeCodeList= new ArrayList<>();
                     for(EntityAttribute ea : be.getBaseEntityAttributes()) {
-                       if (!ea.getAttributeCode().equals(LNK_INCLUDE))
-                            if (ea.getAttributeCode().startsWith(ATT_PREFIX)) {
-                                attributeCodeList.add(ea.getAttributeCode().replaceFirst(ATT_PREFIX, ""));
-                            } else {
-                                attributeCodeList.add(ea.getAttributeCode());
-                            }
+                        // not LNK_
+                       if (!ea.getAttributeCode().equals(LNK_INCLUDE)) {
+                           if (ea.getAttributeCode().startsWith(ATT_PREFIX)) {
+                               attributeCodeList.add(ea.getAttributeCode().replaceFirst(ATT_PREFIX, ""));
+                           } else {
+                               attributeCodeList.add(ea.getAttributeCode());
+                           }
+                           // check valueString if valid JSON
+                           if(ea.getAttributeCode().startsWith(SER_PREFIX)) {
+                               if(!isJSONValid(ea.getValueString())) {
+                                    log.error("Invalid JSON valueString, BaseentityCode:" + ea.getBaseEntityCode() + ", attributeCode:" + ea.getAttributeCode());
+                               }
+                           }
+                       }
                     }
                     def_basenetity_attributes_mapping.put(be.getCode(), String.join(",", attributeCodeList));
                 }
