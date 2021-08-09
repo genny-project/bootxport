@@ -1037,7 +1037,7 @@ public class Optimization {
                                attributeCodeList.add(ea.getAttributeCode());
                            }
                            // check valueString if valid JSON
-                           if(ea.getAttributeCode().startsWith(SER_PREFIX)) {
+                           if(ea.getAttributeCode().startsWith(SER_PREFIX) && ea.getValueString() != null) {
                                if(!isJSONValid(ea.getValueString())) {
                                     log.error("Invalid JSON valueString, BaseentityCode:" + ea.getBaseEntityCode() + ", attributeCode:" + ea.getAttributeCode());
                                }
