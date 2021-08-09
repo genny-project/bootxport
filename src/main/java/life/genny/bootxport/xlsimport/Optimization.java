@@ -433,7 +433,7 @@ public class Optimization {
             }
 
             String weightStr = entEnts.get("weight");
-            String valueString = entEnts.get("valueString".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+            String valueString = entEnts.get("valueString".toLowerCase().replaceAll("^\"|\"$|_|-", "").replaceAll("\n", ""));
             Optional<String> weightStrOpt = Optional.ofNullable(weightStr);
             final Double weight = weightStrOpt.filter(d -> !d.equals(" ")).map(Double::valueOf).orElse(0.0);
 
