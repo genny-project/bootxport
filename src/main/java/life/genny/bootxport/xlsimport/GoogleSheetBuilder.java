@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 import javax.ws.rs.NotFoundException;
 
 public class GoogleSheetBuilder {
-    protected static final org.apache.logging.log4j.Logger log = org.apache.logging.log4j.LogManager
+    private final org.apache.logging.log4j.Logger log = org.apache.logging.log4j.LogManager
             .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
     private static final String WEIGHT = "weight";
     private static final String REGEX_1 = "^\"|\"$";
