@@ -1,16 +1,16 @@
 package life.genny.bootxport.bootx;
 
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 
 import com.google.common.collect.Maps;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class RealmUnit extends DataUnit {
-    private static final Logger log = LoggerFactory.getLogger(RealmUnit.class);
+    private final org.apache.logging.log4j.Logger log = org.apache.logging.log4j.LogManager
+            .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
     private String code;
     private String name;
@@ -118,7 +118,7 @@ public class RealmUnit extends DataUnit {
             = (weakModule, strongModule) -> {
         strongModule.entrySet().forEach(data -> {
             if (weakModule.containsKey(data.getKey())) {
-                log.debug("For Module Name: " + code + ", Key:" + data.getKey() + " This will be overrided ");
+                log.warn("For Module Name: " + code + ", Key:" + data.getKey() + " This will be overrided ");
 //                System.out.println("For Module Name: " + code);
 //                System.out.println(data.getKey() + " This will be overrided ");
             }
@@ -146,7 +146,7 @@ public class RealmUnit extends DataUnit {
         setServicePassword(realm.get("ENV_SERVICE_PASSWORD".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
 
         if (skipgoogledoc) {
-            System.out.println("Skipping google doc for realm " + this.name);
+            log.info("Skipping google doc for realm " + this.name);
         } else {
             module = new Module(mode, realm.get("sheetID".toLowerCase()));
             Optional<HashMap<String, Map<String, String>>> tmpOptional = module.getDataUnits().stream()
