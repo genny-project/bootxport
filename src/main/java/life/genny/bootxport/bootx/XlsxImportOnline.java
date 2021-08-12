@@ -1,6 +1,7 @@
 package life.genny.bootxport.bootx;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,11 +15,11 @@ import com.google.common.collect.Lists;
 import io.vavr.Function2;
 import io.vavr.Function3;
 import io.vavr.Tuple2;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
 
 public class XlsxImportOnline extends XlsxImport {
-    private final Log log = LogFactory.getLog(XlsxImportOnline.class);
+    private final Logger log = org.apache.logging.log4j.LogManager
+            .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
     private static final String RANGE = "!A1:Z";
 
