@@ -27,7 +27,6 @@ public class ModuleUnit extends DataUnit {
     private static final String DEF_BASE_ENTITY = "DEF_BaseEntity";
     private static final String DEF_ENTITY_ATTRIBUTE = "DEF_EntityAttribute";
 
-    private ImportService service;
     private String name;
 
     public String getName() {
