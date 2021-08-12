@@ -1,16 +1,16 @@
 package life.genny.bootxport.bootx;
 
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 
 import com.google.common.collect.Maps;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class RealmUnit extends DataUnit {
-    private static final Logger log = LoggerFactory.getLogger(RealmUnit.class);
+    private final org.apache.logging.log4j.Logger log = org.apache.logging.log4j.LogManager
+            .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
     private String code;
     private String name;
