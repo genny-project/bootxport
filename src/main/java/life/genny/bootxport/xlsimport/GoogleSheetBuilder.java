@@ -3,7 +3,6 @@ package life.genny.bootxport.xlsimport;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import life.genny.qwanda.Ask;
-import life.genny.qwanda.CodedEntity;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.attribute.Attribute;
@@ -11,14 +10,12 @@ import life.genny.qwanda.attribute.AttributeLink;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.entity.BaseEntity;
-import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwandautils.KeycloakUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
+import java.lang.invoke.MethodHandles;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -26,7 +23,8 @@ import java.util.regex.Pattern;
 import javax.ws.rs.NotFoundException;
 
 public class GoogleSheetBuilder {
-    private static final Log log = LogFactory.getLog(GoogleSheetBuilder.class);
+    protected static final org.apache.logging.log4j.Logger log = org.apache.logging.log4j.LogManager
+            .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
     private static final String WEIGHT = "weight";
     private static final String REGEX_1 = "^\"|\"$";
     private static final String REGEX_2 = "^\"|\"$|_|-";

@@ -24,13 +24,15 @@ import org.slf4j.LoggerFactory;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+import java.lang.invoke.MethodHandles;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Optimization {
-    private static final Logger log = LoggerFactory.getLogger(Optimization.class);
+    protected static final org.apache.logging.log4j.Logger log = org.apache.logging.log4j.LogManager
+            .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
     private QwandaRepository service;
     private static final String LNK_INCLUDE = "LNK_INCLUDE";
     private static final String DEF_PREFIX= "DEF_";

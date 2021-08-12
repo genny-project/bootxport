@@ -2,14 +2,15 @@ package life.genny.bootxport.bootx;
 
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.*;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.*;
 
 public class ModuleUnit extends DataUnit {
-    private final Log log = LogFactory.getLog(ModuleUnit.class);
+    protected static final Logger log = org.apache.logging.log4j.LogManager
+            .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
     private static final String RANGE = "!A1:Z";
     private static final String VALIDATION = "Validation";
     private static final String DATATYPE = "DataType";
