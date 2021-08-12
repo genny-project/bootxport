@@ -8,7 +8,7 @@
         </Console>
     </appenders>
     <loggers>
-        <root level="warn">
+        <root level="info">
             <appender-ref ref="Console"/>
         </root>
     </loggers>
