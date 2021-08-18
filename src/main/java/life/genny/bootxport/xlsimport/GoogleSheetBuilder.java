@@ -283,6 +283,7 @@ public class GoogleSheetBuilder {
             qq.setIcon(icon);
             qq.setDisabled(disabled);
             qq.setHidden(hidden);
+            qq.setMandatory(mandatory);
             return qq;
         } catch (BadDataException be) {
             log.error("Should never reach here, got BadDataException when process sourceCode: " + sbe.getCode() + ", targetCode:" + tbe.getCode());
