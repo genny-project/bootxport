@@ -45,7 +45,7 @@ public class BatchLoading {
     private String mainRealm = GennySettings.mainrealm;
     private static boolean isSynchronise;
 
-    protected static final Logger log = org.apache.logging.log4j.LogManager
+    private final Logger log = org.apache.logging.log4j.LogManager
             .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
     public BatchLoading(QwandaRepository repo) {

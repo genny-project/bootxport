@@ -19,9 +19,9 @@
 		<qwanda-utils.version>${project.version}</qwanda-utils.version>
 		<mysql-connector.version>8.0.18</mysql-connector.version>
 		<vavr.version>0.10.2</vavr.version>
-		<version.hibernate>5.3.13.Final</version.hibernate>
+		<version.hibernate>5.3.20.Final</version.hibernate>
 		<version.hibernate-validator>6.1.5.Final</version.hibernate-validator>
-		<version.hibernate.envers>5.4.6.Final</version.hibernate.envers>
+		<version.hibernate.envers>5.3.20.Final</version.hibernate.envers>
 		<version.hsqldb>2.5.0</version.hsqldb>
 		<version.h2db>1.4.199</version.h2db>
 
@@ -40,7 +40,7 @@
 		<compiler-plugin-version>3.1</compiler-plugin-version>
 		<version.maven-jar-plugin>3.1.2</version.maven-jar-plugin>
 		<version.maven-source-plugin>3.1.0</version.maven-source-plugin>
-		<version.wildfly-maven-plugin>2.0.1.Final</version.wildfly-maven-plugin>
+		<version.wildfly-maven-plugin>2.0.2.Final</version.wildfly-maven-plugin>
 		<vertx.version>3.9.3</vertx.version>
 		<log4j-core-version>2.13.3</log4j-core-version>
 	</properties>
@@ -204,7 +204,7 @@
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.1</version>
+					<version>1.0.0</version>
 					<configuration>
 						<lifecycleMappingMetadata>
 							<pluginExecutions>
@@ -449,8 +449,8 @@
 						<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
 						<!-- the maven dependency plugin will have already downloaded the server 
 							on /target -->
-						<jboss.home>${project.basedir}/target/wildfly-19.0.0.Final</jboss.home>
-						<module.path>${project.basedir}/target/wildfly-19.0.0.Final/modules</module.path>
+						<jboss.home>${project.basedir}/target/wildfly-22.0.0.Final</jboss.home>
+						<module.path>${project.basedir}/target/wildfly-22.0.0.Final/modules</module.path>
 					</systemPropertyVariables>
 					<redirectTestOutputToFile>false</redirectTestOutputToFile>
 				</configuration>

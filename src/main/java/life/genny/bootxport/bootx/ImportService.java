@@ -1,8 +1,8 @@
 package life.genny.bootxport.bootx;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
 
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,7 +10,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ImportService {
-    private final Log log = LogFactory.getLog(ImportService.class);
+    private final Logger log = org.apache.logging.log4j.LogManager
+            .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
     private Map<String, XlsxImport> state;
     private BatchLoadMode mode;
 
