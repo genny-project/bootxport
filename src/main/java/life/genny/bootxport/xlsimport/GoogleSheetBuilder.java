@@ -85,7 +85,15 @@ public class GoogleSheetBuilder {
                         "[fFdD]?))" +
                         "[\\x00-\\x20]*");// Optional trailing "whitespace"
 
-        return Pattern.matches(fpRegex, doubleStr);
+        boolean result = false;
+        
+        try {
+			result = Pattern.matches(fpRegex, doubleStr);
+		} catch (Exception e) {
+			log.error("Error in isDouble ->"+doubleStr);
+		}
+        
+        return result;
     }
 
     public static boolean getBooleanFromString(final String booleanString) {
