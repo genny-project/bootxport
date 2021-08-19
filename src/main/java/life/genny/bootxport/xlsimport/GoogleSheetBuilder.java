@@ -92,6 +92,8 @@ public class GoogleSheetBuilder {
 		} catch (Exception e) {
 			log.error("Error in isDouble ->"+doubleStr);
 		}
+        
+        return result;
     }
 
     public static boolean getBooleanFromString(final String booleanString) {
