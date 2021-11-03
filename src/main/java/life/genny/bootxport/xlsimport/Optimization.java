@@ -658,6 +658,7 @@ public class Optimization {
                         continue;
                     }
                 }
+                log.info("Inserting Question :"+question);
                 service.insert(question);
                 newItem++;
             } else {
