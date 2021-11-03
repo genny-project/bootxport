@@ -134,6 +134,7 @@ public class GoogleSheetBuilder {
         String groupCodesStr = validations.get("group_codes".toLowerCase().replaceAll(REGEX_2, ""));
         Boolean recursive = getBooleanFromString(recursiveStr);
         Boolean multiAllowed = getBooleanFromString(multiAllowedStr);
+        String error_message = validations.get("error_message");
         Validation val = null;
         if (code.startsWith(Validation.getDefaultCodePrefix() + "SELECT_")) {
             if (hasValidOptions) {
@@ -151,6 +152,7 @@ public class GoogleSheetBuilder {
             }
         }
         val.setRealm(realmName);
+        val.setErrormsg(error_message);
         log.trace("realm:" + realmName + ",code:" + code + ",name:" + name + ",val:" + val + ", grp="
                 + (groupCodesStr != null ? groupCodesStr : "X"));
         return val;
