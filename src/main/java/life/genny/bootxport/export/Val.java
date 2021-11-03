@@ -9,7 +9,7 @@ public class Val {
 
   public static String[] validationH =
       new String[] {"name", "realm", "code", "multiAllowed",
-          "recursiveGroup", "regex", "selectionBaseEntityGroupList",};
+          "recursiveGroup", "regex", "selectionBaseEntityGroupList","errormsg",};
 
   public Seq<Realm<Validation>> getValRealm(){
     return QwandaTables.convertToQwandaWrapper(QwandaTables.findAllValidations());
