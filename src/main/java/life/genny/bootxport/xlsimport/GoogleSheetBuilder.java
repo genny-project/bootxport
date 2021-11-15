@@ -560,7 +560,7 @@ public class GoogleSheetBuilder {
             } catch (BadDataException be) {
                 log.error(String.format("Should never reach here!, Error:%s", be.getMessage()));
             }
-        } else if (valueBoolean != null) {
+        } else if (valueBoolean) {
             try {
             	if (!attribute.getDataType().getClassName().equalsIgnoreCase("java.lang.Boolean")) {
 //            		log.error("Bad boolean");
