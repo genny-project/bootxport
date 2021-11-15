@@ -498,9 +498,11 @@ public class GoogleSheetBuilder {
         }
 
         Boolean valueBoolean = null;
-        Optional<Boolean> ofNullableBoolean = Optional.ofNullable("TRUE".equalsIgnoreCase(baseEntityAttr.get(VALUEBOOLEAN)) && (attribute.getDataType().getClassName().contains("Boolean")));
-        valueBoolean = ofNullableBoolean.get();
-
+        if(baseEntityAttr.containsKey(VALUEBOOLEAN) && attribute.getDataType().getClassName().contains("Boolean")) {
+            Optional<Boolean> ofNullableBoolean = Optional.ofNullable("TRUE".equalsIgnoreCase(baseEntityAttr.get(VALUEBOOLEAN))
+                                                               && (attribute.getDataType().getClassName().contains("Boolean")));
+            valueBoolean = ofNullableBoolean.get();
+        }
 
         String valueStr = null;
         if (valueString.isPresent()) {
