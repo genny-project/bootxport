@@ -562,11 +562,13 @@ public class GoogleSheetBuilder {
             } catch (BadDataException be) {
                 log.error(String.format("Should never reach here!, Error:%s", be.getMessage()));
             }
-        } else if (valueBoolean) {
+        } else if (Boolean.TRUE.equals(valueBoolean)) {
             try {
             	if (!attribute.getDataType().getClassName().equalsIgnoreCase("java.lang.Boolean")) {
-//            		log.error("Bad boolean");
             		attribute.setDataType(new DataType(Boolean.class));
+                    log.error("Attribute dataType is not Boolean, updated to Boolean, "
+                    + "attributeCode:" + attributeCode + ", dttType:" + attribute.getDataType().getClassName()
+                    + ", baseentityCode:" + baseEntityCode);
             	}
                 ea = baseEntity.addAttribute(attribute, weightField, valueBoolean);
             } catch (BadDataException be) {
