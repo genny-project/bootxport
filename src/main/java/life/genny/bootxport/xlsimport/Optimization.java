@@ -117,6 +117,10 @@ public class Optimization {
             newItem++;
         }
         printSummary("Ask", total, invalid, skipped, updated, newItem);
+        askInsertList = null;
+        questionsFromDB = null;
+        codeAskMapping = null;
+
 
 
 //            String qCode = asks.get("question_code".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
@@ -189,6 +193,9 @@ public class Optimization {
         service.bulkInsert(attributeLinkInsertList);
         service.bulkUpdate(attributeLinkUpdateList, codeAttributeMapping);
         printSummary("AttributeLink", total, invalid, skipped, updated, newItem);
+        attributeLinksFromDB = null;
+        attributeLinkInsertList = null;
+        attributeLinkInsertList = null;
     }
 
     public void attributesOptimization(Map<String, Map<String, String>> project,
@@ -239,6 +246,10 @@ public class Optimization {
         service.bulkInsert(attributeInsertList);
         service.bulkUpdate(attributeUpdateList, codeAttributeMapping);
         printSummary(tableName, total, invalid, skipped, updated, newItem);
+        attributesFromDB = null;
+        codeAttributeMapping = null;
+        attributeInsertList = null;
+        attributeUpdateList = null;
     }
 
     public void baseEntityAttributesOptimization(Map<String, Map<String, String>> project, String realmName,
@@ -298,6 +309,10 @@ public class Optimization {
             service.updateWithAttributes(beHashMap.get(beCode));
         }
         printSummary("BaseEntityAttributes", total, invalid, skipped, updated, newItem);
+        baseEntityFromDB = null;
+        attributeFromDB = null;
+        beHashMap = null;
+        attrHashMap = null;
     }
 
     public void baseEntitysOptimization(Map<String, Map<String, String>> project, String realmName,
@@ -374,6 +389,10 @@ public class Optimization {
         log.info(debugStr + " Finished bulk update, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
 
         printSummary(tableName, total, invalid, skipped, updated, newItem);
+        baseEntityFromDB = null;
+        codeBaseEntityMapping = null;
+        baseEntityInsertList = null;
+        baseEntityUpdateList = null;
     }
 
     public void entityEntitysOptimization(Map<String, Map<String, String>> project, String realmName,
@@ -479,6 +498,12 @@ public class Optimization {
             }
         }
         printSummary("EntityEntity", total, invalid, skipped, updated, newItem);
+        baseEntityFromDB = null;
+        beHashMap = null;
+        attributeFromDB = null;
+        attrHashMap = null;
+        entityEntityFromDB = null;
+        codeBaseEntityEntityMapping = null;
     }
 
     public void messageTemplatesOptimization(Map<String, Map<String, String>> project, String realmName) {
@@ -526,6 +551,8 @@ public class Optimization {
         service.bulkInsert(messageInsertList);
         service.bulkUpdate(messageUpdateList, codeMsgMapping);
         printSummary(tableName, total, invalid, skipped, updated, newItem);
+        qBaseMSGMessageTemplateFromDB = null;
+        codeMsgMapping = null;
     }
 
     public void questionQuestionsOptimization(Map<String, Map<String, String>> project, String realmName) {
@@ -593,6 +620,12 @@ public class Optimization {
         service.bulkInsertQuestionQuestion(questionQuestionInsertList);
         service.bulkUpdateQuestionQuestion(questionQuestionUpdateList, codeQuestionMapping);
         printSummary("QuestionQuestion", total, invalid, skipped, updated, newItem);
+        questionFromDB = null;
+        questionHashMap = null;
+        questionQuestionFromDB = null;
+        codeQuestionMapping = null;
+        questionQuestionInsertList = null;
+        questionQuestionUpdateList = null;
     }
 
     public void questionsOptimization(Map<String, Map<String, String>> project, String realmName, boolean isSynchronise) {
@@ -689,6 +722,12 @@ public class Optimization {
             }
         }
         printSummary("Question", total, invalid, skipped, updated, newItem);
+        questionsFromDBMainRealm = null;
+        codeQuestionMappingMainRealm = null;
+        questionsFromDB = null;
+        codeQuestionMapping = null;
+        attributesFromDB = null;
+        attributeHashMap = null;
     }
 
     public void validationsOptimization(Map<String, Map<String, String>> project, String realmName) {
@@ -739,6 +778,10 @@ public class Optimization {
         service.bulkInsert(validationInsertList);
         service.bulkUpdate(validationUpdateList, codeValidationMapping);
         printSummary(tableName, total, invalid, skipped, updated, newItem);
+        validationsFromDB = null;
+        codeValidationMapping = null;
+        validationInsertList  = null;
+        validationUpdateList = null;
     }
 
     private String getCodeBySearchKey(String searchKey, Map<String, String> baseEntityAttr) {
@@ -1087,6 +1130,14 @@ public class Optimization {
         }
         service.bulkUpdateWithAttributes(baseEntities);
         printSummary("DEF_BaseEntityAttributes", total, invalid, skipped, updated, newItem);
+        baseEntityFromDB = null;
+        beHashMap = null;
+        attributeFromDB = null;
+        attrHashMap = null;
+        def_basenetity_attributes_mapping = null;
+        newProject = null;
+        virtualDefAttribute = null;
+        baseEntities = null;
     }
 
     public void def_baseEntitysOptimization(Map<String, Map<String, String>> project, String realmName,
@@ -1160,5 +1211,9 @@ public class Optimization {
         timeElapsed = Duration.between(start, end);
         log.info(debugStr + " Finished bulk update, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
         printSummary("DEF_BaseEntity", total, invalid, skipped, updated, newItem);
+        baseEntityFromDB = null;
+        codeBaseEntityMapping = null;
+        baseEntityInsertList = null;
+        baseEntityUpdateList = null;
     }
 }
