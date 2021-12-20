@@ -23,7 +23,7 @@
 		<version.hibernate-validator>6.1.5.Final</version.hibernate-validator>
 		<version.hibernate.envers>5.3.20.Final</version.hibernate.envers>
 		<version.hsqldb>2.5.0</version.hsqldb>
-		<version.h2db>1.4.199</version.h2db>
+		<version.h2db>2.0.202</version.h2db>
 
 		<jar.finalName>${project.name}</jar.finalName>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
