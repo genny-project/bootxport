@@ -42,7 +42,7 @@
 		<version.maven-source-plugin>3.1.0</version.maven-source-plugin>
 		<version.wildfly-maven-plugin>2.0.2.Final</version.wildfly-maven-plugin>
 		<vertx.version>3.9.3</vertx.version>
-		<log4j-core-version>2.17.0</log4j-core-version>
+		<log4j-core-version>2.17.1</log4j-core-version>
 	</properties>
 	<ciManagement>
 		<system>jenkins</system>
