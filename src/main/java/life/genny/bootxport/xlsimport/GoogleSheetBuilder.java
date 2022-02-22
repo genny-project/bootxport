@@ -247,6 +247,9 @@ public class GoogleSheetBuilder {
         Boolean hidden = queQues.get("hidden") != null && "TRUE".equalsIgnoreCase(queQues.get("hidden"));
 
         double weight = 0.0;
+        if(weightStr == null || weightStr.isBlank())
+            log.error("Weight for QuestionQuestion: " + parentCode + "//" + targetCode + " is missing!");
+
         if (isDouble(weightStr)) {
             weight = Double.parseDouble(weightStr);
         }
