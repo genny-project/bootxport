@@ -220,7 +220,12 @@ public class Optimization {
         for (Map.Entry<String, Map<String, String>> data : project.entrySet()) {
             total += 1;
             Map<String, String> attributes = data.getValue();
-            String code = attributes.get("code").replaceAll("^\"|\"$", "");
+            String code = attributes.get("code");
+            if(code == null) {
+                log.error("Failed to get code for attribute: " + total + " in realm: " + realmName);
+                continue;
+            }
+            code = code.replaceAll("^\"|\"$", "");
 
             Attribute attr = GoogleSheetBuilder.buildAttrribute(attributes, dataTypeMap, realmName, code);
 
