@@ -755,7 +755,12 @@ public class Optimization {
 
         for (Map<String, String> validations : project.values()) {
             total += 1;
-            String code = validations.get("code").replaceAll("^\"|\"$", "");
+            String code = validations.get("code");
+            if(code == null) {
+                log.error("Failed to get code for validation: " + total + " in realm: " + realmName);
+                continue;
+            }
+            code = code.replaceAll("^\"|\"$", "");
             Validation val = GoogleSheetBuilder.buildValidation(validations, realmName, code);
 
             // validation check
