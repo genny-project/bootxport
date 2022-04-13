@@ -228,7 +228,8 @@ public class BatchLoading {
     }
 
     private String decodePassword(String realm, String securityKey, String servicePass) {
-        String initVector = "PRJ_" + realm.toUpperCase();
+        // TODO: Fix the hardcoding below:
+        String initVector = "PRJ_INTERNMATCH"; // "PRJ_" + realm.toUpperCase();
         initVector = StringUtils.rightPad(initVector, 16, '*');
         String decrypt = SecurityUtils.decrypt(securityKey, initVector, servicePass);
         return decrypt;
