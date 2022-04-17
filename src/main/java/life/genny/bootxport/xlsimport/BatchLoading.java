@@ -186,17 +186,37 @@ public class BatchLoading {
 
     public String constructKeycloakJson(final RealmUnit realm) {
         this.mainRealm = realm.getCode();
+        String clientId= this.mainRealm;
+        // TODO: Please make this better....
+        String masterRealm = "internmatch";
         String keycloakUrl = null;
         String keycloakSecret = null;
         String keycloakJson = null;
 
         keycloakUrl = realm.getKeycloakUrl();
         keycloakSecret = realm.getClientSecret();
-
-        keycloakJson = "{\n" + "  \"realm\": \"" + this.mainRealm + "\",\n" + "  \"auth-server-url\": \"" + keycloakUrl
+        if ("internmatch".equals(clientId)) {
+        keycloakJson = "{\n" + "  \"realm\": \"" + masterRealm + "\",\n" + "  \"auth-server-url\": \"" + keycloakUrl
                 + "/auth\",\n" + "  \"ssl-required\": \"external\",\n" + "  \"resource\": \"" + this.mainRealm + "\",\n"
                 + "  \"credentials\": {\n" + "    \"secret\": \"" + keycloakSecret + "\" \n" + "  },\n"
                 + "  \"policy-enforcer\": {}\n" + "}";
+
+        } else {
+                   keycloakJson = "{\n" + "  \"realm\": \"" + masterRealm + "\",\n" + "  \"auth-server-url\": \"" + keycloakUrl
+                + "/auth\",\n" + "  \"ssl-required\": \"external\",\n" + "  \"resource\": \"" + this.mainRealm + "\",\n"
+                + "     \"public-client\": true,\n"
+                + "  \"confidential-port\": 0\n" + "}";
+        }
+// {
+//   "realm": "mentormatch",
+//   "auth-server-url": "https://keycloak.gada.io/auth/",
+//   "ssl-required": "external",
+//   "resource": "mentormatch",
+//   "public-client": true,
+//   "verify-token-audience": true,
+//   "use-resource-role-mappings": true,
+//   "confidential-port": 0
+// }
 
         log.info(String.format("[%s] Loaded keycloak.json:%s ", this.mainRealm, keycloakJson));
         return keycloakJson;
@@ -208,7 +228,8 @@ public class BatchLoading {
     }
 
     private String decodePassword(String realm, String securityKey, String servicePass) {
-        String initVector = "PRJ_" + realm.toUpperCase();
+        // TODO: Fix the hardcoding below:
+        String initVector = "PRJ_INTERNMATCH"; // "PRJ_" + realm.toUpperCase();
         initVector = StringUtils.rightPad(initVector, 16, '*');
         String decrypt = SecurityUtils.decrypt(securityKey, initVector, servicePass);
         return decrypt;
