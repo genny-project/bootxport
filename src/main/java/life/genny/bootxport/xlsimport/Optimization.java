@@ -38,11 +38,14 @@ public class Optimization {
     private static final String SER_PREFIX= "SER_";
     private static final String DFT_PREFIX= "DFT_";
     private static final String DEP_PREFIX= "DEP_";
+    private static final String UNQ_PREFIX= "UNQ_";
     private static final Map<String, String> defPrefixDataTypeMapping =
     Map.of(ATT_PREFIX,"DTT_BOOLEAN",
     SER_PREFIX, "DTT_JSON",
     DFT_PREFIX, "DTT_TEXT",
-    DEP_PREFIX, "DTT_TEXT");
+    DEP_PREFIX, "DTT_TEXT",
+    UNQ_PREFIX, "DTT_TEXT"
+    );
 
     String debugStr = "Time profile";
 
