@@ -317,8 +317,6 @@ public class BatchLoading {
 
         optimization.asksOptimization(rx.getAsks(), rx.getCode());
 
-        optimization.messageTemplatesOptimization(rx.getNotifications(), rx.getCode());
-        optimization.messageTemplatesOptimization(rx.getMessages(), rx.getCode());
     }
 
     public void deleteFromProject(life.genny.bootxport.bootx.RealmUnit rx) {
