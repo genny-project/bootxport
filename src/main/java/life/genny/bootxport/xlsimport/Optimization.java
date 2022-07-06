@@ -331,7 +331,7 @@ public class Optimization {
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
         Instant end = Instant.now();
         Duration timeElapsed = Duration.between(start, end);
-        log.info(debugStr + " Finished query table:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
+        log.debug(debugStr + " Finished query table:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
 
         HashMap<String, CodedEntity> codeBaseEntityMapping = new HashMap<>();
 
@@ -382,19 +382,19 @@ public class Optimization {
         }
         end = Instant.now();
         timeElapsed = Duration.between(start, end);
-        log.info(debugStr + " Finished for loop, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
+        log.debug(debugStr + " Finished for loop, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
 
         start = Instant.now();
         service.bulkInsert(baseEntityInsertList);
         end = Instant.now();
         timeElapsed = Duration.between(start, end);
-        log.info(debugStr + " Finished bulk insert, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
+        log.debug(debugStr + " Finished bulk insert, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
 
         start = Instant.now();
         service.bulkUpdate(baseEntityUpdateList, codeBaseEntityMapping);
         end = Instant.now();
         timeElapsed = Duration.between(start, end);
-        log.info(debugStr + " Finished bulk update, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
+        log.debug(debugStr + " Finished bulk update, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
 
         printSummary(tableName, total, invalid, skipped, updated, newItem);
         baseEntityFromDB = null;
@@ -699,7 +699,7 @@ public class Optimization {
                         continue;
                     }
                 }
-                log.info("Inserting Question :"+question);
+                log.debug("Inserting Question :"+question);
                 service.insert(question);
                 newItem++;
             } else {
@@ -920,7 +920,7 @@ public class Optimization {
 
             // save DEF_xx for further process
             if (attributeCode.equals(LNK_INCLUDE)) {
-            	log.info("LNK_INCLUDE ->"+baseEntityCode);
+            	log.debug("LNK_INCLUDE ->"+baseEntityCode);
                 String[] defBaseentityArray = baseEntityAttr.get("valuestring").replace("[","")
                         .replace("]","")
                         .replace("\"", "")
@@ -1071,7 +1071,7 @@ public class Optimization {
                         attrHashMap.get(attributeCode).setDataType(dataType);
                     } else {
                         // ATT_ doesn't exist in database, create and persist
-                        log.info("Create new virtual Attribute:" + attributeCode);
+                        log.debug("Create new virtual Attribute:" + attributeCode);
                         Attribute virtualAttr = createVirtualDefAttribute(attributeCode, realmName, dataType);
                         virtualDefAttribute.add(virtualAttr);
                         attrHashMap.put(attributeCode, virtualAttr);
@@ -1163,7 +1163,7 @@ public class Optimization {
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
         Instant end = Instant.now();
         Duration timeElapsed = Duration.between(start, end);
-        log.info(debugStr + " Finished query table:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
+        log.debug(debugStr + " Finished query table:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
 
         HashMap<String, CodedEntity> codeBaseEntityMapping = new HashMap<>();
 
@@ -1210,19 +1210,19 @@ public class Optimization {
         }
         end = Instant.now();
         timeElapsed = Duration.between(start, end);
-        log.info(debugStr + " Finished for loop, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
+        log.debug(debugStr + " Finished for loop, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
 
         start = Instant.now();
         service.bulkInsert(baseEntityInsertList);
         end = Instant.now();
         timeElapsed = Duration.between(start, end);
-        log.info(debugStr + " Finished bulk insert, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
+        log.debug(debugStr + " Finished bulk insert, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
 
         start = Instant.now();
         service.bulkUpdate(baseEntityUpdateList, codeBaseEntityMapping);
         end = Instant.now();
         timeElapsed = Duration.between(start, end);
-        log.info(debugStr + " Finished bulk update, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
+        log.debug(debugStr + " Finished bulk update, type:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
         printSummary("DEF_BaseEntity", total, invalid, skipped, updated, newItem);
         baseEntityFromDB = null;
         codeBaseEntityMapping = null;
