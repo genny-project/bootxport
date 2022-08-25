@@ -76,7 +76,7 @@ public class BatchLoading {
             final ValidationList validationList = new ValidationList();
             validationList.setValidationList(new ArrayList<Validation>());
             if (validations != null) {
-                final String[] validationListStr = validations.split(",");
+                final String[] validationListStr = validations.replaceAll(" ", "").split(",");
                 for (final String validationCode : validationListStr) {
                     try {
                         Validation validation = service.findValidationByCode(validationCode);
