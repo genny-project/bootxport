@@ -102,8 +102,13 @@ public class XlsxImportOnline extends XlsxImport {
 
     public List<List<Object>> fetchSpreadSheet(String sheetId, String sheetName) throws IOException {
         final String absoluteRange = sheetName + RANGE;
-        ValueRange response = service.spreadsheets().values().get(sheetId, absoluteRange).execute();
-        return response.getValues();
+        try {
+            ValueRange response = service.spreadsheets().values().get(sheetId, absoluteRange).execute();
+            return response.getValues();
+        } catch(NullPointerException e) {
+            log.error("Error getting spreadsheet for sheetId: " + sheetId);
+            return null;
+        }
         
     }
 

@@ -31,6 +31,7 @@ public class RealmUnit extends DataUnit {
 
     public void setName(String name) {
         this.name = name;
+        log.info("Set Name of RealmUnit with URI: " + uri + " to: " + name);
     }
 
     public String getUrlList() {
@@ -137,10 +138,10 @@ public class RealmUnit extends DataUnit {
         setKeycloakUrl(realm.get("keycloakUrl".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
         setClientSecret(realm.get("clientSecret".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
         setCode(realm.get("code".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
+        setUri(realm.get("sheetID".toLowerCase()));
         setName(realm.get("name".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
         setUrlList(realm.get("urlList".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
         setDisable(disableProject);
-        setUri(realm.get("sheetID".toLowerCase()));
         setSkipGoogleDoc(skipgoogledoc);
         setSecurityKey(realm.get("ENV_SECURITY_KEY".toLowerCase().replaceAll("^\"|\"$|_|-", "")));
         setServicePassword(realm.get("ENV_SERVICE_PASSWORD".toLowerCase().replaceAll("^\"|\"$|_|-", "")));

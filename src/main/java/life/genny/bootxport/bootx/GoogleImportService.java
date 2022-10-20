@@ -50,8 +50,10 @@ public class GoogleImportService {
             service = getSheetsService();
         } catch (final IOException e) {
             log.error(e.getMessage());
+            e.printStackTrace();
         } catch (final Exception ex) {
             log.error(ex.getMessage());
+            ex.printStackTrace();
             System.exit(1);
         }
     }
