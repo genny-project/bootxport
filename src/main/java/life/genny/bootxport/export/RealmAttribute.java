@@ -10,8 +10,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.collection.Seq;
-import life.genny.qwanda.attribute.Attribute;
-import life.genny.qwanda.validation.Validation;
+// import life.genny.qwanda.attribute.Attribute;
+// import life.genny.qwanda.validation.Validation;
 
 public class RealmAttribute {
 

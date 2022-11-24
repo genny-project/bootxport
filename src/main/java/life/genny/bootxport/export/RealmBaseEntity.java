@@ -2,7 +2,7 @@ package life.genny.bootxport.export;
 
 import java.util.List;
 import io.vavr.collection.Seq;
-import life.genny.qwanda.entity.BaseEntity;
+// import life.genny.qwanda.entity.BaseEntity;
 
 public class RealmBaseEntity {
   

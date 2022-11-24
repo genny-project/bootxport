@@ -1,7 +1,7 @@
 package life.genny.bootxport.export;
 
 import io.vavr.collection.Seq;
-import life.genny.qwanda.attribute.EntityAttribute;
+// import life.genny.qwanda.attribute.EntityAttribute;
 
 public class RealmEntityAttribute {
 

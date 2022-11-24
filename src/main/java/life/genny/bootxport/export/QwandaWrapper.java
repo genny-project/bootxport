@@ -1,12 +1,12 @@
 package life.genny.bootxport.export;
 
 import java.util.Map;
-import life.genny.qwanda.CoreEntity;
-import life.genny.qwanda.QuestionQuestion;
-import life.genny.qwanda.attribute.EntityAttribute;
-import life.genny.qwanda.entity.EntityEntity;
-import life.genny.qwanda.message.QBaseMSGMessageTemplate;
-import life.genny.qwanda.validation.Validation;
+// import life.genny.qwanda.CoreEntity;
+// import life.genny.qwanda.QuestionQuestion;
+// import life.genny.qwanda.attribute.EntityAttribute;
+// import life.genny.qwanda.entity.EntityEntity;
+// import life.genny.qwanda.message.QBaseMSGMessageTemplate;
+// import life.genny.qwanda.validation.Validation;
 
 public class QwandaWrapper<T> {
     
