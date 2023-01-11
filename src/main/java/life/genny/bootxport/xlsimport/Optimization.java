@@ -831,6 +831,11 @@ public class Optimization {
         return defAttributeMapping;
     }
 
+    /**
+     * Clone a map
+     * @param original map to clone
+     * @return returns a shallow clone of a map (items are not deep cloned, but references to items are)
+     */
     private static<K, V> Map<K, V> clone(Map<K, V> original)
     {
         return original.entrySet()
@@ -945,7 +950,7 @@ public class Optimization {
             //Final process, cherry pick attribute from linked defs
             newDefBeAttr.putAll(generateNewValueSet(defBeCode, attrFromLinkDefs, project));
             // remove LNK_INCLUDE attr
-            newDefBeAttr.remove(defBeCode + LNK_INCLUDE);
+            // newDefBeAttr.remove(defBeCode + LNK_INCLUDE);
         }
         return newDefBeAttr;
     }
