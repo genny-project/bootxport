@@ -170,12 +170,18 @@ public class GoogleSheetBuilder {
         String name = attributes.get("name").replaceAll(REGEX_1, "");
         DataType dataTypeRecord = dataTypeMap.get(dataType);
 
+        // TODO: Ask how to handle this. For now skipping
+        if(dataTypeRecord == null) {
+            log.error("BAD DATATYPE SELECTION: " + dataType + " for attribute: " + code + ". Skipping");
+            return null;
+        }
+
         String privacyStr = attributes.get(PRIVACY);
         if (privacyStr != null) {
             privacyStr = privacyStr.toUpperCase();
         }
 
-        boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
+        boolean privacy = "TRUE".equals(privacyStr);
         if (privacy) {
             log.trace("Realm:" + realmName + ", Attribute " + code + " has default privacy");
         }
@@ -193,6 +199,7 @@ public class GoogleSheetBuilder {
         attr.setDefaultValue(defaultValueStr);
         attr.setRealm(realmName);
         attr.setIcon(icon);
+        log.info("Constructed attribute: " + attr.getCode() + " with datatype: " + attr.getDataType().getDttCode());
         return attr;
     }
 

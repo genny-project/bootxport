@@ -206,12 +206,11 @@ public class Optimization {
         String tableName = "Attribute";
         List<Attribute> attributesFromDB = service.queryTableByRealm(tableName, realmName);
 
-        HashMap<String, CodedEntity> codeAttributeMapping = new HashMap<>();
+        final HashMap<String, CodedEntity> codeAttributeMapping = new HashMap<>();
 
-        for (Attribute attr : attributesFromDB) {
-            codeAttributeMapping.put(attr.getCode(), attr);
-        }
-
+        // leverage speed of streams for large collections
+        attributesFromDB.stream().forEach(attr -> codeAttributeMapping.put(attr.getCode(), attr));
+        
         ArrayList<CodedEntity> attributeInsertList = new ArrayList<>();
         ArrayList<CodedEntity> attributeUpdateList = new ArrayList<>();
         int invalid = 0;
@@ -230,8 +229,12 @@ public class Optimization {
             }
             code = code.replaceAll("^\"|\"$", "");
 
+            // TODO: this returns null on bad datatype. Should confirm this behaviour with team
             Attribute attr = GoogleSheetBuilder.buildAttrribute(attributes, dataTypeMap, realmName, code);
 
+            if(attr == null)
+                continue;
+                
             // validation check
             if (isValid(attr)) {
                 if (codeAttributeMapping.containsKey(code.toUpperCase())) {
@@ -255,7 +258,9 @@ public class Optimization {
         service.bulkUpdate(attributeUpdateList, codeAttributeMapping);
         printSummary(tableName, total, invalid, skipped, updated, newItem);
         attributesFromDB = null;
-        codeAttributeMapping = null;
+
+        // this gets released at the end of this method, no?
+        // codeAttributeMapping = null;
         attributeInsertList = null;
         attributeUpdateList = null;
     }

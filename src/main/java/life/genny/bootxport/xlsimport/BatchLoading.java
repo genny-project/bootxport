@@ -1,15 +1,10 @@
 package life.genny.bootxport.xlsimport;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import life.genny.bootxport.bootx.QwandaRepository;
 import life.genny.bootxport.bootx.RealmUnit;
-import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.attribute.Attribute;
-import life.genny.qwanda.attribute.AttributeLink;
-import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
@@ -28,10 +23,8 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import java.lang.invoke.MethodHandles;
-import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.*;
 
 class Options {
@@ -52,23 +45,16 @@ public class BatchLoading {
         this.service = repo;
     }
 
-    private Boolean getBooleanFromString(final String booleanString) {
-        if (booleanString == null) {
-            return false;
-        }
-
-        return "TRUE".equalsIgnoreCase(booleanString.toUpperCase()) || "YES".equalsIgnoreCase(booleanString.toUpperCase())
-                || "T".equalsIgnoreCase(booleanString.toUpperCase())
-                || "Y".equalsIgnoreCase(booleanString.toUpperCase()) || "1".equalsIgnoreCase(booleanString);
-
-    }
-
     public Map<String, DataType> dataType(Map<String, Map<String, String>> project) {
         final Map<String, DataType> dataTypeMap = new HashMap<>();
+
         project.entrySet().stream().filter(d -> !d.getKey().matches("\\s*")).forEach(data -> {
             Map<String, String> dataType = data.getValue();
             String validations = dataType.get("validations");
             String code = (dataType.get("code")).trim().replaceAll("^\"|\"$", "");
+
+            log.info("Processing DataType: " + code);
+
             String className = (dataType.get("classname")).replaceAll("^\"|\"$", "");
             String name = (dataType.get("name")).replaceAll("^\"|\"$", "");
             String inputmask = dataType.get("inputmask");
@@ -82,34 +68,28 @@ public class BatchLoading {
                         Validation validation = service.findValidationByCode(validationCode);
                         validationList.getValidationList().add(validation);
                     } catch (NoResultException e) {
-                        log.error("Could not load Validation " + validationCode);
+                        log.error("Could not load Validation " + validationCode + " when loading datatype: " + code);
                     }
                 }
             }
             if (!dataTypeMap.containsKey(code)) {
                 DataType dataTypeRecord;
                 if (component == null) {
+                    log.warn("No frontend \"component\" set for DataType: " + code);
                     dataTypeRecord = new DataType(className, validationList, name, inputmask);
                 } else {
                     dataTypeRecord = new DataType(className, validationList, name, inputmask, component);
                 }
                 dataTypeRecord.setDttCode(code);
                 dataTypeMap.put(code, dataTypeRecord);
+            } else {
+                log.error("Found duplicate DataType: " + code);
             }
         });
+
+
         return dataTypeMap;
     }
-
-    private String getNameFromMap(Map<String, String> baseEntitys, String key, String defaultString) {
-        String ret = defaultString;
-        if (baseEntitys.containsKey(key)) {
-            if (baseEntitys.get("name") != null) {
-                ret = ((String) baseEntitys.get("name")).replaceAll("^\"|\"$", "");
-            }
-        }
-        return ret;
-    }
-
 
     public static boolean isSynchronise() {
         return isSynchronise;
@@ -184,41 +164,42 @@ public class BatchLoading {
         service.updateWithAttributes(be);
     }
 
+    private String fetchEnvOr(String env, String defaultValue) {
+        String value = System.getenv(env);
+        if(value == null) {
+            log.error("Missing Environment Variable: " + env + ". Please set it. Defaulting to: " + defaultValue);
+            return defaultValue;
+        }
+        return value;
+    }
+
     public String constructKeycloakJson(final RealmUnit realm) {
         this.mainRealm = realm.getCode();
-        String clientId= this.mainRealm;
-        // TODO: Please make this better....
-        String masterRealm = "internmatch";
+        String clientId = this.mainRealm;
+
+        String masterRealm = fetchEnvOr("GENNY_KEYCLOAK_REALM", "internamtch");
         String keycloakUrl = null;
         String keycloakSecret = null;
         String keycloakJson = null;
 
         keycloakUrl = realm.getKeycloakUrl();
         keycloakSecret = realm.getClientSecret();
+
+        // TODO: Need a better way to figure out if a clientId is private. This is bad
         if ("internmatch".equals(clientId)) {
-        keycloakJson = "{\n" + "  \"realm\": \"" + masterRealm + "\",\n" + "  \"auth-server-url\": \"" + keycloakUrl
+            keycloakJson = "{\n" + "  \"realm\": \"" + masterRealm + "\",\n" + "  \"auth-server-url\": \"" + keycloakUrl
                 + "/auth\",\n" + "  \"ssl-required\": \"external\",\n" + "  \"resource\": \"" + this.mainRealm + "\",\n"
                 + "  \"credentials\": {\n" + "    \"secret\": \"" + keycloakSecret + "\" \n" + "  },\n"
                 + "  \"policy-enforcer\": {}\n" + "}";
 
         } else {
-                   keycloakJson = "{\n" + "  \"realm\": \"" + masterRealm + "\",\n" + "  \"auth-server-url\": \"" + keycloakUrl
+            keycloakJson = "{\n" + "  \"realm\": \"" + masterRealm + "\",\n" + "  \"auth-server-url\": \"" + keycloakUrl
                 + "/auth\",\n" + "  \"ssl-required\": \"external\",\n" + "  \"resource\": \"" + this.mainRealm + "\",\n"
                 + "     \"public-client\": true,\n"
                 + "  \"confidential-port\": 0\n" + "}";
         }
-// {
-//   "realm": "mentormatch",
-//   "auth-server-url": "https://keycloak.gada.io/auth/",
-//   "ssl-required": "external",
-//   "resource": "mentormatch",
-//   "public-client": true,
-//   "verify-token-audience": true,
-//   "use-resource-role-mappings": true,
-//   "confidential-port": 0
-// }
 
-        log.info(String.format("[%s] Loaded keycloak.json:%s ", this.mainRealm, keycloakJson));
+        log.info("[" + this.mainRealm + "] Loaded keycloak.json:" + keycloakJson);
         return keycloakJson;
 
     }
@@ -239,18 +220,18 @@ public class BatchLoading {
     public void persistProjectOptimization(life.genny.bootxport.bootx.RealmUnit rx) {
         service.setRealm(rx.getCode());
 
-        String decrypt = decodePassword(rx.getCode(), rx.getSecurityKey(), rx.getServicePassword());
+        // String decrypt = decodePassword(rx.getCode(), rx.getSecurityKey(), rx.getServicePassword());
 
         String debugStr = "Time profile";
         Instant start = Instant.now();
-        HashMap<String, String> userCodeUUIDMapping = null;
+        HashMap<String, String> userCodeUUIDMapping = new HashMap<>();
 
-        if (StringUtils.isEmpty(GennySettings.keycloakUserEmails)) {
-            userCodeUUIDMapping = KeycloakUtils.getUsersByRealm(rx.getKeycloakUrl(), rx.getCode(), decrypt);
-        } else {
-            userCodeUUIDMapping  = KeycloakUtils.getSpecificUsersByRealm(rx.getKeycloakUrl(), rx.getCode(), decrypt,
-                                   GennySettings.keycloakUserEmails);
-        }
+        // if (StringUtils.isEmpty(GennySettings.keycloakUserEmails)) {
+        //     userCodeUUIDMapping = KeycloakUtils.getUsersByRealm(rx.getKeycloakUrl(), rx.getCode(), decrypt);
+        // } else {
+        //     userCodeUUIDMapping  = KeycloakUtils.getSpecificUsersByRealm(rx.getKeycloakUrl(), rx.getCode(), decrypt,
+        //                            GennySettings.keycloakUserEmails);
+        // }
 
         Instant end = Instant.now();
         Duration timeElapsed = Duration.between(start, end);
@@ -271,7 +252,11 @@ public class BatchLoading {
         timeElapsed = Duration.between(start, end);
         log.info(debugStr + " Finished validations, cost:" + timeElapsed.toMillis() + " millSeconds.");
 
+        start = Instant.now();
+        log.info("Start DataType " + Duration.between(end, start) + "ms");
         Map<String, DataType> dataTypes = dataType(rx.getDataTypes());
+        end = Instant.now();
+        log.info("End DataType. Time elapsed/cost: " + Duration.between(start, end) + "ms");
 
         start = Instant.now();
         optimization.attributesOptimization(rx.getAttributes(), dataTypes, rx.getCode());
