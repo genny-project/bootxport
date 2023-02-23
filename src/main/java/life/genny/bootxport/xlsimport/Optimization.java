@@ -232,8 +232,10 @@ public class Optimization {
             // TODO: this returns null on bad datatype. Should confirm this behaviour with team
             Attribute attr = GoogleSheetBuilder.buildAttrribute(attributes, dataTypeMap, realmName, code);
 
-            if(attr == null)
+            if(attr == null) {
+                log.info("Bad attribute: " + code);
                 continue;
+            }
                 
             // validation check
             if (isValid(attr)) {
@@ -250,8 +252,11 @@ public class Optimization {
                     newItem++;
                 }
             } else {
+                log.error("Invalid Attribute: " + attr.getCode());
                 invalid++;
             }
+
+            log.info("Primed attribute for insert: " + attr.getCode() + " with dtt: " + attr.getDataType().getDttCode());
         }
 
         service.bulkInsert(attributeInsertList);

@@ -199,11 +199,13 @@ public class GoogleSheetBuilder {
         attr.setDefaultValue(defaultValueStr);
         attr.setRealm(realmName);
         attr.setIcon(icon);
+        
         log.info("Constructed attribute: " + attr.getCode() + " with datatype: " + attr.getDataType().getDttCode());
         return attr;
     }
 
     public static AttributeLink buildAttributeLink(Map<String, String> attributeLink, Map<String, DataType> dataTypeMap, String realmName, String code) {
+        log.info("Building attribute link for code: " + code);
         String name = attributeLink.get("name").replaceAll(REGEX_1, "");
         String privacyStr = attributeLink.get(PRIVACY);
         Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
@@ -213,6 +215,7 @@ public class GoogleSheetBuilder {
         linkAttribute.setRealm(realmName);
 
         String dataTypeStr = "dataType".toLowerCase();
+        log.info("Searching for DataType: " + dataTypeStr);
         if (attributeLink.containsKey(dataTypeStr)) {
             String dataType = attributeLink.get("dataType".toLowerCase().trim().replaceAll(REGEX_2, ""))
                     .replaceAll(REGEX_1, "");

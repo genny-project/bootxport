@@ -1,19 +1,18 @@
-package life.genny.bootxport.bootx;
+package life.genny.bootxport.bootx.test;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import life.genny.bootxport.bootx.Realm;
+import life.genny.bootxport.bootx.RealmUnit;
+import life.genny.bootxport.bootx.SheetState;
+import life.genny.bootxport.bootx.StateModel;
 
 public class StateManagement {
     private StateManagement() {
     }
 
-    private static Realm realm;
-
-    public static void initStateManagement(Realm realm) {
-        StateManagement.realm = realm;
-        savePreviousRealmUnits();
-        syncWithLatest();
-    }
+    static Realm realm;
 
     public static void setStateModel(StateModel model) {
         SheetState.setUpdateState(model.getSheetIDWorksheetConcatenated());
@@ -56,5 +55,4 @@ public class StateManagement {
                 .map(RealmUnit::getCode)
                 .collect(Collectors.toList());
     }
-
 }

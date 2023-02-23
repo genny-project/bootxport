@@ -102,6 +102,10 @@ public class XlsxImportOnline extends XlsxImport {
 
     public List<List<Object>> fetchSpreadSheet(String sheetId, String sheetName) throws IOException {
         final String absoluteRange = sheetName + RANGE;
+        if(service == null) {
+            log.error("Error starting service");
+            throw new IllegalStateException("Error starting sheets service. Are the credentials loaded in?");
+        }
         ValueRange response = service.spreadsheets().values().get(sheetId, absoluteRange).execute();
         return response.getValues();
         

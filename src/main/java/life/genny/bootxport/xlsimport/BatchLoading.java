@@ -49,9 +49,17 @@ public class BatchLoading {
         final Map<String, DataType> dataTypeMap = new HashMap<>();
 
         project.entrySet().stream().filter(d -> !d.getKey().matches("\\s*")).forEach(data -> {
+
             Map<String, String> dataType = data.getValue();
             String validations = dataType.get("validations");
-            String code = (dataType.get("code")).trim().replaceAll("^\"|\"$", "");
+            String code = dataType.get("code");
+
+            // should never reach. Data safe though
+            if(code == null) {
+                log.error("DataType Code is null for row with key: " + data.getKey());
+                return;
+            }
+            code = code.trim().replaceAll("^\"|\"$", "");
 
             log.info("Processing DataType: " + code);
 
@@ -282,7 +290,8 @@ public class BatchLoading {
         timeElapsed = Duration.between(start, end);
         log.info(debugStr + " Finished baseentity, cost:" + timeElapsed.toMillis() + " millSeconds.");
 
-        optimization.attributeLinksOptimization(rx.getAttributeLinks(), dataTypes, rx.getCode());
+        log.info("SKIPPING ATTRIBUTE LINK");
+        // optimization.attributeLinksOptimization(rx.getAttributeLinks(), dataTypes, rx.getCode());
 
         start = Instant.now();
         optimization.baseEntityAttributesOptimization(rx.getEntityAttributes(), rx.getCode(), userCodeUUIDMapping);

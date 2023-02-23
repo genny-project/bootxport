@@ -1,4 +1,4 @@
-package life.genny.bootxport.bootx;
+package life.genny.bootxport.bootx.test;
 
 import java.util.Arrays;
 import java.util.List;
@@ -10,10 +10,17 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
+import life.genny.bootxport.bootx.BatchLoadMode;
+import life.genny.bootxport.bootx.QwandaRepository;
+import life.genny.bootxport.bootx.QwandaRepositoryImpl;
+import life.genny.bootxport.bootx.Realm;
+import life.genny.bootxport.bootx.RealmUnit;
 import life.genny.bootxport.utils.HibernateUtil;
 import life.genny.bootxport.xlsimport.BatchLoading;
 
 
+// TODO: This needs to be used to a Quarkus JUnit
+// .when().get()
 public class ImportTest {
 
     public static void main(String[] args) throws InterruptedException {
@@ -23,7 +30,8 @@ public class ImportTest {
                 "17CbqWLICh882xKVTU5J5mqqvGVl2F0Z7mdTgiAHAXx8");
 
         Thread.sleep(10000);
-        StateManagement.initStateManagement(realm);
+        initStateManagement(realm);
+
 
         List<Tuple2<RealmUnit, BatchLoading>> collect = realm.getDataUnits().stream().map(d -> {
                     SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
@@ -48,6 +56,13 @@ public class ImportTest {
                     }
                 }
         ) ;
+    }
+
+    // State management specific to this test class that should be moved to src/test/java
+    private static void initStateManagement(Realm realm) {
+        StateManagement.realm = realm;
+        StateManagement.savePreviousRealmUnits();
+        StateManagement.syncWithLatest();
     }
 
     public static void mains(String[] args) {

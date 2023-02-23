@@ -4,6 +4,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +18,9 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
+
+import life.genny.qwandautils.ANSIColour;
+
 import org.apache.logging.log4j.Logger;
 
 public class GoogleImportService {
@@ -49,10 +54,10 @@ public class GoogleImportService {
             httpTransport = GoogleNetHttpTransport.newTrustedTransport();
             service = getSheetsService();
         } catch (final IOException e) {
-            log.error(e.getMessage());
+            log.error(ANSIColour.RED + "Error reading google credentials when starting service.\nDetails: " + e.getMessage() + ANSIColour.RESET, e);
         } catch (final Exception ex) {
             log.error(ex.getMessage());
-            System.exit(1);
+            System.exit(2);
         }
     }
 
@@ -67,6 +72,10 @@ public class GoogleImportService {
         Optional<String> path = Optional.ofNullable(System.getenv("GOOGLE_SVC_ACC_PATH"));
         if (!path.isPresent()) {
             throw new FileNotFoundException("GOOGLE_SVC_ACC_PATH not set");
+        }
+
+        if(!Files.exists(Path.of(path.get()))) {
+            throw new FileNotFoundException("GOOGLE_SVC_ACC_PATH does not point to google credentials. \nCurrent path: " + path.get());
         }
 
         GoogleCredential credential = GoogleCredential.fromStream(new FileInputStream(path.get()),
