@@ -46,8 +46,9 @@ public class BatchLoading {
         this.service = repo;
     }
 
+    private static boolean showBadDataEnv = "true".equalsIgnoreCase(life.genny.bootxport.utils.CommonUtils.getSystemEnv("BOOTQ_SHOW_BAD_DATA", "true"));
     public static boolean showBadData() {
-        return "true".equalsIgnoreCase(life.genny.bootxport.utils.CommonUtils.getSystemEnv("BOOTQ_SHOW_BAD_DATA", "true"));
+        return showBadDataEnv;
     }
 
     public Map<String, DataType> dataType(Map<String, Map<String, String>> project) {
