@@ -13,8 +13,9 @@ import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
 import life.genny.qwandautils.GennySettings;
-import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.SecurityUtils;
+import life.genny.utils.CommonUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 
@@ -45,6 +46,10 @@ public class BatchLoading {
         this.service = repo;
     }
 
+    public static boolean showBadData() {
+        return "true".equalsIgnoreCase(life.genny.bootxport.utils.CommonUtils.getSystemEnv("BOOTQ_SHOW_BAD_DATA", "true"));
+    }
+
     public Map<String, DataType> dataType(Map<String, Map<String, String>> project) {
         final Map<String, DataType> dataTypeMap = new HashMap<>();
 
@@ -60,8 +65,6 @@ public class BatchLoading {
                 return;
             }
             code = code.trim().replaceAll("^\"|\"$", "");
-
-            log.info("Processing DataType: " + code);
 
             String className = (dataType.get("classname")).replaceAll("^\"|\"$", "");
             String name = (dataType.get("name")).replaceAll("^\"|\"$", "");
@@ -94,8 +97,6 @@ public class BatchLoading {
                 log.error("Found duplicate DataType: " + code);
             }
         });
-
-
         return dataTypeMap;
     }
 
@@ -226,12 +227,12 @@ public class BatchLoading {
 
 
     public void persistProjectOptimization(life.genny.bootxport.bootx.RealmUnit rx) {
+        log.info("[!] Show Bad Data: " + BatchLoading.showBadData());
         service.setRealm(rx.getCode());
 
         // String decrypt = decodePassword(rx.getCode(), rx.getSecurityKey(), rx.getServicePassword());
 
         String debugStr = "Time profile";
-        Instant start = Instant.now();
         HashMap<String, String> userCodeUUIDMapping = new HashMap<>();
 
         // if (StringUtils.isEmpty(GennySettings.keycloakUserEmails)) {
@@ -241,9 +242,8 @@ public class BatchLoading {
         //                            GennySettings.keycloakUserEmails);
         // }
 
-        Instant end = Instant.now();
-        Duration timeElapsed = Duration.between(start, end);
-        log.info(debugStr + " Finished get user from keycloak, cost:" + timeElapsed.toMillis() + " millSeconds.");
+        // Duration timeElapsed = Duration.between(start, end);
+        // log.info(debugStr + " Finished get user from keycloak, cost:" + timeElapsed.toMillis() + " millSeconds.");
 
         Optimization optimization = new Optimization(service);
 
@@ -254,70 +254,93 @@ public class BatchLoading {
             service.cleanFrameFromBaseentityAttribute(rx.getCode());
         }
 
+        Instant start, end;
+        Duration timeElapsed;
+
+        log.info("Starting import of " + rx.getName() + ":" + rx.getCode());
         start = Instant.now();
+        log.info("Start Validation");
         optimization.validationsOptimization(rx.getValidations(), rx.getCode());
         end = Instant.now();
         timeElapsed = Duration.between(start, end);
         log.info(debugStr + " Finished validations, cost:" + timeElapsed.toMillis() + " millSeconds.");
 
+        log.info("Start DataType");
         start = Instant.now();
-        log.info("Start DataType " + Duration.between(end, start) + "ms");
         Map<String, DataType> dataTypes = dataType(rx.getDataTypes());
         end = Instant.now();
+        log.info("Loaded: " + dataTypes.size());
         log.info("End DataType. Time elapsed/cost: " + Duration.between(start, end) + "ms");
 
+        log.info("Start Attribute");
         start = Instant.now();
-        optimization.attributesOptimization(rx.getAttributes(), dataTypes, rx.getCode());
+        Set<String> unusedDtts = optimization.attributesOptimization(rx.getAttributes(), dataTypes, rx.getCode());
         end = Instant.now();
         timeElapsed = Duration.between(start, end);
         log.info(debugStr + " Finished attribute, cost:" + timeElapsed.toMillis() + " millSeconds.");
 
+        if(unusedDtts.size() > 0 && showBadData()) {
+            log.error("Unused DataTypes. Please clean them up in their respective sheets and/or the database: ");
+            log.error("\t- WARNING: Do not remove DataTypes from genny sheet until all products have been checked for use of that datatype!");
+            for(String dataType : unusedDtts) {
+                log.error("\t- " + dataType);
+            }
+
+            log.error("END UNUSED DATATYPES");
+        }
+
+        log.info("Start DEF_BaseEntity");
         start = Instant.now();
         optimization.def_baseEntitysOptimization(rx.getDef_baseEntitys(), rx.getCode(), userCodeUUIDMapping);
         end = Instant.now();
         timeElapsed = Duration.between(start, end);
         log.info(debugStr + " Finished def_baseentity, cost:" + timeElapsed.toMillis() + " millSeconds.");
 
+        log.info("Start DEF_BaseEntityAttribute");
         start = Instant.now();
         optimization.def_baseEntityAttributesOptimization(rx.getDef_entityAttributes(), rx.getCode(), userCodeUUIDMapping, dataTypes);
         end = Instant.now();
         timeElapsed = Duration.between(start, end);
         log.info(debugStr + " Finished def_baseentity_attribute, cost:" + timeElapsed.toMillis() + " millSeconds.");
 
+        log.info("Start BaseEntity");
         start = Instant.now();
         optimization.baseEntitysOptimization(rx.getBaseEntitys(), rx.getCode(), userCodeUUIDMapping);
         end = Instant.now();
         timeElapsed = Duration.between(start, end);
         log.info(debugStr + " Finished baseentity, cost:" + timeElapsed.toMillis() + " millSeconds.");
 
-        log.info("SKIPPING ATTRIBUTE LINK");
-        // optimization.attributeLinksOptimization(rx.getAttributeLinks(), dataTypes, rx.getCode());
-
+    
+        log.info("Start EntityAttribute");
         start = Instant.now();
         optimization.baseEntityAttributesOptimization(rx.getEntityAttributes(), rx.getCode(), userCodeUUIDMapping);
         end = Instant.now();
         timeElapsed = Duration.between(start, end);
         log.info(debugStr + " Finished baseentity_attribute, cost:" + timeElapsed.toMillis() + " millSeconds.");
 
-        start = Instant.now();
-        optimization.entityEntitysOptimization(rx.getEntityEntitys(), rx.getCode(), isSynchronise, userCodeUUIDMapping);
-        end = Instant.now();
-        timeElapsed = Duration.between(start, end);
-        log.info(debugStr + " Finished entity_entity, cost:" + timeElapsed.toMillis() + " millSeconds.");
+        log.info("SKIP EntityEntity");
+        // start = Instant.now();
+        // optimization.entityEntitysOptimization(rx.getEntityEntitys(), rx.getCode(), isSynchronise, userCodeUUIDMapping);
+        // end = Instant.now();
+        // timeElapsed = Duration.between(start, end);
+        // log.info(debugStr + " Finished entity_entity, cost:" + timeElapsed.toMillis() + " millSeconds.");
 
+        log.info("Start Question");
         start = Instant.now();
         optimization.questionsOptimization(rx.getQuestions(), rx.getCode(), isSynchronise);
         end = Instant.now();
         timeElapsed = Duration.between(start, end);
         log.info(debugStr + " Finished question, cost:" + timeElapsed.toMillis() + " millSeconds.");
 
+        log.info("Start QuestionQuestion");
         start = Instant.now();
         optimization.questionQuestionsOptimization(rx.getQuestionQuestions(), rx.getCode());
         end = Instant.now();
         timeElapsed = Duration.between(start, end);
         log.info(debugStr + " Finished question_question, cost:" + timeElapsed.toMillis() + " millSeconds.");
 
-        optimization.asksOptimization(rx.getAsks(), rx.getCode());
+        log.info("SKIP Asks");
+        // optimization.asksOptimization(rx.getAsks(), rx.getCode());
 
     }
 

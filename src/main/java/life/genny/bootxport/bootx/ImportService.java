@@ -63,6 +63,10 @@ public class ImportService {
                 .stream()
                 .filter(rawData -> !rawData.isEmpty())
                 .map(d1 -> {
+                    log.info("Creating new Import Service with Data:");
+                    for(Map.Entry<String, String> data : d1.entrySet()) {
+                        log.info(data.getKey() + " = " + data.getValue());
+                    }
                     ModuleUnit moduleUnit = new ModuleUnit(mode, d1.get("sheetID".toLowerCase()));
                     moduleUnit.setName(d1.get("name"));
                     return moduleUnit;

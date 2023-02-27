@@ -134,6 +134,8 @@ public class ModuleUnit extends DataUnit {
             sheets = (ArrayList<Sheet>) response.get("sheets");
         } catch (IOException ioe) {
             log.error("IOException occurred when fetch SpreadSheets:" + spreadsheetId);
+            log.error(ioe.getMessage());
+            log.error(ioe.getStackTrace()[0]);
         }
         return sheets;
     }

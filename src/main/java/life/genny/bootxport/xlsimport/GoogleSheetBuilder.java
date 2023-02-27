@@ -19,6 +19,7 @@ import java.lang.invoke.MethodHandles;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.ws.rs.NotFoundException;
 
@@ -33,67 +34,74 @@ public class GoogleSheetBuilder {
     private static final String VALUEINTEGER = "valueinteger";
     private static final String VALUEBOOLEAN = "valueboolean";
     private static final String VALUEDOUBLE = "valuedouble";
-    private static final String VALUESTRING = "valuestring";
-    private static final String VALUEBDATETIME = "valuedatetime";
-    private static final String VALUEDATE = "valuedate";
-    private static final String VALUETIME = "valuetime";
+
+    // private static final String VALUESTRING = "valuestring";
+    // private static final String VALUEBDATETIME = "valuedatetime";
+    // private static final String VALUEDATE = "valuedate";
+    // private static final String VALUETIME = "valuetime";
+
     private static final String VALUELONG = "valuelong";
 
     public static final String MANDATORY = "mandatory";
     public static final String READONLY = "readonly";
 
+    private static final String Digits = "(\\p{Digit}+)";
+    private static final String HexDigits = "(\\p{XDigit}+)";
+    // an exponent is 'e' or 'E' followed by an optionally
+    // signed decimal integer.
+    private static final String Exp = "[eE][+-]?" + Digits;
+    private static final Pattern fpRegex;
+    static {
+        fpRegex = Pattern.compile
+        ("[\\x00-\\x20]*" +  // Optional leading "whitespace"
+                "[+-]?(" + // Optional sign character
+                "NaN|" +           // "NaN" string
+                "Infinity|" +      // "Infinity" string
+
+                // A decimal floating-point string representing a finite positive
+                // number without a leading sign has at most five basic pieces:
+                // Digits . Digits ExponentPart FloatTypeSuffix
+                //
+                // Since this method allows integer-only strings as input
+                // in addition to strings of floating-point literals, the
+                // two sub-patterns below are simplifications of the grammar
+                // productions from section 3.10.2 of
+                // The Java Language Specification.
+
+                // Digits ._opt Digits_opt ExponentPart_opt FloatTypeSuffix_opt
+                "(((" + Digits + "(\\.)?(" + Digits + "?)(" + Exp + ")?)|" +
+
+                // . Digits ExponentPart_opt FloatTypeSuffix_opt
+                "(\\.(" + Digits + ")(" + Exp + ")?)|" +
+
+                // Hexadecimal strings
+                "((" +
+                // 0[xX] HexDigits ._opt BinaryExponent FloatTypeSuffix_opt
+                "(0[xX]" + HexDigits + "(\\.)?)|" +
+
+                // 0[xX] HexDigits_opt . HexDigits BinaryExponent FloatTypeSuffix_opt
+                "(0[xX]" + HexDigits + "?(\\.)" + HexDigits + ")" +
+
+                ")[pP][+-]?" + Digits + "))" +
+                "[fFdD]?))" +
+                "[\\x00-\\x20]*");// Optional trailing "whitespace"
+    }
+
+
     private GoogleSheetBuilder() {
     }
 
     private static boolean isDouble(String doubleStr) {
-        final String Digits = "(\\p{Digit}+)";
-        final String HexDigits = "(\\p{XDigit}+)";
-        // an exponent is 'e' or 'E' followed by an optionally
-        // signed decimal integer.
-        final String Exp = "[eE][+-]?" + Digits;
-        final String fpRegex =
-                ("[\\x00-\\x20]*" +  // Optional leading "whitespace"
-                        "[+-]?(" + // Optional sign character
-                        "NaN|" +           // "NaN" string
-                        "Infinity|" +      // "Infinity" string
 
-                        // A decimal floating-point string representing a finite positive
-                        // number without a leading sign has at most five basic pieces:
-                        // Digits . Digits ExponentPart FloatTypeSuffix
-                        //
-                        // Since this method allows integer-only strings as input
-                        // in addition to strings of floating-point literals, the
-                        // two sub-patterns below are simplifications of the grammar
-                        // productions from section 3.10.2 of
-                        // The Java Language Specification.
-
-                        // Digits ._opt Digits_opt ExponentPart_opt FloatTypeSuffix_opt
-                        "(((" + Digits + "(\\.)?(" + Digits + "?)(" + Exp + ")?)|" +
-
-                        // . Digits ExponentPart_opt FloatTypeSuffix_opt
-                        "(\\.(" + Digits + ")(" + Exp + ")?)|" +
-
-                        // Hexadecimal strings
-                        "((" +
-                        // 0[xX] HexDigits ._opt BinaryExponent FloatTypeSuffix_opt
-                        "(0[xX]" + HexDigits + "(\\.)?)|" +
-
-                        // 0[xX] HexDigits_opt . HexDigits BinaryExponent FloatTypeSuffix_opt
-                        "(0[xX]" + HexDigits + "?(\\.)" + HexDigits + ")" +
-
-                        ")[pP][+-]?" + Digits + "))" +
-                        "[fFdD]?))" +
-                        "[\\x00-\\x20]*");// Optional trailing "whitespace"
-
-        boolean result = false;
-        
+        Matcher patternMatcher = fpRegex.matcher(doubleStr);
         try {
-			result = Pattern.matches(fpRegex, doubleStr);
+			return patternMatcher.matches();
 		} catch (Exception e) {
 			log.error("Error in isDouble ->"+doubleStr);
+            log.error(e.getMessage());
+            log.error(e.getStackTrace());
+            return false;
 		}
-        
-        return result;
     }
 
     public static boolean getBooleanFromString(final String booleanString) {
@@ -125,9 +133,7 @@ public class GoogleSheetBuilder {
         if (regex != null) {
             regex = regex.replaceAll(REGEX_1, "");
         }
-        if ("VLD_AU_DRIVER_LICENCE_NO".equalsIgnoreCase(code)) {
-            log.trace("detected VLD_AU_DRIVER_LICENCE_NO");
-        }
+        
         String name = validations.get("name").replaceAll(REGEX_1, "");
         String recursiveStr = validations.get("recursive");
         String multiAllowedStr = validations.get("multi_allowed".toLowerCase().replaceAll(REGEX_2, ""));
@@ -170,9 +176,7 @@ public class GoogleSheetBuilder {
         String name = attributes.get("name").replaceAll(REGEX_1, "");
         DataType dataTypeRecord = dataTypeMap.get(dataType);
 
-        // TODO: Ask how to handle this. For now skipping
         if(dataTypeRecord == null) {
-            log.error("BAD DATATYPE SELECTION: " + dataType + " for attribute: " + code + ". Skipping");
             return null;
         }
 
@@ -200,7 +204,6 @@ public class GoogleSheetBuilder {
         attr.setRealm(realmName);
         attr.setIcon(icon);
         
-        log.info("Constructed attribute: " + attr.getCode() + " with datatype: " + attr.getDataType().getDttCode());
         return attr;
     }
 
@@ -269,10 +272,12 @@ public class GoogleSheetBuilder {
         Question sbe = questionHashMap.get(parentCode.toUpperCase());
         Question tbe = questionHashMap.get(targetCode.toUpperCase());
         if (sbe == null) {
-            log.error("QuestionQuesiton parent code:" + parentCode + " doesn't exist in Question table.");
+            if(BatchLoading.showBadData())
+                log.error("QuestionQuesiton parent code:" + parentCode + " doesn't exist in Question table.");
             return null;
         } else if (tbe == null) {
-            log.error("QuestionQuesiton target Code:" + targetCode + " doesn't exist in Question table.");
+            if(BatchLoading.showBadData())
+                log.error("QuestionQuesiton target Code:" + targetCode + " doesn't exist in Question table.");
             return null;
         }
 
@@ -394,12 +399,14 @@ public class GoogleSheetBuilder {
 				String[] attributeFields = attrCode.toUpperCase().split("\\.");
 				attr = attributeHashMap.get(attributeFields[attributeFields.length-1]);
 				if (attr == null) {
-					log.error(String.format("Question: %s can not find Attribute:%s in database!", code, attrCode.toUpperCase()));
+                    if(BatchLoading.showBadData())
+                        log.error(String.format("Question: %s can not find Attribute:%s in database!", code, attrCode.toUpperCase()));
 					return null;
 				}
 				log.info(String.format("Question: %s using linked Attribute:%s", code, attr.getCode()));
 			} else {
-				log.error(String.format("Question: %s can not find Attribute:%s in database!", code, attrCode.toUpperCase()));
+                if(BatchLoading.showBadData())
+                    log.error(String.format("Question: %s can not find Attribute:%s in database!", code, attrCode.toUpperCase()));
 				return null;
 			}
         }
@@ -440,6 +447,28 @@ public class GoogleSheetBuilder {
     }
 
 
+    public static String[] getCodesFromBaseEntityAttribute(Map<String, String> baseEntityAttr) {
+
+        String attributeCode = null;
+        String searchKey = "attributecode"; // needs to be lower case (since constant no point in calling .toLowerCase)
+        if (baseEntityAttr.containsKey(searchKey)) {
+            attributeCode = baseEntityAttr.get(searchKey).replaceAll("^\"|\"$", "");
+        } else {
+            log.error("Invalid record, AttributeCode not found in [" + baseEntityAttr + "]");
+            return null; // force an error to be handled gracefully
+        }
+
+        String baseEntityCode = null;
+        searchKey = "baseentitycode"; // needs to be lower case (since constant no point in calling .toLowerCase)
+        
+        if (baseEntityAttr.containsKey(searchKey)) {
+            baseEntityCode = baseEntityAttr.get(searchKey).replaceAll("^\"|\"$", "");
+        } else {
+            log.error("Invalid record, BaseEntityCode not found in [" + baseEntityAttr + "]");
+        }
+        return new String[] {baseEntityCode, attributeCode};
+    }
+
     public static String getBaseEntityCodeFromBaseEntityAttribute(Map<String, String> baseEntityAttr,
                                                                   HashMap<String, String> userCodeUUIDMapping) {
         String baseEntityCode = null;
@@ -467,7 +496,8 @@ public class GoogleSheetBuilder {
         // Check if attribute code exist in Attribute table, foreign key restriction
         Attribute attribute = attrHashMap.get(attributeCode.toUpperCase());
         if (attribute == null) {
-            log.error(String.format("Invalid EntityAttribute record, AttributeCode:%s is not in the Attribute Table!!!", attributeCode));
+            if(BatchLoading.showBadData())
+                log.error(String.format("Invalid EntityAttribute record, AttributeCode:%s is not in the Attribute Table!!!", attributeCode));
             return null;
         }
 
@@ -539,7 +569,8 @@ public class GoogleSheetBuilder {
         // Check if baseEntity code exist in BaseEntity table, foreign key restriction
         BaseEntity baseEntity = beHashMap.get(baseEntityCode.toUpperCase());
         if (baseEntity == null) {
-            log.error(String.format("Invalid EntityAttribute record, BaseEntityCode:%s is not in the BaseEntity Table!!!", baseEntityCode));
+            if(BatchLoading.showBadData())
+                log.error(String.format("Invalid EntityAttribute record, BaseEntityCode:%s is not in the BaseEntity Table!!!", baseEntityCode));
             return null;
         }
 

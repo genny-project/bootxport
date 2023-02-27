@@ -201,19 +201,32 @@ public class Optimization {
         attributeLinkInsertList = null;
     }
 
-    public void attributesOptimization(Map<String, Map<String, String>> project,
+    /**
+     * Return a list of unused datatype codes and prep all good attributes for batch insertion
+     * log bad attribute codes
+     * @param project
+     * @param dataTypeMap
+     * @param realmName
+     * @return
+     */
+    public Set<String> attributesOptimization(Map<String, Map<String, String>> project,
                                        Map<String, DataType> dataTypeMap, String realmName) {
         String tableName = "Attribute";
         List<Attribute> attributesFromDB = service.queryTableByRealm(tableName, realmName);
 
         final HashMap<String, CodedEntity> codeAttributeMapping = new HashMap<>();
 
+        // force shallow cloned set
+        Set<String> unusedDataTypeCodes = new HashSet<>();
+        unusedDataTypeCodes.addAll(dataTypeMap.keySet());
+
         // leverage speed of streams for large collections
         attributesFromDB.stream().forEach(attr -> codeAttributeMapping.put(attr.getCode(), attr));
         
         ArrayList<CodedEntity> attributeInsertList = new ArrayList<>();
         ArrayList<CodedEntity> attributeUpdateList = new ArrayList<>();
-        int invalid = 0;
+        List<String> badAttributes = new ArrayList<>();
+
         int total = 0;
         int skipped = 0;
         int newItem = 0;
@@ -229,13 +242,14 @@ public class Optimization {
             }
             code = code.replaceAll("^\"|\"$", "");
 
-            // TODO: this returns null on bad datatype. Should confirm this behaviour with team
             Attribute attr = GoogleSheetBuilder.buildAttrribute(attributes, dataTypeMap, realmName, code);
 
             if(attr == null) {
-                log.info("Bad attribute: " + code);
+                badAttributes.add(code);
                 continue;
             }
+
+            unusedDataTypeCodes.remove(attr.getDataType().getDttCode());
                 
             // validation check
             if (isValid(attr)) {
@@ -253,21 +267,43 @@ public class Optimization {
                 }
             } else {
                 log.error("Invalid Attribute: " + attr.getCode());
-                invalid++;
+                
             }
-
-            log.info("Primed attribute for insert: " + attr.getCode() + " with dtt: " + attr.getDataType().getDttCode());
         }
 
         service.bulkInsert(attributeInsertList);
         service.bulkUpdate(attributeUpdateList, codeAttributeMapping);
-        printSummary(tableName, total, invalid, skipped, updated, newItem);
+        printSummary(tableName, total, badAttributes.size(), skipped, updated, newItem);
         attributesFromDB = null;
 
         // this gets released at the end of this method, no?
         // codeAttributeMapping = null;
         attributeInsertList = null;
         attributeUpdateList = null;
+
+        // Dont even worry about commenting about the bad data if we don't wanna see it
+        if(!BatchLoading.showBadData()) 
+            return unusedDataTypeCodes;
+
+        if(badAttributes.size() == 0) {
+            log.info("All attributes clean for realm: " + realmName);
+            return unusedDataTypeCodes;
+        }
+        
+        // don't worry about logging any of this if no bad attributes
+        StringBuilder sb = new StringBuilder("Bad Attribute Codes [");
+        
+        int i;
+        for(i = 0; i < badAttributes.size(); i++) {
+              sb.append("\n\t- ")
+                .append(badAttributes.get(i));
+        }
+        sb.append("]");
+
+        log.error(sb
+            .append("\n Please address these issues in the ").append(realmName).append(" sheet")
+        .toString());
+        return unusedDataTypeCodes;
     }
 
     public void baseEntityAttributesOptimization(Map<String, Map<String, String>> project, String realmName,
@@ -966,14 +1002,17 @@ public class Optimization {
     }
 
 
+    /**
+     * Return whether or not the actual attribute represented by the specified attributeCode is in the set
+     * of attrHashMap
+     * @param attrHashMap
+     * @param attributeCode
+     * @param prefix
+     * @return
+     */
     private boolean isValidDEFAttribute(HashMap<String, Attribute> attrHashMap, String attributeCode, String prefix) {
-        boolean isValid = true;
         String trimmedAttrCode = attributeCode.replaceFirst(prefix, "");
-        if(attrHashMap.get(trimmedAttrCode.toUpperCase()) == null) {
-            isValid = false;
-            log.error("Found DEF attribute:" + attributeCode + ", but real attribute code:" + trimmedAttrCode + " does not exist");
-        }
-        return isValid;
+        return (attrHashMap.get(trimmedAttrCode.toUpperCase()) != null);
     }
 
     private DataType getDataTypeFromRealAttribute(String attributeCode, String prefix, HashMap<String, Attribute> attrHashMap) {
@@ -1043,12 +1082,11 @@ public class Optimization {
             attrHashMap.put(attribute.getCode(), attribute);
         }
 
-        int invalid = 0;
+        List<String> badEntityAttributes = new ArrayList<>();
         int total = 0;
         int skipped = 0;
         int newItem = 0;
         int updated = 0;
-
 
         List<BaseEntity> baseEntities = new ArrayList<>();
         // Attribute code start with ATT_
@@ -1058,22 +1096,23 @@ public class Optimization {
             total++;
             Map<String, String> baseEntityAttr = entry.getValue();
 
-            String baseEntityCode = GoogleSheetBuilder.getBaseEntityCodeFromBaseEntityAttribute(baseEntityAttr,
-                    userCodeUUIDMapping);
+            String[] codeData = GoogleSheetBuilder.getCodesFromBaseEntityAttribute(baseEntityAttr);
+            String baseEntityCode = codeData[0];
+            String attributeCode = codeData[1];
+            
             if (baseEntityCode == null) {
-                invalid++;
+                badEntityAttributes.add("\t- null:" + attributeCode + " - Null baseEntityCode detected");
                 continue;
             }
 
-            String attributeCode = GoogleSheetBuilder.getAttributeCodeFromBaseEntityAttribute(baseEntityAttr);
             if (attributeCode == null) {
-                invalid++;
+                badEntityAttributes.add("\t- " + baseEntityCode + ":null - Null attributeCode detected");
                 continue;
             }  else if (hasDefPrefix(attributeCode)) {
                 String defPrefix = getDefPrefix(attributeCode);
                 assert(defPrefix != null);
                 if (!isValidDEFAttribute(attrHashMap, attributeCode, defPrefix)) {
-                    invalid++;
+                    badEntityAttributes.add("\t- " + baseEntityCode + ":" + attributeCode + " - attribute of this EntityAttribute does not exist in attribute table!!");
                     continue;
                 } else {
                     DataType dataType = dataTypes.get(defPrefixDataTypeMapping.get(defPrefix));
@@ -1120,7 +1159,7 @@ public class Optimization {
                 }
                 newItem++;
             } else {
-                invalid++;
+                badEntityAttributes.add("\t- " + baseEntityCode + ":" + attributeCode + " - Missing BaseEntity in BaseEntity Table");
             }
         }
         service.bulkInsert(virtualDefAttribute);
@@ -1157,7 +1196,15 @@ public class Optimization {
             }
         }
         service.bulkUpdateWithAttributes(baseEntities);
-        printSummary("DEF_BaseEntityAttributes", total, invalid, skipped, updated, newItem);
+
+        if(badEntityAttributes.size() > 0 && BatchLoading.showBadData()) {
+            log.error("Bad Entity Attributes detected in sheets. Please resolve in " + realmName + " sheet");
+            for(String badEntityAttributeMessage : badEntityAttributes) {
+                 log.error(badEntityAttributeMessage);
+            }
+        }
+
+        printSummary("DEF_BaseEntityAttributes", total, badEntityAttributes.size(), skipped, updated, newItem);
         baseEntityFromDB = null;
         beHashMap = null;
         attributeFromDB = null;
