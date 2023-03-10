@@ -74,6 +74,8 @@ public interface QwandaRepository {
 
     <T> List<T> queryTableByRealm(String tableName, String realm);
 
+    <T> List<T> queryTableByRealm(String tableName, String realm, String codes);
+
     // For Validation, Attribute, AttributeLink, QuestionQuestion, QBaseMSGMessageTemplate
     void bulkUpdate(ArrayList<CodedEntity> objectList, HashMap<String, CodedEntity> mapping);
 

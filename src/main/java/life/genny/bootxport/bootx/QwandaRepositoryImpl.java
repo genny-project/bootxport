@@ -799,6 +799,26 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         return result;
     }
 
+    public <T> List<T> queryTableByRealm(String tableName, String realm, String codes) {
+        if (codes == null )
+            return queryTableByRealm(tableName,realm);
+        else {
+            List<T> result = Collections.emptyList();
+            try {
+                String queryString = "SELECT temp FROM %s temp where temp.realm=:realmStr and temp.code in (:codes)";
+                Query query = getEntityManager().createQuery(String.format(queryString, tableName));
+                query.setParameter("realmStr", realm);
+                query.setParameter("codes", codes);
+                query.setHint("javax.persistence.query.timeout", 60000);
+                result = query.getResultList();
+            } catch (Exception e) {
+                log.error(String.format("Query table %s Error:%s".format(realm, e.getMessage())));
+            }
+            log.info("Get " + result.size() + " results from table " + tableName);
+            return result;
+        }
+    }
+
     @Override
     public void bulkInsert(ArrayList<CodedEntity> objectList) {
         if (objectList.isEmpty()) return;

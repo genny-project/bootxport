@@ -2,7 +2,10 @@ package life.genny.bootxport.xlsimport;
 
 import life.genny.bootxport.bootx.DEFBaseentityAttribute;
 import life.genny.bootxport.bootx.QwandaRepository;
-import life.genny.qwanda.*;
+import life.genny.qwanda.Ask;
+import life.genny.qwanda.CodedEntity;
+import life.genny.qwanda.Question;
+import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeLink;
 import life.genny.qwanda.attribute.EntityAttribute;
@@ -148,7 +151,14 @@ public class Optimization {
     public void attributeLinksOptimization
             (Map<String, Map<String, String>> project, Map<String, DataType> dataTypeMap, String realmName) {
         String tableName = "Attribute";
-        List<Attribute> attributeLinksFromDB = service.queryTableByRealm(tableName, realmName);
+        String codes = getCodes(project, "code");
+
+        Instant start = Instant.now();
+        List<Attribute> attributeLinksFromDB = service.queryTableByRealm(tableName, realmName, codes);
+        Instant end = Instant.now();
+        Duration timeElapsed = Duration.between(start, end);
+        log.info(String.format(debugStr + " Finished query table:%s, get %s records, cost:%s millSeconds.",
+                tableName,attributeLinksFromDB.size(), timeElapsed.toMillis()));
 
         HashSet<String> codeSet = new HashSet<>();
         HashMap<String, CodedEntity> codeAttributeMapping = new HashMap<>();
@@ -201,7 +211,14 @@ public class Optimization {
     public void attributesOptimization(Map<String, Map<String, String>> project,
                                        Map<String, DataType> dataTypeMap, String realmName) {
         String tableName = "Attribute";
-        List<Attribute> attributesFromDB = service.queryTableByRealm(tableName, realmName);
+        String codes = getCodes(project, "code");
+
+        Instant start = Instant.now();
+        List<Attribute> attributesFromDB = service.queryTableByRealm(tableName, realmName, codes);
+        Instant end = Instant.now();
+        Duration timeElapsed = Duration.between(start, end);
+        log.info(String.format(debugStr + " Finished query table:%s, get %s records, cost:%s millSeconds.",
+                tableName, attributesFromDB.size(), timeElapsed.toMillis()));
 
         HashMap<String, CodedEntity> codeAttributeMapping = new HashMap<>();
 
@@ -261,7 +278,15 @@ public class Optimization {
                                                  HashMap<String, String> userCodeUUIDMapping) {
         // Get all BaseEntity
         String tableName = "BaseEntity";
-        List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
+        String codes = getCodes(project, "baseEntityCode");
+
+        Instant start = Instant.now();
+        List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName, codes);
+        Instant end = Instant.now();
+        Duration timeElapsed = Duration.between(start, end);
+        log.info(String.format(debugStr + " Finished query table:%s, get %s records, cost:%s millSeconds.",
+                tableName,baseEntityFromDB.size(), timeElapsed.toMillis()));
+
         HashMap<String, BaseEntity> beHashMap = new HashMap<>();
         for (BaseEntity be : baseEntityFromDB) {
             beHashMap.put(be.getCode(), be);
@@ -269,7 +294,15 @@ public class Optimization {
 
         // Get all Attribute
         tableName = "Attribute";
-        List<Attribute> attributeFromDB = service.queryTableByRealm(tableName, realmName);
+        codes = getCodes(project, "attributeCode");
+
+        start = Instant.now();
+        List<Attribute> attributeFromDB = service.queryTableByRealm(tableName, realmName, codes);
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(String.format(debugStr + " Finished query table:%s, get %s records, cost:%s millSeconds.",
+                tableName,attributeFromDB.size(), timeElapsed.toMillis()));
+
         HashMap<String, Attribute> attrHashMap = new HashMap<>();
         for (Attribute attribute : attributeFromDB) {
             attrHashMap.put(attribute.getCode(), attribute);
@@ -324,11 +357,14 @@ public class Optimization {
                                         HashMap<String, String> userCodeUUIDMapping) {
         String tableName = "BaseEntity";
 
+        String codes = getCodes(project, "code");
+
         Instant start = Instant.now();
-        List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
+        List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName, codes);
         Instant end = Instant.now();
         Duration timeElapsed = Duration.between(start, end);
-        log.info(debugStr + " Finished query table:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
+        log.info(String.format(debugStr + " Finished query table:%s, get %s records, cost:%s millSeconds.",
+                tableName,baseEntityFromDB.size(), timeElapsed.toMillis()));
 
         HashMap<String, CodedEntity> codeBaseEntityMapping = new HashMap<>();
 
@@ -404,7 +440,15 @@ public class Optimization {
                                           boolean isSynchronise, HashMap<String, String> userCodeUUIDMapping) {
         // Get all BaseEntity
         String tableName = "BaseEntity";
-        List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
+        String codes = getCodes(project, "parentCode", "targetCode");
+
+        Instant start = Instant.now();
+        List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName, codes);
+        Instant end = Instant.now();
+        Duration timeElapsed = Duration.between(start, end);
+        log.info(String.format(debugStr + " Finished query table:%s, get %s records, cost:%s millSeconds.",
+                tableName,baseEntityFromDB.size(), timeElapsed.toMillis()));
+
         HashMap<String, BaseEntity> beHashMap = new HashMap<>();
         for (BaseEntity be : baseEntityFromDB) {
             beHashMap.put(be.getCode(), be);
@@ -412,7 +456,15 @@ public class Optimization {
 
         // Get all Attribute
         tableName = "Attribute";
-        List<Attribute> attributeFromDB = service.queryTableByRealm(tableName, realmName);
+        codes = getCodes(project, "linkCode");
+
+        start = Instant.now();
+        List<Attribute> attributeFromDB = service.queryTableByRealm(tableName, realmName, codes);
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(String.format(debugStr + " Finished query table:%s, get %s records, cost:%s millSeconds.",
+                tableName,attributeFromDB.size(), timeElapsed.toMillis()));
+
         HashMap<String, Attribute> attrHashMap = new HashMap<>();
         for (Attribute attribute : attributeFromDB) {
             attrHashMap.put(attribute.getCode(), attribute);
@@ -1000,6 +1052,21 @@ public class Optimization {
         return true;
     }
 
+    private String getCodes(Map<String, Map<String, String>> project, String... codeNames) {
+        HashSet<String> codes = new HashSet<>();
+        int total = 0;
+        for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
+            Map<String, String> item = entry.getValue();
+            for (String codeName: codeNames){
+                String code = item.get(codeName.toLowerCase()).replaceAll("^\"|\"$", "");
+                codes.add(code);
+                total ++;
+            }
+        }
+        log.info ("Will query " + total + " items");
+        return String.join(",", codes);
+    }
+
     public void def_baseEntityAttributesOptimization(Map<String, Map<String, String>> project, String realmName,
                                                  HashMap<String, String> userCodeUUIDMapping,
                                                  Map<String, DataType> dataTypes) {
@@ -1011,7 +1078,15 @@ public class Optimization {
 
         // Get all BaseEntity
         String tableName = "BaseEntity";
-        List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
+        String codes = getCodes(project, "baseEntityCode");
+
+        Instant start = Instant.now();
+        List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName, codes);
+        Instant end = Instant.now();
+        Duration timeElapsed = Duration.between(start, end);
+        log.info(String.format(debugStr + " Finished query table:%s, get %s records, cost:%s millSeconds.",
+                tableName,baseEntityFromDB.size(), timeElapsed.toMillis()));
+
         HashMap<String, BaseEntity> beHashMap = new HashMap<>();
         for (BaseEntity be : baseEntityFromDB) {
             beHashMap.put(be.getCode(), be);
@@ -1019,7 +1094,15 @@ public class Optimization {
 
         // Get all Attribute
         tableName = "Attribute";
-        List<Attribute> attributeFromDB = service.queryTableByRealm(tableName, realmName);
+        codes = getCodes(project, "attributeCode");
+
+        start = Instant.now();
+        List<Attribute> attributeFromDB = service.queryTableByRealm(tableName, realmName, codes);
+        end = Instant.now();
+        timeElapsed = Duration.between(start, end);
+        log.info(String.format(debugStr + " Finished query table:%s, get %s records, cost:%s millSeconds.",
+                tableName,baseEntityFromDB.size(), timeElapsed.toMillis()));
+
         HashMap<String, Attribute> attrHashMap = new HashMap<>();
         for (Attribute attribute : attributeFromDB) {
             attrHashMap.put(attribute.getCode(), attribute);
@@ -1157,10 +1240,12 @@ public class Optimization {
         String tableName = "BaseEntity";
 
         Instant start = Instant.now();
-        List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName);
+        String searchCodes = getCodes(project, "code");
+        List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName, searchCodes);
         Instant end = Instant.now();
         Duration timeElapsed = Duration.between(start, end);
-        log.info(debugStr + " Finished query table:" + tableName + ", cost:" + timeElapsed.toMillis() + " millSeconds.");
+        log.info(String.format(debugStr + " Finished query table:%s, get %s records, cost:%s millSeconds.",
+                                tableName, baseEntityFromDB.size(), timeElapsed.toMillis()));
 
         HashMap<String, CodedEntity> codeBaseEntityMapping = new HashMap<>();
 
