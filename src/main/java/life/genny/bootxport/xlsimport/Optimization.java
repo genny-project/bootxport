@@ -151,7 +151,7 @@ public class Optimization {
     public void attributeLinksOptimization
             (Map<String, Map<String, String>> project, Map<String, DataType> dataTypeMap, String realmName) {
         String tableName = "Attribute";
-        String codes = getCodes(project, "code");
+        HashSet<String> codes = getCodes(project, "code");
 
         Instant start = Instant.now();
         List<Attribute> attributeLinksFromDB = service.queryTableByRealm(tableName, realmName, codes);
@@ -211,7 +211,7 @@ public class Optimization {
     public void attributesOptimization(Map<String, Map<String, String>> project,
                                        Map<String, DataType> dataTypeMap, String realmName) {
         String tableName = "Attribute";
-        String codes = getCodes(project, "code");
+        HashSet<String> codes = getCodes(project, "code");
 
         Instant start = Instant.now();
         List<Attribute> attributesFromDB = service.queryTableByRealm(tableName, realmName, codes);
@@ -278,7 +278,7 @@ public class Optimization {
                                                  HashMap<String, String> userCodeUUIDMapping) {
         // Get all BaseEntity
         String tableName = "BaseEntity";
-        String codes = getCodes(project, "baseEntityCode");
+        HashSet<String> codes = getCodes(project, "baseEntityCode");
 
         Instant start = Instant.now();
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName, codes);
@@ -357,7 +357,7 @@ public class Optimization {
                                         HashMap<String, String> userCodeUUIDMapping) {
         String tableName = "BaseEntity";
 
-        String codes = getCodes(project, "code");
+        HashSet<String> codes = getCodes(project, "code");
 
         Instant start = Instant.now();
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName, codes);
@@ -440,7 +440,7 @@ public class Optimization {
                                           boolean isSynchronise, HashMap<String, String> userCodeUUIDMapping) {
         // Get all BaseEntity
         String tableName = "BaseEntity";
-        String codes = getCodes(project, "parentCode", "targetCode");
+        HashSet<String> codes = getCodes(project, "parentCode", "targetCode");
 
         Instant start = Instant.now();
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName, codes);
@@ -1052,19 +1052,17 @@ public class Optimization {
         return true;
     }
 
-    private String getCodes(Map<String, Map<String, String>> project, String... codeNames) {
+    private HashSet<String> getCodes(Map<String, Map<String, String>> project, String... codeNames) {
         HashSet<String> codes = new HashSet<>();
-        int total = 0;
         for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
             Map<String, String> item = entry.getValue();
             for (String codeName: codeNames){
                 String code = item.get(codeName.toLowerCase()).replaceAll("^\"|\"$", "");
                 codes.add(code);
-                total ++;
             }
         }
-        log.info ("Will query " + total + " items");
-        return String.join(",", codes);
+        log.info ("Will query " + codes.size() + " items");
+        return codes;
     }
 
     public void def_baseEntityAttributesOptimization(Map<String, Map<String, String>> project, String realmName,
@@ -1078,7 +1076,7 @@ public class Optimization {
 
         // Get all BaseEntity
         String tableName = "BaseEntity";
-        String codes = getCodes(project, "baseEntityCode");
+        HashSet<String> codes = getCodes(project, "baseEntityCode");
 
         Instant start = Instant.now();
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName, codes);
@@ -1092,16 +1090,14 @@ public class Optimization {
             beHashMap.put(be.getCode(), be);
         }
 
-        // Get all Attribute
+        // Get all Attribute as def attribute has prefix like ATT_, SER_, and need find matched real attributes
         tableName = "Attribute";
-        codes = getCodes(project, "attributeCode");
-
         start = Instant.now();
-        List<Attribute> attributeFromDB = service.queryTableByRealm(tableName, realmName, codes);
+        List<Attribute> attributeFromDB = service.queryTableByRealm(tableName, realmName);
         end = Instant.now();
         timeElapsed = Duration.between(start, end);
         log.info(String.format(debugStr + " Finished query table:%s, get %s records, cost:%s millSeconds.",
-                tableName,baseEntityFromDB.size(), timeElapsed.toMillis()));
+                tableName,attributeFromDB.size(), timeElapsed.toMillis()));
 
         HashMap<String, Attribute> attrHashMap = new HashMap<>();
         for (Attribute attribute : attributeFromDB) {
@@ -1240,7 +1236,7 @@ public class Optimization {
         String tableName = "BaseEntity";
 
         Instant start = Instant.now();
-        String searchCodes = getCodes(project, "code");
+        HashSet<String> searchCodes = getCodes(project, "code");
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName, searchCodes);
         Instant end = Instant.now();
         Duration timeElapsed = Duration.between(start, end);

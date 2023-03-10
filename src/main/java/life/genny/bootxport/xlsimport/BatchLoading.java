@@ -222,7 +222,13 @@ public class BatchLoading {
 
         String debugStr = "Time profile";
         Instant start = Instant.now();
-        HashMap<String, String> userCodeUUIDMapping = KeycloakUtils.getUsersByRealm(rx.getKeycloakUrl(), rx.getCode(), decrypt);
+        HashMap<String, String> userCodeUUIDMapping = null;
+        if (StringUtils.isEmpty(GennySettings.keycloakUserEmails)) {
+            userCodeUUIDMapping = KeycloakUtils.getUsersByRealm(rx.getKeycloakUrl(), rx.getCode(), decrypt);
+        } else {
+            userCodeUUIDMapping  = KeycloakUtils.getSpecificUsersByRealm(rx.getKeycloakUrl(), rx.getCode(), decrypt,
+                    GennySettings.keycloakUserEmails);
+        }
         Instant end = Instant.now();
         Duration timeElapsed = Duration.between(start, end);
         log.info(debugStr + " Finished get user from keycloak, cost:" + timeElapsed.toMillis() + " millSeconds.");

@@ -2,11 +2,7 @@ package life.genny.bootxport.bootx;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.persistence.EntityManager;
@@ -799,7 +795,7 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         return result;
     }
 
-    public <T> List<T> queryTableByRealm(String tableName, String realm, String codes) {
+    public <T> List<T> queryTableByRealm(String tableName, String realm, HashSet<String> codes) {
         if (codes == null )
             return queryTableByRealm(tableName,realm);
         else {
