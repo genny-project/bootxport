@@ -41,11 +41,14 @@ public class Optimization {
     private static final String SER_PREFIX= "SER_";
     private static final String DFT_PREFIX= "DFT_";
     private static final String DEP_PREFIX= "DEP_";
+    private static final String UNQ_PREFIX= "UNQ_";
     private static final Map<String, String> defPrefixDataTypeMapping =
     Map.of(ATT_PREFIX,"DTT_BOOLEAN",
     SER_PREFIX, "DTT_JSON",
     DFT_PREFIX, "DTT_TEXT",
-    DEP_PREFIX, "DTT_TEXT");
+    DEP_PREFIX, "DTT_TEXT",
+    UNQ_PREFIX, "DTT_TEXT"
+    );
 
     String debugStr = "Time profile";
 
@@ -279,6 +282,7 @@ public class Optimization {
         // Get all BaseEntity
         String tableName = "BaseEntity";
         HashSet<String> codes = getCodes(project, "baseEntityCode");
+        codes = convertKeycloakUser(codes, userCodeUUIDMapping);
 
         Instant start = Instant.now();
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName, codes);
@@ -353,11 +357,26 @@ public class Optimization {
         attrHashMap = null;
     }
 
+    private HashSet<String> convertKeycloakUser(HashSet<String> codes, HashMap<String, String> userCodeUUIDMapping){
+        HashSet<String> newCodes = new HashSet<>();
+
+        for (String code: codes) {
+            if (code.startsWith("PER_")) {
+                String keycloakUUID = KeycloakUtils.getKeycloakUUIDByUserCode(code, userCodeUUIDMapping);
+                newCodes.add(keycloakUUID);
+            } else {
+                newCodes.add(code);
+            }
+        }
+        return newCodes;
+    }
+
     public void baseEntitysOptimization(Map<String, Map<String, String>> project, String realmName,
                                         HashMap<String, String> userCodeUUIDMapping) {
         String tableName = "BaseEntity";
 
         HashSet<String> codes = getCodes(project, "code");
+        codes = convertKeycloakUser(codes, userCodeUUIDMapping);
 
         Instant start = Instant.now();
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName, codes);
@@ -441,6 +460,7 @@ public class Optimization {
         // Get all BaseEntity
         String tableName = "BaseEntity";
         HashSet<String> codes = getCodes(project, "parentCode", "targetCode");
+        codes = convertKeycloakUser(codes, userCodeUUIDMapping);
 
         Instant start = Instant.now();
         List<BaseEntity> baseEntityFromDB = service.queryTableByRealm(tableName, realmName, codes);
@@ -1057,7 +1077,7 @@ public class Optimization {
         for (Map.Entry<String, Map<String, String>> entry : project.entrySet()) {
             Map<String, String> item = entry.getValue();
             for (String codeName: codeNames){
-                String code = item.get(codeName.toLowerCase()).replaceAll("^\"|\"$", "");
+                String code = item.get(codeName.toLowerCase()).replaceAll("^\"|\"$", "").replace(" ", "");
                 codes.add(code);
             }
         }
