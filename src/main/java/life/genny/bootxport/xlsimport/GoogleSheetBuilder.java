@@ -228,12 +228,12 @@ public class GoogleSheetBuilder {
                                                          String realmName,
                                                          Map<String, Question> questionHashMap) {
 
-        String parentCode = queQues.get("parentCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+        String parentCode = queQues.get("parentCode".toLowerCase().replaceAll("^\"|\"$|_|-", "").replaceAll(" ", ""));
         if (parentCode == null) {
-            parentCode = queQues.get("sourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+            parentCode = queQues.get("sourceCode".toLowerCase().replaceAll("^\"|\"$|_|-", "").replaceAll(" ",""));
         }
 
-        String targetCode = queQues.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+        String targetCode = queQues.get("targetCode".toLowerCase().replaceAll("^\"|\"$|_|-", "").replaceAll(" ", ""));
 
         String weightStr = queQues.get(WEIGHT);
         String mandatoryStr = queQues.get(MANDATORY);
@@ -304,9 +304,9 @@ public class GoogleSheetBuilder {
 
     public static Ask buildAsk(Map<String, String> asks, String realmName,
                                Map<String, Question> questionHashMap) {
-        String sourceCode = asks.get("sourceCode".toLowerCase().replaceAll(REGEX_2, ""));
-        String targetCode = asks.get("targetCode".toLowerCase().replaceAll(REGEX_2, ""));
-        String qCode = asks.get("question_code".toLowerCase().replaceAll(REGEX_2, ""));
+        String sourceCode = asks.get("sourceCode".toLowerCase().replaceAll(REGEX_2, "").replaceAll(" ", ""));
+        String targetCode = asks.get("targetCode".toLowerCase().replaceAll(REGEX_2, "").replaceAll(" ", ""));
+        String qCode = asks.get("question_code".toLowerCase().replaceAll(REGEX_2, "").replaceAll(" ", ""));
         String name = asks.get("name");
         String weightStr = asks.get(WEIGHT);
         String mandatoryStr = asks.get(MANDATORY);
@@ -366,7 +366,7 @@ public class GoogleSheetBuilder {
         String name = questions.get("name");
         String placeholder = questions.get("placeholder");
         String directions = questions.get("directions");
-        String attrCode = questions.get("attribute_code".toLowerCase().replaceAll("^\"|\"$|_|-", ""));
+        String attrCode = questions.get("attribute_code".toLowerCase().replaceAll("^\"|\"$|_|-", "").replaceAll(" ", ""));
         String html = questions.get("html");
         String oneshotStr = questions.get("oneshot");
         String readonlyStr = questions.get(READONLY);
@@ -422,7 +422,7 @@ public class GoogleSheetBuilder {
         String attributeCode = null;
         String searchKey = "attributeCode".toLowerCase();
         if (baseEntityAttr.containsKey(searchKey)) {
-            attributeCode = baseEntityAttr.get(searchKey).replaceAll("^\"|\"$", "");
+            attributeCode = baseEntityAttr.get(searchKey).replaceAll("^\"|\"$", "").replace(" ", "");
         } else {
             log.error("Invalid record, AttributeCode not found in [" + baseEntityAttr + "]");
         }
@@ -435,7 +435,7 @@ public class GoogleSheetBuilder {
         String baseEntityCode = null;
         String searchKey = "baseEntityCode".toLowerCase();
         if (baseEntityAttr.containsKey(searchKey)) {
-            baseEntityCode = baseEntityAttr.get(searchKey).replaceAll("^\"|\"$", "");
+            baseEntityCode = baseEntityAttr.get(searchKey).replaceAll("^\"|\"$", "").replace(" ", "");
             if (baseEntityCode.startsWith("PER_")) {
                 String keycloakUUID = KeycloakUtils.getKeycloakUUIDByUserCode(baseEntityCode, userCodeUUIDMapping);
                 baseEntityCode = keycloakUUID;
@@ -618,7 +618,7 @@ public class GoogleSheetBuilder {
 
     public static BaseEntity buildBaseEntity(Map<String, String> baseEntitys, String realmName) {
 
-        String code = baseEntitys.get("code").replaceAll("^\"|\"$", "");
+        String code = baseEntitys.get("code").replaceAll("^\"|\"$", "").replace(" ", "");
         String name = getNameFromMap(baseEntitys, code);
         BaseEntity be = new BaseEntity(code, name);
         be.setRealm(realmName);

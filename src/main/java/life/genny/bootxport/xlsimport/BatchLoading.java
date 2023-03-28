@@ -1,15 +1,10 @@
 package life.genny.bootxport.xlsimport;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import life.genny.bootxport.bootx.QwandaRepository;
 import life.genny.bootxport.bootx.RealmUnit;
-import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.attribute.Attribute;
-import life.genny.qwanda.attribute.AttributeLink;
-import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
@@ -28,11 +23,12 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import java.lang.invoke.MethodHandles;
-import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 class Options {
     public String optionCode = null;
@@ -222,7 +218,13 @@ public class BatchLoading {
 
         String debugStr = "Time profile";
         Instant start = Instant.now();
-        HashMap<String, String> userCodeUUIDMapping = KeycloakUtils.getUsersByRealm(rx.getKeycloakUrl(), rx.getCode(), decrypt);
+        HashMap<String, String> userCodeUUIDMapping = null;
+        if (StringUtils.isEmpty(GennySettings.keycloakUserEmails)) {
+            userCodeUUIDMapping = KeycloakUtils.getUsersByRealm(rx.getKeycloakUrl(), rx.getCode(), decrypt);
+        } else {
+            userCodeUUIDMapping  = KeycloakUtils.getSpecificUsersByRealm(rx.getKeycloakUrl(), rx.getCode(), decrypt,
+                    GennySettings.keycloakUserEmails);
+        }
         Instant end = Instant.now();
         Duration timeElapsed = Duration.between(start, end);
         log.info(debugStr + " Finished get user from keycloak, cost:" + timeElapsed.toMillis() + " millSeconds.");

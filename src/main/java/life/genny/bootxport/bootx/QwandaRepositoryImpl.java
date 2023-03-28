@@ -2,11 +2,7 @@ package life.genny.bootxport.bootx;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.persistence.EntityManager;
@@ -797,6 +793,26 @@ public class QwandaRepositoryImpl implements QwandaRepository {
         }
         log.info("Get " + result.size() + " results from table " + tableName);
         return result;
+    }
+
+    public <T> List<T> queryTableByRealm(String tableName, String realm, HashSet<String> codes) {
+        if (codes == null )
+            return queryTableByRealm(tableName,realm);
+        else {
+            List<T> result = Collections.emptyList();
+            try {
+                String queryString = "SELECT temp FROM %s temp where temp.realm=:realmStr and temp.code in (:codes)";
+                Query query = getEntityManager().createQuery(String.format(queryString, tableName));
+                query.setParameter("realmStr", realm);
+                query.setParameter("codes", codes);
+                query.setHint("javax.persistence.query.timeout", 60000);
+                result = query.getResultList();
+            } catch (Exception e) {
+                log.error(String.format("Query table %s Error:%s".format(realm, e.getMessage())));
+            }
+            log.info("Get " + result.size() + " results from table " + tableName);
+            return result;
+        }
     }
 
     @Override

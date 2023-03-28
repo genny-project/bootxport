@@ -12,6 +12,7 @@ import life.genny.qwanda.validation.Validation;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 
@@ -73,6 +74,8 @@ public interface QwandaRepository {
     Long update(final QBaseMSGMessageTemplate template);
 
     <T> List<T> queryTableByRealm(String tableName, String realm);
+
+    <T> List<T> queryTableByRealm(String tableName, String realm, HashSet<String> codes);
 
     // For Validation, Attribute, AttributeLink, QuestionQuestion, QBaseMSGMessageTemplate
     void bulkUpdate(ArrayList<CodedEntity> objectList, HashMap<String, CodedEntity> mapping);

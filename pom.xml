@@ -17,12 +17,12 @@
 
 	<properties>
 		<qwanda-utils.version>${project.version}</qwanda-utils.version>
-		<mysql-connector.version>8.0.18</mysql-connector.version>
+		<mysql-connector.version>8.0.22</mysql-connector.version>
 		<vavr.version>0.10.2</vavr.version>
 		<version.hibernate>5.4.24.Final</version.hibernate>
 		<version.hibernate-validator>6.1.5.Final</version.hibernate-validator>
 		<version.hibernate.envers>5.4.24.Final</version.hibernate.envers>
-		<version.hsqldb>2.5.0</version.hsqldb>
+		<version.hsqldb>2.7.1</version.hsqldb>
 		<version.h2db>2.1.210</version.h2db>
 
 		<jar.finalName>${project.name}</jar.finalName>
@@ -85,7 +85,7 @@
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi</artifactId>
-			<version>4.1.0</version>
+			<version>4.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.poi</groupId>
